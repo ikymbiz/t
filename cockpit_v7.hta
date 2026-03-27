@@ -1,0 +1,1347 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>COCKPIT — 戦略コンサルタント統合管理システム</title>
+<HTA:APPLICATION
+  APPLICATIONNAME="COCKPIT"
+  ID="COCKPIT"
+  VERSION="4.1"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  WINDOWSTATE="maximize"
+  SCROLL="no"
+  SINGLEINSTANCE="yes"
+  SHOWINTASKBAR="yes"
+/>
+<style>
+/* ════════════════════════════════════════════════
+   DESIGN SYSTEM — Warm Dark / Executive Dashboard
+   ════════════════════════════════════════════════ */
+
+/* ═══ RESET ═══ */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{height:100%;overflow:hidden;}
+body{
+  background:#12141a;
+  color:#eaecf4;
+  font-family:'Segoe UI','Meiryo',sans-serif;
+  font-size:15px;
+  line-height:1.6;
+  height:100%;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-direction:column;
+  -ms-flex-direction:column;flex-direction:column;
+  overflow:hidden;
+}
+
+/* ═══ RIBBON (top toolbar) ═══ */
+#ribbon{
+  height:44px;
+  background:#1a1d28;
+  border-bottom:1px solid #2a2e40;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-align:center;
+  align-items:center;
+  padding:0 20px;
+  flex-shrink:0;
+}
+#ribbon > *{margin-right:8px;}
+#ribbon > *:last-child{margin-right:0;}
+.ribbon-brand{font-size:18px;font-weight:800;color:#e8b84b;letter-spacing:3px;margin-right:16px;}
+.ribbon-sep{width:1px;height:24px;background:#2a2e40;margin:0 6px;}
+.ribbon-btn{
+  display:inline-block;vertical-align:middle;
+  padding:6px 14px;border:1px solid transparent;border-radius:6px;
+  background:transparent;color:#a0a6bc;font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;
+}
+.ribbon-btn:hover{background:#262a3a;border-color:#363b52;color:#eaecf4;}
+.ribbon-right{margin-left:auto;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;}
+.ribbon-right > *{margin-left:14px;}
+.ribbon-stat{display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;font-size:13px;color:#a0a6bc;}
+.ribbon-stat > *{margin-right:6px;}
+.ribbon-stat > *:last-child{margin-right:0;}
+.ribbon-dot{width:8px;height:8px;border-radius:50%;background:#4eca7a;box-shadow:0 0 6px #4eca7a;}
+.ribbon-dot.warn{background:#e8b84b;box-shadow:0 0 6px #e8b84b;}
+#clock{font-family:Consolas,monospace;font-size:16px;color:#e8b84b;font-weight:700;letter-spacing:2px;}
+
+/* ═══ LAYOUT ═══ */
+#app{display:-ms-flexbox;display:flex;-ms-flex:1 1 auto;flex:1 1 auto;overflow:hidden;height:calc(100% - 44px);}
+
+/* ═══ SIDEBAR — Tree Navigation (left) ═══ */
+#sidebar{
+  width:200px;
+  background:#151820;
+  border-right:1px solid #2a2e40;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-direction:column;
+  -ms-flex-direction:column;flex-direction:column;
+  padding:8px 0;
+  -ms-flex-negative:0;
+  flex-shrink:0;
+  overflow-y:auto;
+}
+.nav-group-label{
+  font-size:11px;font-weight:700;letter-spacing:2px;color:#6b7190;
+  text-transform:uppercase;padding:12px 16px 4px;
+}
+.nav-btn{
+  width:100%;
+  height:auto;
+  display:block;
+  padding:10px 16px;
+  cursor:pointer;
+  border:none;
+  border-left:3px solid transparent;
+  background:transparent;
+  color:#8892a6;
+  font-family:Meiryo,sans-serif;
+  font-size:14px;
+  text-align:left;
+  outline:none;
+  -moz-box-sizing:border-box;
+  box-sizing:border-box;
+}
+.nav-icon{display:inline;margin-right:10px;font-size:18px;vertical-align:middle;}
+.nav-label{display:inline;font-size:14px;vertical-align:middle;}
+.nav-btn:hover{
+  background:#1e2230;
+  color:#c0c6d6;
+}
+.nav-btn.active{
+  background:rgba(232,184,75,0.08);
+  color:#e8b84b;
+  border-left-color:#e8b84b;
+}
+.nav-icon{font-size:18px;line-height:1;width:22px;text-align:center;flex-shrink:0;}
+.nav-label{font-size:14px;font-weight:500;}
+.nav-sep{height:1px;background:#2a2e40;margin:6px 12px;}
+
+/* ═══ MAIN ═══ */
+#main{-ms-flex:1 1 auto;flex:1 1 auto;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;min-height:0;}
+.screen{display:none;-ms-flex:1 1 auto;flex:1 1 auto;overflow:hidden;min-height:0;}
+.screen.active{display:block;display:-ms-flexbox;display:flex;}
+.screen > *{margin-bottom:16px;}
+.screen > *:last-child{margin-bottom:0;}
+#screen-capture{display:none !important;}
+#screen-capture.active{display:block !important;}
+#screen-capture > *{margin-bottom:0;}
+
+/* ═══ PANELS / CARDS ═══ */
+.panel{
+  background:#1f2230;
+  border:1px solid #2a2e40;
+  border-radius:10px;
+}
+.panel-hdr{
+  padding:14px 20px;
+  border-bottom:1px solid #2a2e40;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-align:center;
+  align-items:center;
+}
+.panel-hdr > *{margin-right:12px;}
+.panel-hdr > *:last-child{margin-right:0;}
+.panel-title{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:2px;
+  color:#e8b84b;
+  text-transform:uppercase;
+}
+.badge{
+  font-family:'Consolas','MS Gothic',monospace;
+  font-size:12px;
+  font-weight:700;
+  background:rgba(232,184,75,0.10);
+  color:#e8b84b;
+  border:1px solid rgba(232,184,75,0.28);
+  padding:2px 10px;
+  border-radius:4px;
+}
+
+/* ═══ FORM ELEMENTS ═══ */
+.fg{display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;}
+.fg > *{margin-bottom:6px;}
+.fg > *:last-child{margin-bottom:0;}
+label.lbl{
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:1px;
+  color:#6b7190;
+  text-transform:uppercase;
+}
+input[type=text],input[type=date],input[type=datetime-local],
+input[type=url],input[type=number],textarea,select{
+  background:#161820;
+  border:1px solid #363b52;
+  border-radius:6px;
+  color:#eaecf4;
+  font-family:'Segoe UI','Meiryo',sans-serif;
+  font-size:15px;
+  padding:10px 14px;
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+  width:100%;
+}
+input:focus,textarea:focus,select:focus{
+  border-color:#c9982e;
+  box-shadow:0 0 0 3px rgba(232,184,75,0.10);
+}
+textarea{resize:vertical;min-height:80px;line-height:1.7;}
+select option{background:#1f2230;}
+
+/* ═══ BUTTONS ═══ */
+.btn{
+  display:-ms-inline-flexbox;
+  display:inline-flex;
+  -ms-flex-align:center;
+  align-items:center;
+  padding:10px 20px;
+  border:1px solid;
+  border-radius:6px;
+  font-family:'Segoe UI','Meiryo',sans-serif;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:.5px;
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.btn-primary{
+  background:#e8b84b;
+  border-color:#e8b84b;
+  color:#12141a;
+}
+.btn-primary:hover{background:#f5d78e;border-color:#f5d78e;}
+.btn-ghost{
+  background:transparent;
+  border-color:#363b52;
+  color:#a0a6bc;
+}
+.btn-ghost:hover{border-color:#c9982e;color:#e8b84b;}
+.btn-blue{
+  background:rgba(91,156,245,0.10);
+  border-color:rgba(91,156,245,0.25);
+  color:#5b9cf5;
+}
+.btn-danger{
+  background:transparent;
+  border-color:rgba(240,96,96,0.28);
+  color:#f06060;
+}
+.btn-sm{padding:7px 14px;font-size:12px;}
+.btn-xs{padding:5px 12px;font-size:11px;}
+
+/* ═══ TAGS ═══ */
+.tag{
+  font-size:12px;
+  font-weight:600;
+  padding:4px 12px;
+  border-radius:4px;
+  background:#262a3a;
+  border:1px solid #363b52;
+  color:#a0a6bc;
+  cursor:pointer;
+  transition:all .15s;
+  display:inline-block;
+}
+.tag:hover,.tag.active{
+  border-color:rgba(232,184,75,0.28);
+  color:#e8b84b;
+  background:rgba(232,184,75,0.10);
+}
+
+/* ═══ TOAST ═══ */
+#toast{
+  position:fixed;bottom:28px;right:28px;z-index:9999;
+  display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;pointer-events:none;
+}
+.toast-msg{
+  background:#262a3a;
+  border:1px solid rgba(232,184,75,0.28);
+  color:#e8b84b;
+  font-size:14px;
+  font-weight:600;
+  padding:14px 22px;
+  border-radius:10px;
+  box-shadow:0 8px 30px rgba(0,0,0,.4);
+  animation:tIn .25s ease,tOut .3s ease 2.5s forwards;
+}
+.toast-msg.ok{border-color:rgba(78,202,122,0.28);color:#4eca7a;}
+.toast-msg.cy{border-color:rgba(91,156,245,0.25);color:#5b9cf5;}
+.toast-msg.err{border-color:rgba(240,96,96,0.28);color:#f06060;}
+@keyframes tIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:none;}}
+@keyframes tOut{to{opacity:0;transform:translateY(12px);}}
+
+/* ═══ SECTION LABEL ═══ */
+.sec-lbl{
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:2.5px;
+  color:#6b7190;
+  text-transform:uppercase;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-align:center;
+  align-items:center;
+}
+.sec-lbl::after{content:'';-ms-flex:1;flex:1;height:1px;background:#2a2e40;margin-left:12px;}
+
+/* ═══ EMPTY STATE ═══ */
+.empty{
+  display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;
+  padding:48px;color:#6b7190;font-size:14px;letter-spacing:1px;
+}
+.empty > *{margin-bottom:12px;}
+.empty > *:last-child{margin-bottom:0;}
+.empty-icon{font-size:40px;opacity:.25;}
+
+/* ═══ SEARCH ═══ */
+.search-row{
+  display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;
+  padding:10px 16px;
+  border-bottom:1px solid #2a2e40;
+  background:#181b23;
+}
+.search-row input{
+  -ms-flex:1;flex:1;background:transparent;border:none;padding:0;margin-left:10px;
+  font-size:15px;color:#eaecf4;
+}
+.search-row input:focus{box-shadow:none;}
+
+/* ═══ SCROLLBAR ═══ */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#363b52;border-radius:3px;}
+
+/* ═══ LOG ITEMS ═══ */
+.log-item{
+  background:#262a3a;
+  border:1px solid #2a2e40;
+  border-radius:6px;
+  padding:14px 16px;
+  cursor:pointer;
+  transition:all .15s;
+  margin-bottom:8px;
+}
+.log-item:hover{border-color:#363b52;background:#2e3348;}
+.log-item.has-ai{border-left:3px solid #5b9cf5;}
+.log-hdr{display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;margin-bottom:8px;-ms-flex-wrap:wrap;flex-wrap:wrap;}
+.log-hdr > *{margin-right:8px;}
+.log-hdr > *:last-child{margin-right:0;}
+.type-badge{
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  padding:3px 10px;
+  border-radius:4px;
+  text-transform:uppercase;
+}
+.type-仮説,.type-学び{background:rgba(91,156,245,0.10);color:#5b9cf5;border:1px solid rgba(91,156,245,0.25);}
+.type-違和感,.type-リスク{background:rgba(240,96,96,0.10);color:#f06060;border:1px solid rgba(240,96,96,0.28);}
+.type-閃き,.type-アイデア{background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);}
+.type-問い,.type-決断{background:rgba(78,202,122,0.10);color:#4eca7a;border:1px solid rgba(78,202,122,0.28);}
+.type-観察,.type-愚痴・ストレス{background:rgba(107,113,144,.12);color:#a0a6bc;border:1px solid #363b52;}
+.fw-badge{
+  font-size:11px;font-weight:700;
+  padding:3px 10px;border-radius:4px;
+  background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);
+}
+.log-time{font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#6b7190;margin-left:auto;}
+.log-body{font-size:14px;line-height:1.6;color:#a0a6bc;}
+.log-ai{font-size:12px;color:#5b9cf5;margin-top:6px;}
+.log-tags{margin-top:8px;display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;}
+.log-tags > *{margin:0 4px 4px 0;}
+
+/* ═══ FRAMEWORK PANEL ═══ */
+.fw-panel{
+  border:1px solid rgba(232,184,75,0.28);
+  border-radius:10px;
+  background:rgba(232,184,75,0.10);
+  overflow:hidden;
+  animation:fadeIn .25s ease;
+}
+.fw-panel-hdr{
+  padding:12px 16px;
+  background:rgba(232,184,75,.06);
+  border-bottom:1px solid rgba(232,184,75,0.28);
+  font-size:14px;font-weight:700;
+  letter-spacing:2px;color:#e8b84b;text-transform:uppercase;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+
+/* ═══ GRID HELPERS ═══ */
+.g2{display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;}
+.g2 > *{width:48%;width:calc(50% - 6px);margin:0 12px 12px 0;}
+.g2 > *:nth-child(2n){margin-right:0;}
+.g3{display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;}
+.g3 > *{width:32%;width:calc(33.333% - 8px);margin:0 12px 12px 0;}
+.g3 > *:nth-child(3n){margin-right:0;}
+.g4{display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;}
+.g4 > *{width:23%;width:calc(25% - 9px);margin:0 12px 12px 0;}
+.g4 > *:nth-child(4n){margin-right:0;}
+.span2{width:100% !important;margin-right:0 !important;}
+
+/* ═══ TASK MATRIX ═══ */
+.matrix-grid{display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;-ms-flex:1;flex:1;overflow:hidden;}
+.matrix-grid > *{width:calc(50% - 6px);height:calc(50% - 6px);margin:0 12px 12px 0;}
+.matrix-grid > *:nth-child(2n){margin-right:0;}
+.m-cell{background:#262a3a;border:1px solid #2a2e40;border-radius:10px;overflow:hidden;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;}
+.m-hdr{padding:10px 16px;border-bottom:1px solid #2a2e40;font-size:13px;font-weight:700;letter-spacing:1px;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;}
+.m-hdr > *{margin-right:8px;}
+.m-hdr > *:last-child{margin-right:0;}
+.c-q1 .m-hdr{color:#f06060;}
+.c-q2 .m-hdr{color:#e8b84b;}
+.c-q3 .m-hdr{color:#5b9cf5;}
+.c-q4 .m-hdr{color:#6b7190;}
+.m-body{-ms-flex:1;flex:1;overflow-y:auto;padding:8px;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;}
+.m-body > *{margin-bottom:6px;}
+.m-body > *:last-child{margin-bottom:0;}
+.m-task{
+  background:#1f2230;
+  border:1px solid #2a2e40;
+  border-radius:6px;
+  padding:10px 12px;
+  font-size:14px;
+  cursor:pointer;
+  display:-ms-flexbox;
+  display:flex;
+  -ms-flex-align:center;
+  align-items:center;
+}
+.m-task > *{margin-right:10px;}
+.m-task > *:last-child{margin-right:0;}
+.m-task:hover{background:#2e3348;}
+.done-btn{
+  width:22px;height:22px;
+  border:2px solid #363b52;
+  border-radius:4px;
+  cursor:pointer;
+  background:transparent;
+  -ms-flex-negative:0;flex-shrink:0;
+  display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;
+  color:transparent;font-size:13px;font-weight:bold;
+  transition:all .15s;
+}
+.done-btn:hover{border-color:#4eca7a;color:#4eca7a;}
+
+/* ═══ STAT CARDS ═══ */
+.stat-card{
+  background:#262a3a;
+  border:1px solid #2a2e40;
+  border-radius:10px;
+  padding:20px;
+  position:relative;
+  overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:#e8b84b;border-radius:10px 10px 0 0;
+}
+.stat-card.blue::before{background:#5b9cf5;}
+.stat-card.green::before{background:#4eca7a;}
+.stat-card.red::before{background:#f06060;}
+.stat-lbl{font-size:12px;font-weight:700;letter-spacing:2px;color:#6b7190;text-transform:uppercase;margin-bottom:10px;}
+.stat-val{font-size:42px;font-weight:800;line-height:1;color:#eaecf4;}
+.stat-sub{font-size:13px;color:#a0a6bc;margin-top:8px;}
+
+/* ═══ AGENT CARDS ═══ */
+.agent-flow{display:-ms-flexbox;display:flex;-ms-flex-align:start;align-items:flex-start;}
+.agent-flow .agent-card{-ms-flex:1;flex:1;min-width:0;}
+.agent-flow .agent-arrow{width:44px;-ms-flex-negative:0;flex-shrink:0;}
+.agent-card{background:#262a3a;border:1px solid #2a2e40;border-radius:10px;overflow:hidden;transition:opacity .3s;min-width:0;}
+.agent-hdr{padding:14px 18px;border-bottom:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;}
+.agent-hdr > *{margin-right:12px;}
+.agent-hdr > *:last-child{margin-right:0;}
+.agent-id{font-size:28px;font-weight:800;color:#e8b84b;}
+.agent-name .n{font-size:15px;font-weight:600;}
+.agent-name .r{font-size:11px;color:#6b7190;letter-spacing:1px;font-family:'Consolas','MS Gothic',monospace;}
+.agent-body{padding:16px 18px;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;}
+.agent-body > *{margin-bottom:12px;}
+.agent-body > *:last-child{margin-bottom:0;}
+.ab-lbl{font-size:11px;font-weight:700;color:#6b7190;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;}
+.io-chips{display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;}
+.io-chips > *{margin:0 4px 4px 0;}
+.chip{font-family:'Consolas','MS Gothic',monospace;font-size:11px;padding:4px 10px;border-radius:4px;background:#1f2230;border:1px solid #2a2e40;color:#a0a6bc;}
+.chip.out{border-color:rgba(78,202,122,0.28);color:#4eca7a;background:rgba(78,202,122,0.10);}
+.ag-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;}
+.bg-wait{background:rgba(107,113,144,.12);color:#6b7190;border:1px solid #2a2e40;}
+.bg-ready{background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);}
+.bg-done{background:rgba(78,202,122,0.10);color:#4eca7a;border:1px solid rgba(78,202,122,0.28);}
+.agent-arrow{display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;font-size:24px;color:#363b52;padding-top:50px;}
+.agent-arrow.ready{color:#e8b84b;}
+.step-check{display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;padding:10px 14px;background:#1f2230;border:1px solid #2a2e40;border-radius:6px;}
+.step-check > *{margin-right:10px;}
+.step-check > *:last-child{margin-right:0;}
+.step-check input[type=checkbox]{width:18px;height:18px;accent-color:#e8b84b;}
+.step-check label{font-size:14px;color:#a0a6bc;cursor:pointer;}
+
+/* ═══ CSV PREVIEW ═══ */
+.csv-box{
+  background:#161820;border:1px solid #2a2e40;border-radius:6px;
+  padding:10px 12px;font-family:'Consolas','MS Gothic',monospace;font-size:11px;color:#6b7190;
+  line-height:1.6;max-height:120px;overflow-y:auto;white-space:pre;
+}
+
+/* ═══ MODAL ═══ */
+.modal-overlay{position:fixed;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.7);z-index:500;display:none;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;}
+.modal-overlay.open{display:-ms-flexbox;display:flex;}
+.modal{
+  background:#1f2230;
+  border:1px solid #363b52;
+  border-radius:10px;
+  width:680px;max-width:95vw;max-height:85vh;
+  display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;
+  box-shadow:0 8px 60px rgba(0,0,0,.6);
+}
+.modal-hdr{padding:16px 24px;border-bottom:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:justify;justify-content:space-between;}
+.modal-title{font-size:15px;font-weight:700;letter-spacing:2px;color:#e8b84b;text-transform:uppercase;}
+.modal-x{background:none;border:none;color:#6b7190;cursor:pointer;font-size:20px;padding:4px 8px;}
+.modal-x:hover{color:#eaecf4;}
+.modal-body{padding:24px;overflow-y:auto;-ms-flex:1;flex:1;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;}
+.modal-body > *{margin-bottom:14px;}
+.modal-body > *:last-child{margin-bottom:0;}
+.modal-foot{padding:16px 24px;border-top:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-pack:end;justify-content:flex-end;}
+.modal-foot > *{margin-left:12px;}
+.modal-foot > *:first-child{margin-left:0;}
+
+/* ═══ LIST ITEMS ═══ */
+.list-item{padding:14px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;transition:background .15s;}
+.list-item:hover{background:#2e3348;}
+.list-item.sel{background:rgba(232,184,75,0.10);border-left:3px solid #e8b84b;}
+.list-title{font-size:15px;margin-bottom:4px;}
+.list-meta{font-size:13px;color:#6b7190;}
+
+/* ═══ MISC ═══ */
+.filepath-box{background:#161820;border:1px solid #363b52;border-radius:6px;padding:12px 14px;font-family:'Consolas','MS Gothic',monospace;font-size:13px;color:#a0a6bc;word-break:break-all;}
+.drop-zone{border:2px dashed #363b52;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s;background:#161820;}
+.drop-zone.over{border-color:#e8b84b;background:rgba(232,184,75,0.10);}
+.drop-icon{font-size:36px;margin-bottom:10px;opacity:.5;}
+.drop-txt{font-size:14px;color:#6b7190;letter-spacing:1px;}
+.char-cnt{font-size:12px;color:#6b7190;text-align:right;}
+.pj-card{background:#262a3a;border:1px solid #2a2e40;border-radius:6px;padding:14px 16px;cursor:pointer;transition:all .15s;margin-bottom:8px;}
+.pj-card:hover{border-color:#363b52;}
+.pj-s{border-left:3px solid #f06060;}
+.pj-a{border-left:3px solid #e8b84b;}
+.pj-b{border-left:3px solid #5b9cf5;}
+.pj-name{font-size:15px;font-weight:600;margin-bottom:4px;}
+.pj-meta{font-size:13px;color:#6b7190;}
+.pj-bar{height:3px;background:#2a2e40;border-radius:2px;margin-top:8px;}
+.pj-fill{height:100%;background:#e8b84b;border-radius:2px;}
+.qtags{display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-top:6px;}
+.qtags > *{margin:0 6px 6px 0;}
+.st-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;}
+.st-未読{background:rgba(240,96,96,0.10);color:#f06060;border:1px solid rgba(240,96,96,0.28);}
+.st-読了{background:rgba(107,113,144,.12);color:#a0a6bc;border:1px solid #2a2e40;}
+.st-AI処理済{background:rgba(91,156,245,0.10);color:#5b9cf5;border:1px solid rgba(91,156,245,0.25);}
+.sr-item{background:#262a3a;border:1px solid #2a2e40;border-radius:6px;padding:14px;margin-bottom:8px;}
+.sr-source{font-family:'Consolas','MS Gothic',monospace;font-size:11px;color:#e8b84b;letter-spacing:1px;margin-bottom:6px;}
+.sr-body{font-size:14px;line-height:1.6;color:#a0a6bc;}
+.wr-section{background:#262a3a;border:1px solid #2a2e40;border-radius:10px;padding:20px;margin-bottom:12px;}
+.wr-title{font-size:14px;font-weight:700;color:#e8b84b;letter-spacing:2px;margin-bottom:12px;text-transform:uppercase;}
+.inbox-item{padding:14px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;transition:background .15s;}
+.inbox-item:hover{background:#2e3348;}
+.inbox-hdr{display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;margin-bottom:4px;}
+.inbox-hdr > *{margin-right:10px;}
+.inbox-hdr > *:last-child{margin-right:0;}
+.inbox-title{font-size:14px;-ms-flex:1;flex:1;line-height:1.4;}
+.inbox-meta{font-size:13px;color:#6b7190;}
+.mtg-item{padding:14px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;transition:background .15s;}
+.mtg-item:hover{background:#2e3348;}
+.mtg-item.sel{background:rgba(232,184,75,0.10);border-left:3px solid #e8b84b;}
+.mtg-name{font-size:15px;margin-bottom:4px;}
+.mtg-meta{font-size:13px;color:#6b7190;}
+</style>
+</head>
+<body>
+
+<!-- ═══ RIBBON ═══ -->
+<div id="ribbon">
+  <span class="ribbon-brand">COCKPIT</span>
+  <div class="ribbon-sep"></div>
+  <button class="ribbon-btn" onclick="go('capture')">⚡ 思考メモ</button>
+  <button class="ribbon-btn" onclick="openModal('task-modal')">◈ タスク追加</button>
+  <button class="ribbon-btn" onclick="go('inbox')">📥 情報収集</button>
+  <button class="ribbon-btn" onclick="go('meetings')">📋 議事録</button>
+  <div class="ribbon-sep"></div>
+  <button class="ribbon-btn" onclick="openModal('search-modal')">🔍 全文検索</button>
+  <button class="ribbon-btn" onclick="backupAll()">💾 バックアップ</button>
+  <button class="ribbon-btn" onclick="openDataFolder()">📂 フォルダ</button>
+  <div class="ribbon-right">
+    <div class="ribbon-stat"><div class="ribbon-dot"></div><span id="hd-logs">0 LOGS</span></div>
+    <div class="ribbon-stat"><div class="ribbon-dot warn"></div><span id="hd-tasks">0 TASKS</span></div>
+    <div id="clock">--:--:--</div>
+  </div>
+</div>
+
+<div id="app">
+  <!-- ═══ 左ツリーナビ ═══ -->
+  <div id="sidebar">
+    <div class="nav-group-label">記録</div>
+    <button class="nav-btn active" id="nav-capture" onclick="go('capture')"><span class="nav-icon">⚡</span><span class="nav-label">思考メモ</span></button>
+    <button class="nav-btn" id="nav-framework" onclick="go('framework')"><span class="nav-icon">◆</span><span class="nav-label">フレームワーク</span></button>
+    <button class="nav-btn" id="nav-inbox" onclick="go('inbox')"><span class="nav-icon">📥</span><span class="nav-label">情報インボックス</span></button>
+    <button class="nav-btn" id="nav-meetings" onclick="go('meetings')"><span class="nav-icon">📋</span><span class="nav-label">議事録</span></button>
+    <button class="nav-btn" id="nav-delegate" onclick="go('delegate')"><span class="nav-icon">📤</span><span class="nav-label">部下への指示</span></button>
+    <div class="nav-sep"></div>
+    <div class="nav-group-label">管理</div>
+    <button class="nav-btn" id="nav-tasks" onclick="go('tasks')"><span class="nav-icon">◈</span><span class="nav-label">タスク管理</span></button>
+    <button class="nav-btn" id="nav-projects" onclick="go('projects')"><span class="nav-icon">◉</span><span class="nav-label">案件ボード</span></button>
+    <button class="nav-btn" id="nav-clients" onclick="go('clients')"><span class="nav-icon">👤</span><span class="nav-label">顧客カルテ</span></button>
+    <button class="nav-btn" id="nav-risks" onclick="go('risks')"><span class="nav-icon">⚠</span><span class="nav-label">リスク管理</span></button>
+    <div class="nav-sep"></div>
+    <div class="nav-group-label">分析</div>
+    <button class="nav-btn" id="nav-knowledge" onclick="go('knowledge')"><span class="nav-icon">📖</span><span class="nav-label">ナレッジ</span></button>
+    <button class="nav-btn" id="nav-review" onclick="go('review')"><span class="nav-icon">📊</span><span class="nav-label">週次レビュー</span></button>
+    <button class="nav-btn" id="nav-ai" onclick="go('ai')"><span class="nav-icon">🤖</span><span class="nav-label">AIコンソール</span></button>
+    <div class="nav-sep"></div>
+    <button class="nav-btn" id="nav-home" onclick="go('home')"><span class="nav-icon">⊞</span><span class="nav-label">ダッシュボード</span></button>
+  </div>
+
+  <div id="main">
+
+    <!-- ═══ HOME ═══ -->
+    <div class="screen" id="screen-home" style="-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;">
+      <div style="display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center">
+        <div class="sec-lbl" style="flex:1">TODAY'S STATUS</div>
+        <button class="btn btn-primary btn-sm" onclick="go('capture')">＋ 思考を記録</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModal('task-modal')">＋ タスク追加</button>
+      </div>
+      <div class="g4">
+        <div class="stat-card"><div class="stat-lbl">THOUGHT LOGS</div><div class="stat-val" id="st-logs">0</div><div class="stat-sub" id="st-logs2">今日: 0 件</div></div>
+        <div class="stat-card blue"><div class="stat-lbl">OPEN TASKS</div><div class="stat-val" id="st-tasks">0</div><div class="stat-sub" id="st-tasks2">S優先: 0 件</div></div>
+        <div class="stat-card green"><div class="stat-lbl">INBOX ITEMS</div><div class="stat-val" id="st-inbox">0</div><div class="stat-sub" id="st-inbox2">未読: 0 件</div></div>
+        <div class="stat-card red"><div class="stat-lbl">ACTIVE RISKS</div><div class="stat-val" id="st-risks">0</div><div class="stat-sub" id="st-risks2">高: 0 件</div></div>
+      </div>
+      <div class="g2">
+        <div>
+          <div class="sec-lbl">PRIORITY TASKS</div>
+          <div id="dash-tasks" class="panel" style="overflow:hidden;margin-top:8px"><div class="empty"><div class="empty-icon">◈</div>タスクなし</div></div>
+        </div>
+        <div>
+          <div class="sec-lbl">RECENT THOUGHTS</div>
+          <div id="dash-thoughts" class="panel" style="overflow:hidden;margin-top:8px"><div class="empty"><div class="empty-icon">⚡</div>思考ログなし</div></div>
+        </div>
+      </div>
+      <div class="sec-lbl">ACTIVE PROJECTS</div>
+      <div id="dash-projects" class="panel" style="overflow:hidden"><div class="empty"><div class="empty-icon">◉</div>案件なし</div></div>
+    </div>
+
+    <!-- ═══ CAPTURE — メモ帳スタイル ═══ -->
+    <div class="screen active" id="screen-capture" style="overflow:hidden;">
+      <table style="width:100%;height:100%;border-collapse:collapse;">
+        <tr>
+          <!-- LEFT: メモ帳 -->
+          <td style="vertical-align:top;border-right:1px solid #2a2e40;position:relative;">
+            <table style="width:100%;height:100%;border-collapse:collapse;">
+              <tr><td style="padding:0;height:100%;vertical-align:top;">
+                <textarea id="c-body" style="width:100%;height:100%;background:#12141a;border:none;color:#eaecf4;font-family:Meiryo,sans-serif;font-size:17px;line-height:1.8;padding:24px 28px;resize:none;outline:none;overflow-y:auto;" placeholder="頭の中をここに吐き出す。&#10;&#10;フレームワーク使うなら:&#10;  #3C  #SCR  #SWOT  #MECE  #仮説  #イシュー&#10;  #4P  #5Forces  #ギャップ  #シナリオ  #ピラミッド  #KPI  #意思決定&#10;&#10;例: #仮説 A社はDXに本腰だが現場がついてきていないのではないか" onkeyup="document.getElementById('c-cnt').innerText=this.value.length"></textarea>
+              </td></tr>
+              <tr><td style="height:40px;border-top:1px solid #2a2e40;background:#181b23;padding:8px 16px;white-space:nowrap;">
+                <select id="c-type" style="width:90px;padding:5px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#a0a6bc;">
+                  <option>仮説</option><option>違和感</option><option>閃き</option><option>リスク</option><option>問い</option><option>愚痴</option><option>観察</option><option>学び</option><option>アイデア</option><option>決断</option>
+                </select>
+                <select id="c-urgency" style="width:100px;padding:5px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#a0a6bc;">
+                  <option>記録だけ</option><option>今すぐ行動</option><option>今週中に深堀</option><option>アーカイブ</option>
+                </select>
+                <input type="text" id="c-tags" placeholder="タグ ;区切り" style="width:180px;padding:5px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#eaecf4;">
+                <input type="text" id="c-pj" placeholder="案件ID" style="width:70px;padding:5px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#eaecf4;">
+                <span style="font-size:12px;color:#6b7190;margin:0 8px;"><span id="c-cnt">0</span>字</span>
+                <button class="btn btn-primary btn-sm" onclick="saveThought()" style="padding:6px 16px;">⚡ 記録 (Ctrl+Enter)</button>
+              </td></tr>
+              <tr><td style="height:28px;background:#181b23;padding:2px 16px;border-top:1px solid #1f2230;">
+                <span style="font-size:11px;color:#6b7190;">QUICK: </span>
+                <span id="q-tags-cap"></span>
+              </td></tr>
+            </table>
+            <select id="c-ctx" style="display:none"><option>その他</option></select>
+            <select id="c-fw" style="display:none"><option value="">なし</option></select>
+            <div id="fw-area" style="display:none"></div>
+          </td>
+          <!-- RIGHT: ログ一覧 -->
+          <td style="width:380px;vertical-align:top;">
+            <table style="width:100%;height:100%;border-collapse:collapse;">
+              <tr><td style="height:48px;padding:0;">
+        <div class="panel-hdr">
+          <div class="panel-title">THOUGHT LOG</div><span class="badge" id="log-badge">0</span>
+          <div style="margin-left:auto;display:-ms-flexbox;display:flex;">
+            <button class="btn btn-ghost btn-xs" onclick="go('framework')">◆ FW分析</button>
+            <button class="btn btn-ghost btn-xs" onclick="copyCSV('thought_log')">📋 CSV</button>
+          </div>
+        </div>
+              </td></tr>
+              <tr><td style="height:40px;padding:0;">
+                <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="検索..." onkeyup="renderLogs(this.value)" id="log-search"></div>
+              </td></tr>
+              <tr><td style="padding:0;vertical-align:top;position:relative;">
+                <div style="overflow-y:auto;padding:12px;position:absolute;top:0;left:0;right:0;bottom:0;" id="log-list"><div class="empty"><div class="empty-icon">⚡</div>思考を記録してください</div></div>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ═══ FRAMEWORK 専用画面 ═══ -->
+    <div class="screen" id="screen-framework" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <!-- LEFT: フレームワーク入力 -->
+      <div style="-ms-flex:1;flex:1;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;border-right:1px solid #2a2e40;">
+        <div style="display:-ms-flexbox;display:flex;align-items:center;">
+          <div class="sec-lbl" style="flex:1">FRAMEWORK ANALYSIS</div>
+          <button class="btn btn-ghost btn-xs" onclick="go('capture')">← メモに戻る</button>
+        </div>
+        <!-- 元にするログ選択 -->
+        <div class="fg">
+          <label class="lbl">元にする思考ログ（任意）</label>
+          <select id="fw-source-log" onchange="loadLogForFW()" style="font-size:14px;">
+            <option value="">— 新規で作成 —</option>
+          </select>
+        </div>
+        <div id="fw-source-preview" style="display:none;background:#1f2230;border:1px solid #2a2e40;border-radius:6px;padding:12px 16px;font-size:14px;color:#a0a6bc;line-height:1.6;"></div>
+        <!-- フレームワーク選択 -->
+        <div class="g2">
+          <div class="fg">
+            <label class="lbl">フレームワーク</label>
+            <select id="fw-select" onchange="renderFWPanel()" style="font-size:15px;">
+              <option value="">選択してください</option>
+              <option value="3C">3C分析</option><option value="SCR">SCR（状況・課題・解決策）</option>
+              <option value="MECE">MECE分解</option><option value="仮説思考">仮説思考</option>
+              <option value="イシューツリー">イシューツリー / So What</option><option value="SWOT">SWOT分析</option>
+              <option value="4P">4P分析</option><option value="5Forces">5Forces分析</option>
+              <option value="ギャップ分析">ギャップ分析（As-Is/To-Be）</option><option value="シナリオ">シナリオ分析</option>
+              <option value="ピラミッド">ピラミッドストラクチャー</option><option value="KPIツリー">KPIツリー</option>
+              <option value="意思決定">意思決定ツリー</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="lbl">関連案件ID</label>
+            <input type="text" id="fw-pj" placeholder="P001" style="font-size:15px;">
+          </div>
+        </div>
+        <!-- 動的フレームワーク入力エリア -->
+        <div id="fw-panel-area"></div>
+        <div style="display:-ms-flexbox;display:flex;">
+          <button class="btn btn-primary" onclick="saveFWAnalysis()">◆ フレームワーク分析を保存</button>
+          <button class="btn btn-ghost" onclick="clearFWPanel()">クリア</button>
+        </div>
+      </div>
+      <!-- RIGHT: 過去のフレームワーク付きログ -->
+      <div style="width:380px;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;flex-shrink:0;">
+        <div class="panel-hdr">
+          <div class="panel-title">FW ANALYSIS LOG</div>
+          <div style="margin-left:auto"><button class="btn btn-ghost btn-xs" onclick="copyCSV('thought_log')">📋 CSV</button></div>
+        </div>
+        <div style="-ms-flex:1;flex:1;overflow-y:auto;padding:12px;" id="fw-log-list"><div class="empty"><div class="empty-icon">◆</div>FW分析なし</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ INBOX ═══ -->
+    <div class="screen" id="screen-inbox" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <div style="width:420px;flex-shrink:0;border-right:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;">
+        <div class="sec-lbl">INTELLIGENCE INBOX</div>
+        <div class="panel" style="padding:16px;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;">
+          <div class="panel-title" style="font-size:12px">URL 収集</div>
+          <div style="display:-ms-flexbox;display:flex;"><input type="text" id="ib-url" placeholder="https://..."><button class="btn btn-blue btn-sm" onclick="fetchUrlMeta()">取得</button></div>
+          <input type="text" id="ib-title" placeholder="タイトル（自動取得 or 手入力）">
+          <textarea id="ib-summary" rows="2" placeholder="要約・メモ（自動取得 or 手入力）" style="min-height:60px"></textarea>
+        </div>
+        <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-in').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+          <div class="drop-icon">📁</div>
+          <div class="drop-txt">ファイルをドロップ、またはクリックして選択</div>
+          <div style="font-size:13px;color:#6b7190;margin-top:6px">PDF · Excel · PowerPoint · Word</div>
+          <input type="file" id="file-in" style="display:none" multiple onchange="handleFiles(this.files)">
+        </div>
+        <div id="dropped-files" style="display:none"><div class="filepath-box" id="dropped-paths"></div></div>
+        <div class="fg"><label class="lbl">関連案件ID</label><input type="text" id="ib-pj" placeholder="P001"></div>
+        <div class="fg"><label class="lbl">カテゴリ</label>
+          <select id="ib-cat"><option>業界動向</option><option>競合動向</option><option>規制・政策</option><option>技術トレンド</option><option>M&A情報</option><option>人事動向</option><option>経済指標</option><option>調査レポート</option><option>提案書</option><option>契約書</option><option>議事録</option><option>その他</option></select>
+        </div>
+        <div class="fg"><label class="lbl">タグ（;区切り）</label><input type="text" id="ib-tags" placeholder="DX;製造業;競合"><div class="qtags" id="q-tags-ib"></div></div>
+        <div class="fg"><label class="lbl">自分のメモ</label><textarea id="ib-memo" rows="2" placeholder="なぜ保存したか。気になったポイント。" style="min-height:60px"></textarea></div>
+        <button class="btn btn-primary" onclick="saveInbox()">📥 インボックスに保存</button>
+      </div>
+      <div style="-ms-flex:1;flex:1;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;">
+        <div class="panel-hdr">
+          <div class="panel-title">SAVED ITEMS</div><span class="badge" id="ib-badge">0</span>
+          <div style="margin-left:auto"><button class="btn btn-ghost btn-xs" onclick="copyCSV('intelligence_inbox')">📋 CSV</button></div>
+        </div>
+        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="検索..." onkeyup="renderInbox(this.value)"></div>
+        <div style="-ms-flex:1;flex:1;overflow-y:auto;" id="ib-list"><div class="empty"><div class="empty-icon">📥</div>情報がありません</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ MEETINGS ═══ -->
+    <div class="screen" id="screen-meetings" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <div style="width:320px;border-right:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;flex-shrink:0;">
+        <div class="panel-hdr">
+          <div class="panel-title">MEETINGS</div><span class="badge" id="mtg-badge">0</span>
+          <div style="margin-left:auto"><button class="btn btn-primary btn-xs" onclick="newMtg()">＋ 新規</button></div>
+        </div>
+        <div style="overflow-y:auto;flex:1" id="mtg-list"><div class="empty"><div class="empty-icon">📋</div>議事録なし</div></div>
+      </div>
+      <div style="-ms-flex:1;flex:1;padding:24px;overflow-y:auto;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;">
+        <div class="sec-lbl" id="mtg-form-title">NEW MEETING</div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">会議名</label><input type="text" id="m-title" placeholder="○○社 第3回進捗MTG"></div>
+          <div class="fg"><label class="lbl">会議日時</label><input type="datetime-local" id="m-dt"></div>
+          <div class="fg"><label class="lbl">自社参加者（;区切り）</label><input type="text" id="m-in" placeholder="山田;鈴木"></div>
+          <div class="fg"><label class="lbl">顧客側参加者（;区切り）</label><input type="text" id="m-out" placeholder="田中部長;佐藤課長"></div>
+        </div>
+        <div class="fg"><label class="lbl">関連案件ID</label><input type="text" id="m-pj" placeholder="P001"></div>
+        <div class="fg"><label class="lbl">会議の目的（1行）</label><input type="text" id="m-purpose" placeholder="何のための会議か"></div>
+        <div class="fg"><label class="lbl">議論内容（生） — 殴り書きOK。原本。</label><textarea id="m-disc" rows="5" placeholder="思ったまま。整形はAIに任せる。" style="font-size:16px"></textarea></div>
+        <div class="fg"><label class="lbl">決定事項</label><textarea id="m-dec" rows="3" placeholder="1. ○○を進める&#10;2. ○○を確認する"></textarea></div>
+        <div class="fg"><label class="lbl">宿題・アクションアイテム [担当] 内容 (期限)</label><textarea id="m-todo" rows="3" placeholder="[山田] 提案書v2作成 (6/30)&#10;[佐藤] 予算確認 (7/3)"></textarea></div>
+        <div style="display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="saveMtg()">📋 保存する</button>
+          <button class="btn btn-blue btn-sm" onclick="copyCSV('meeting_minutes')">📋 AIへCSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="newMtg()">クリア</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DELEGATION ═══ -->
+    <div class="screen" id="screen-delegate" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <div style="width:320px;border-right:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;flex-shrink:0;">
+        <div class="panel-hdr">
+          <div class="panel-title">DELEGATION LOG</div><span class="badge" id="dl-badge">0</span>
+          <div style="margin-left:auto"><button class="btn btn-primary btn-xs" onclick="newDelegation()">＋ 新規</button></div>
+        </div>
+        <div style="overflow-y:auto;flex:1" id="dl-list"><div class="empty"><div class="empty-icon">📤</div>指示なし</div></div>
+      </div>
+      <div style="-ms-flex:1;flex:1;padding:24px;overflow-y:auto;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;">
+        <div class="sec-lbl" id="dl-form-title">NEW DELEGATION</div>
+        <div class="g2">
+          <div class="fg"><label class="lbl">担当者</label><input type="text" id="dl-assignee" placeholder="田中"></div>
+          <div class="fg"><label class="lbl">関連案件ID</label><input type="text" id="dl-pj" placeholder="P001"></div>
+          <div class="fg"><label class="lbl">優先度</label>
+            <select id="dl-pri"><option value="S">S — 最優先</option><option value="A" selected>A — 高</option><option value="B">B — 中</option><option value="C">C — 低</option></select>
+          </div>
+          <div class="fg"><label class="lbl">期限</label><input type="date" id="dl-due"></div>
+          <div class="fg"><label class="lbl">連絡手段</label>
+            <select id="dl-channel"><option>Teams_DM</option><option>Teams_チャネル</option><option>メール</option><option>口頭</option></select>
+          </div>
+          <div class="fg"><label class="lbl">フォローアップ日</label><input type="date" id="dl-followup"></div>
+        </div>
+        <div class="fg"><label class="lbl">指示内容（生） — 原本</label><textarea id="dl-instruction" rows="4" placeholder="やってほしいことをそのまま書く" style="font-size:16px"></textarea></div>
+        <div class="fg"><label class="lbl">指示の目的・背景</label><textarea id="dl-purpose" rows="2" placeholder="なぜこのタスクが必要か"></textarea></div>
+        <div class="fg"><label class="lbl">期待するアウトプット</label><textarea id="dl-output" rows="2" placeholder="どんな形で返してほしいか"></textarea></div>
+        <div style="display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="saveDelegation()">📤 保存する</button>
+          <button class="btn btn-blue btn-sm" onclick="copyCSV('delegation_log')">📋 AIへCSV</button>
+          <button class="btn btn-ghost btn-sm" onclick="newDelegation()">クリア</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TASKS ═══ -->
+    <div class="screen" id="screen-tasks" style="-ms-flex-direction:column;flex-direction:column;padding:24px;overflow:hidden;">
+      <div style="display:-ms-flexbox;display:flex;align-items:center;flex-shrink:0;">
+        <div class="sec-lbl" style="flex:1">TASK MATRIX — 重要度 × 緊急度</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('task-modal')">＋ タスク追加</button>
+        <button class="btn btn-ghost btn-xs" onclick="copyCSV('task_log')">📋 CSV</button>
+      </div>
+      <div class="matrix-grid">
+        <div class="m-cell c-q1"><div class="m-hdr"><span style="color:#f06060">●</span> Q1 — 緊急×重要</div><div class="m-body" id="mq1"></div></div>
+        <div class="m-cell c-q2"><div class="m-hdr"><span style="color:#e8b84b">●</span> Q2 — 重要（計画的に）</div><div class="m-body" id="mq2"></div></div>
+        <div class="m-cell c-q3"><div class="m-hdr"><span style="color:#5b9cf5">●</span> Q3 — 緊急（委譲検討）</div><div class="m-body" id="mq3"></div></div>
+        <div class="m-cell c-q4"><div class="m-hdr"><span style="color:#6b7190">●</span> Q4 — 通常</div><div class="m-body" id="mq4"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ PROJECTS ═══ -->
+    <div class="screen" id="screen-projects" style="-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;">
+      <div style="display:-ms-flexbox;display:flex;align-items:center;flex-shrink:0;">
+        <div class="sec-lbl" style="flex:1">PROJECT BOARD</div>
+        <button class="btn btn-primary btn-sm" onclick="openModal('pj-modal')">＋ 案件追加</button>
+        <button class="btn btn-ghost btn-xs" onclick="copyCSV('project_master')">📋 CSV</button>
+      </div>
+      <div id="pj-board"><div class="empty"><div class="empty-icon">◉</div>案件がありません</div></div>
+    </div>
+
+    <!-- ═══ CLIENTS ═══ -->
+    <div class="screen" id="screen-clients" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <div style="width:320px;border-right:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;flex-shrink:0;">
+        <div class="panel-hdr">
+          <div class="panel-title">CLIENTS</div><span class="badge" id="cl-badge">0</span>
+          <div style="margin-left:auto"><button class="btn btn-primary btn-xs" onclick="openModal('cl-modal')">＋ 新規</button></div>
+        </div>
+        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="顧客名で検索..." onkeyup="renderClients(this.value)"></div>
+        <div style="overflow-y:auto;flex:1" id="cl-list"><div class="empty"><div class="empty-icon">👤</div>顧客なし</div></div>
+      </div>
+      <div style="-ms-flex:1;flex:1;padding:24px;overflow-y:auto;" id="cl-detail">
+        <div class="empty"><div class="empty-icon">👤</div>顧客を選択してください</div>
+      </div>
+    </div>
+
+    <!-- ═══ RISKS ═══ -->
+    <div class="screen" id="screen-risks" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <div style="width:320px;border-right:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;flex-shrink:0;">
+        <div class="panel-hdr">
+          <div class="panel-title">RISK LOG</div><span class="badge" id="rk-badge">0</span>
+          <div style="margin-left:auto"><button class="btn btn-primary btn-xs" onclick="openModal('risk-modal')">＋ 新規</button></div>
+        </div>
+        <div style="overflow-y:auto;flex:1" id="rk-list"><div class="empty"><div class="empty-icon">⚠</div>リスクなし</div></div>
+      </div>
+      <div style="-ms-flex:1;flex:1;padding:24px;overflow-y:auto;" id="rk-detail">
+        <div class="empty"><div class="empty-icon">⚠</div>リスクを選択してください</div>
+      </div>
+    </div>
+
+    <!-- ═══ KNOWLEDGE ═══ -->
+    <div class="screen" id="screen-knowledge" style="-ms-flex-direction:row;flex-direction:row;overflow:hidden;">
+      <div style="width:400px;flex-shrink:0;border-right:1px solid #2a2e40;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;">
+        <div class="sec-lbl">KNOWLEDGE BASE</div>
+        <div class="fg"><label class="lbl">カテゴリ</label>
+          <select id="kb-cat"><option>業界知識</option><option>フレームワーク</option><option>成功パターン</option><option>失敗からの教訓</option><option>交渉術</option><option>プレゼン術</option><option>ツール活用</option><option>その他</option></select>
+        </div>
+        <div class="fg"><label class="lbl">タイトル</label><input type="text" id="kb-title" placeholder="学んだこと・気づき"></div>
+        <div class="fg"><label class="lbl">関連案件ID（任意）</label><input type="text" id="kb-pj" placeholder="P001"></div>
+        <div class="fg"><label class="lbl">内容（原文）</label><textarea id="kb-content" rows="6" placeholder="具体的な知識・ノウハウを記録" style="font-size:16px"></textarea></div>
+        <div class="fg"><label class="lbl">情報源</label><input type="text" id="kb-source" placeholder="書籍名・URL・経験など"></div>
+        <div class="fg"><label class="lbl">タグ（;区切り）</label><input type="text" id="kb-tags" placeholder="交渉;製造業"></div>
+        <button class="btn btn-primary" onclick="saveKnowledge()">📖 保存する</button>
+      </div>
+      <div style="-ms-flex:1;flex:1;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;overflow:hidden;">
+        <div class="panel-hdr">
+          <div class="panel-title">SAVED KNOWLEDGE</div><span class="badge" id="kb-badge">0</span>
+          <div style="margin-left:auto"><button class="btn btn-ghost btn-xs" onclick="copyCSV('knowledge_base')">📋 CSV</button></div>
+        </div>
+        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="ナレッジ検索..." onkeyup="renderKnowledge(this.value)"></div>
+        <div style="-ms-flex:1;flex:1;overflow-y:auto;padding:12px;" id="kb-list"><div class="empty"><div class="empty-icon">📖</div>ナレッジなし</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ WEEKLY REVIEW ═══ -->
+    <div class="screen" id="screen-review" style="-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;">
+      <div style="display:-ms-flexbox;display:flex;align-items:center;flex-shrink:0;">
+        <div class="sec-lbl" style="flex:1">WEEKLY REVIEW</div>
+        <button class="btn btn-blue btn-sm" onclick="generateWeeklyReport()">📊 今週のレポートを生成</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyWeeklyReport()">📋 コピー</button>
+      </div>
+      <div id="weekly-content"><div class="empty"><div class="empty-icon">📊</div>「今週のレポートを生成」をクリック</div></div>
+    </div>
+
+    <!-- ═══ AI CONSOLE ═══ -->
+    <div class="screen" id="screen-ai" style="-ms-flex-direction:column;flex-direction:column;padding:24px;overflow-y:auto;">
+      <div style="display:-ms-flexbox;display:flex;align-items:center;">
+        <div class="sec-lbl" style="flex:1">AI CONSOLE — 3 AGENT WORKFLOW</div>
+        <div class="hdr-stat"><div class="hdr-dot warn"></div><span style="font-size:13px">毎ステップ人間が確認 → 次へ</span></div>
+      </div>
+      <div class="agent-flow">
+        <div class="agent-card" id="card-a">
+          <div class="agent-hdr">
+            <div class="agent-id">A</div>
+            <div class="agent-name"><div class="n">記録整理エージェント</div><div class="r">RAW → STRUCTURED</div></div>
+            <div class="ag-badge bg-ready" id="badge-a">READY</div>
+          </div>
+          <div class="agent-body">
+            <div><div class="ab-lbl">INPUT CSV</div><div class="io-chips"><span class="chip">thought_log</span><span class="chip">meeting_minutes</span><span class="chip">intelligence_inbox</span></div></div>
+            <div><div class="ab-lbl">OUTPUT</div><div class="io-chips"><span class="chip out">ai_summary</span><span class="chip out">ai_tags</span><span class="chip out">ai_action</span></div></div>
+            <div>
+              <div class="ab-lbl">データ選択</div>
+              <label style="display:-ms-flexbox;display:flex;align-items:center;font-size:14px;color:#a0a6bc;margin-top:6px;cursor:pointer"><input type="checkbox" id="a-logs" checked style="width:18px;height:18px;accent-color:#e8b84b"> 思考ログ（直近 <input type="number" id="a-cnt" value="10" style="width:50px;padding:4px 8px;font-size:14px;display:inline"> 件）</label>
+              <label style="display:-ms-flexbox;display:flex;align-items:center;font-size:14px;color:#a0a6bc;margin-top:6px;cursor:pointer"><input type="checkbox" id="a-mtg" checked style="width:18px;height:18px;accent-color:#e8b84b"> 未処理の議事録</label>
+              <label style="display:-ms-flexbox;display:flex;align-items:center;font-size:14px;color:#a0a6bc;margin-top:6px;cursor:pointer"><input type="checkbox" id="a-ib" checked style="width:18px;height:18px;accent-color:#e8b84b"> 未処理のインボックス</label>
+            </div>
+            <div class="csv-box" id="prev-a">CSVプレビュー...</div>
+            <div style="display:-ms-flexbox;display:flex;">
+              <button class="btn btn-ghost btn-sm" onclick="previewCSV('a')" style="flex:1">プレビュー</button>
+              <button class="btn btn-blue btn-sm" onclick="copyForAgent('a')" style="flex:1">📋 Agent Aへ</button>
+            </div>
+            <div class="step-check"><input type="checkbox" id="ck-a" onchange="updateFlow()"><label for="ck-a">Agent A 出力を確認・承認した</label></div>
+          </div>
+        </div>
+        <div class="agent-arrow" id="arr-ab">→</div>
+        <div class="agent-card" id="card-b" style="opacity:.5">
+          <div class="agent-hdr">
+            <div class="agent-id" style="color:#5b9cf5">B</div>
+            <div class="agent-name"><div class="n">思考深化エージェント</div><div class="r">STRUCTURED → INSIGHTS</div></div>
+            <div class="ag-badge bg-wait" id="badge-b">WAITING</div>
+          </div>
+          <div class="agent-body">
+            <div><div class="ab-lbl">INPUT</div><div class="io-chips"><span class="chip">Agent_A_output</span><span class="chip">framework_data</span></div></div>
+            <div><div class="ab-lbl">OUTPUT</div><div class="io-chips"><span class="chip out">deep_analysis</span><span class="chip out">fw_critique</span></div></div>
+            <div class="fg"><div class="ab-lbl">Agent A の出力を貼り付け</div><textarea id="b-in" rows="3" style="font-size:14px" placeholder="Agent AのCSV出力をここに貼り付け"></textarea></div>
+            <div class="csv-box" id="prev-b">Agent A承認後にプレビュー可能</div>
+            <div style="display:-ms-flexbox;display:flex;">
+              <button class="btn btn-ghost btn-sm" onclick="previewCSV('b')" style="flex:1" id="btn-b-prev" disabled>プレビュー</button>
+              <button class="btn btn-blue btn-sm" onclick="copyForAgent('b')" style="flex:1" id="btn-b-copy" disabled>📋 Agent Bへ</button>
+            </div>
+            <div class="step-check"><input type="checkbox" id="ck-b" onchange="updateFlow()" disabled><label for="ck-b">Agent B 出力を確認・承認した</label></div>
+          </div>
+        </div>
+        <div class="agent-arrow" id="arr-bc">→</div>
+        <div class="agent-card" id="card-c" style="opacity:.5">
+          <div class="agent-hdr">
+            <div class="agent-id" style="color:#4eca7a">C</div>
+            <div class="agent-name"><div class="n">実行出力エージェント</div><div class="r">INSIGHTS → ACTIONS</div></div>
+            <div class="ag-badge bg-wait" id="badge-c">WAITING</div>
+          </div>
+          <div class="agent-body">
+            <div><div class="ab-lbl">出力タイプ</div>
+              <div style="display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-top:6px;">
+                <label class="tag"><input type="checkbox" checked style="display:none" id="c-teams"> Teams文</label>
+                <label class="tag"><input type="checkbox" checked style="display:none" id="c-email"> メール</label>
+                <label class="tag"><input type="checkbox" style="display:none" id="c-instruct"> 指示文</label>
+                <label class="tag"><input type="checkbox" style="display:none" id="c-slide"> スライド案</label>
+              </div>
+            </div>
+            <div class="fg"><div class="ab-lbl">Agent B の出力を貼り付け</div><textarea id="c-in" rows="3" style="font-size:14px" placeholder="Agent BのCSV出力をここに貼り付け"></textarea></div>
+            <div class="csv-box" id="prev-c">Agent B承認後にプレビュー可能</div>
+            <div style="display:-ms-flexbox;display:flex;">
+              <button class="btn btn-ghost btn-sm" onclick="previewCSV('c')" style="flex:1" id="btn-c-prev" disabled>プレビュー</button>
+              <button class="btn btn-blue btn-sm" onclick="copyForAgent('c')" style="flex:1" id="btn-c-copy" disabled>📋 Agent Cへ</button>
+            </div>
+            <div class="step-check"><input type="checkbox" id="ck-c" disabled><label for="ck-c">最終出力を確認・承認した</label></div>
+            <button class="btn btn-primary" onclick="copyFinal()" id="btn-final" disabled style="width:100%">📋 Teams貼付用コピー</button>
+          </div>
+        </div>
+      </div>
+      <div class="sec-lbl">SYSTEM PROMPTS（8000文字制限）</div>
+      <div class="g3">
+        <div class="panel">
+          <div class="panel-hdr"><div class="panel-title">AGENT A</div><span class="badge" id="pc-a">0/8000</span></div>
+          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-a" onkeyup="pCount('a')">あなたは戦略コンサルタントの専属「記録整理AI」です。rawデータを構造化・要約・タグ提案します。
+
+【絶対ルール】
+1. *_raw フィールドには絶対に書き込まない
+2. 出力は *_ai フィールドに書く
+3. 不確かな情報は「（要確認）」とラベリング
+4. 推測と事実を区別する
+
+【思考ログ整理】入力:thought_log_raw
+- フレームワーク構造に沿って整理
+- 関連ログIDを紐づけ(tl_ai_link)
+- タグ候補3〜5個提案
+出力: tl_ai_summary(3行以内), tl_ai_action(緊急度付き)
+
+【議事録整理】入力:meeting_minutes
+- 決定事項・アクションアイテム抽出
+- 担当者・期限不明ToDoをフラグ
+出力: mt_ai_summary(300字以内)
+
+【情報タグ提案】入力:intelligence_inbox
+出力: ii_ai_summary(200字), ii_tag_suggest(;区切り)
+
+【出力形式】CSV行形式。"で囲む。</textarea>
+        </div>
+        <div class="panel">
+          <div class="panel-hdr"><div class="panel-title">AGENT B</div><span class="badge" id="pc-b">0/8000</span></div>
+          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-b" onkeyup="pCount('b')">あなたは戦略コンサルタントの専属「思考深化AI」です。Agent Aの整理済みデータを受け取り戦略的洞察を深めます。
+
+【絶対ルール】
+1. rawデータは参照のみ
+2. Agent Aのai層を入力として使う
+3. 推測は推測として明記
+4. 「反論」「死角」を必ず1つ以上提示する
+
+【思考クラスタリング】
+- 関連思考をテーマ別にクラスタリング
+- 各クラスターから「本質的な問い」を1文抽出
+- 矛盾・盲点を特定
+出力: deep_analysis, core_question, blind_spots
+
+【フレームワーク評価】
+- MECE性・論理整合性チェック
+- 抜け漏れ・補強提案
+出力: fw_critique, fw_suggestion
+
+【出力形式】CSV行形式。</textarea>
+        </div>
+        <div class="panel">
+          <div class="panel-hdr"><div class="panel-title">AGENT C</div><span class="badge" id="pc-c">0/8000</span></div>
+          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-c" onkeyup="pCount('c')">あなたは戦略コンサルタントの専属「実行出力AI」です。深化データを受け取り、そのまま使えるアウトプットを生成します。
+
+【絶対ルール】
+1. 出力は「そのまま使える」品質
+2. Teams文: 簡潔・箇条書き・絵文字あり・300字以内
+3. メール: 敬語・ビジネスメール・件名付き
+4. 指示文: 5W1H明確
+5. 全出力に「（要確認）」箇所を明記
+
+【Teams投稿文生成】
+構成: 会議名/日時/決定事項/次回アクション
+
+【部下への指示文生成】
+①背景・目的 ②依頼内容 ③成果物イメージ ④期限 ⑤確認期限
+
+【スライド設計支援】
+①So What(1文) ②ナレーション案(200字) ③根拠データ活用提案
+
+【出力形式】CSV行形式。各タスクを明確にラベリング。</textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">タスク追加</div><button class="modal-x" onclick="closeModal('task-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="fg span2"><label class="lbl">タスク名</label><input type="text" id="tk-title" placeholder="何をするか具体的に"></div>
+        <div class="fg"><label class="lbl">優先度</label>
+          <select id="tk-pri"><option value="S">S — 緊急×重要</option><option value="A" selected>A — 重要</option><option value="B">B — 緊急</option><option value="C">C — 通常</option></select>
+        </div>
+        <div class="fg"><label class="lbl">種別</label>
+          <select id="tk-type"><option>思考・分析</option><option>資料作成</option><option>顧客対応</option><option>社内調整</option><option>確認・レビュー</option><option>情報収集</option><option>その他</option></select>
+        </div>
+        <div class="fg"><label class="lbl">期限</label><input type="date" id="tk-due"></div>
+        <div class="fg"><label class="lbl">見積もり工数(h)</label><input type="text" id="tk-h" placeholder="2"></div>
+        <div class="fg"><label class="lbl">担当者</label><input type="text" id="tk-owner" placeholder="自分"></div>
+        <div class="fg"><label class="lbl">関連案件ID</label><input type="text" id="tk-pj" placeholder="P001"></div>
+        <div class="fg span2"><label class="lbl">内容・目的</label><textarea id="tk-body" rows="3" placeholder="何のためにやるか・完了基準"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('task-modal')">キャンセル</button><button class="btn btn-primary" onclick="saveTask()">タスクを追加</button></div>
+  </div>
+</div>
+
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="pj-modal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">案件追加</div><button class="modal-x" onclick="closeModal('pj-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="fg span2"><label class="lbl">案件名</label><input type="text" id="pj-name" placeholder="○○社 中期経営計画策定支援"></div>
+        <div class="fg"><label class="lbl">顧客名</label><input type="text" id="pj-client" placeholder="株式会社○○"></div>
+        <div class="fg"><label class="lbl">優先度</label><select id="pj-pri"><option value="S">S — 最重要</option><option value="A" selected>A — 高</option><option value="B">B — 中</option><option value="C">C — 低</option></select></div>
+        <div class="fg"><label class="lbl">フェーズ</label><select id="pj-phase"><option>提案前</option><option>Dペーパー作成</option><option>提案書作成</option><option>提案済</option><option>契約交渉</option><option>契約締結</option><option>キックオフ</option><option>調査分析</option><option>仮説検証</option><option>提言作成</option><option>最終プレゼン</option><option>実行支援</option><option>完了</option></select></div>
+        <div class="fg"><label class="lbl">PJタイプ</label><select id="pj-type"><option>戦略策定</option><option>業務改革</option><option>M&A支援</option><option>マーケティング</option><option>組織変革</option><option>IT導入</option><option>その他</option></select></div>
+        <div class="fg"><label class="lbl">想定フィー（万円）</label><input type="text" id="pj-fee" placeholder="500"></div>
+        <div class="fg"><label class="lbl">開始日</label><input type="date" id="pj-start"></div>
+        <div class="fg"><label class="lbl">終了予定日</label><input type="date" id="pj-end"></div>
+        <div class="fg span2"><label class="lbl">中心仮説</label><textarea id="pj-hyp" rows="2" placeholder="このPJで証明・否定しようとしている仮説"></textarea></div>
+        <div class="fg span2"><label class="lbl">主要リスク</label><textarea id="pj-risk" rows="2" placeholder="現時点で認識しているリスク"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('pj-modal')">キャンセル</button><button class="btn btn-primary" onclick="saveProject()">案件を追加</button></div>
+  </div>
+</div>
+
+<!-- CLIENT MODAL -->
+<div class="modal-overlay" id="cl-modal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">顧客追加</div><button class="modal-x" onclick="closeModal('cl-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="fg span2"><label class="lbl">顧客名（法人）</label><input type="text" id="cl-name" placeholder="株式会社○○"></div>
+        <div class="fg"><label class="lbl">事業部・部署</label><input type="text" id="cl-div" placeholder="経営企画部"></div>
+        <div class="fg"><label class="lbl">キーパーソン名</label><input type="text" id="cl-kp" placeholder="田中太郎"></div>
+        <div class="fg"><label class="lbl">役職</label><input type="text" id="cl-title" placeholder="部長"></div>
+        <div class="fg"><label class="lbl">Email</label><input type="text" id="cl-email" placeholder="tanaka@example.com"></div>
+        <div class="fg"><label class="lbl">TEL</label><input type="text" id="cl-tel" placeholder="03-1234-5678"></div>
+        <div class="fg"><label class="lbl">業種</label><select id="cl-industry"><option>製造</option><option>金融</option><option>商社</option><option>小売</option><option>IT</option><option>医療</option><option>官公庁</option><option>その他</option></select></div>
+        <div class="fg"><label class="lbl">関係性スコア</label><select id="cl-relation"><option value="1">1_初対面</option><option value="2">2_面識あり</option><option value="3" selected>3_信頼構築</option><option value="4">4_相談相手</option><option value="5">5_パートナー</option></select></div>
+        <div class="fg"><label class="lbl">営業フェーズ</label><select id="cl-phase"><option>未接触</option><option>ファーストコンタクト</option><option>ニーズヒアリング</option><option>提案書作成中</option><option>提案済</option><option>交渉中</option><option>受注</option><option>失注</option><option>保留</option></select></div>
+        <div class="fg"><label class="lbl">売上規模</label><select id="cl-rev"><option>不明</option><option>〜10億</option><option>10〜100億</option><option>100〜500億</option><option>500億〜</option></select></div>
+        <div class="fg span2"><label class="lbl">課題サマリー</label><textarea id="cl-pain" rows="2" placeholder="顧客が抱える課題"></textarea></div>
+        <div class="fg span2"><label class="lbl">関係者メモ</label><textarea id="cl-memo" rows="2" placeholder="人柄・趣味・注意点"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('cl-modal')">キャンセル</button><button class="btn btn-primary" onclick="saveClient()">顧客を追加</button></div>
+  </div>
+</div>
+
+<!-- RISK MODAL -->
+<div class="modal-overlay" id="risk-modal">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">リスク追加</div><button class="modal-x" onclick="closeModal('risk-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="g2">
+        <div class="fg span2"><label class="lbl">リスク名</label><input type="text" id="rk-title" placeholder="スコープ拡大のリスク"></div>
+        <div class="fg"><label class="lbl">関連案件ID</label><input type="text" id="rk-pj" placeholder="P001"></div>
+        <div class="fg"><label class="lbl">カテゴリ</label><select id="rk-cat"><option>顧客関係</option><option>スコープ拡大</option><option>リソース不足</option><option>品質</option><option>競合</option><option>契約</option><option>技術</option><option>その他</option></select></div>
+        <div class="fg"><label class="lbl">発生確率</label><select id="rk-prob"><option>高</option><option selected>中</option><option>低</option></select></div>
+        <div class="fg"><label class="lbl">影響度</label><select id="rk-impact"><option>致命的</option><option selected>大</option><option>中</option><option>小</option></select></div>
+        <div class="fg span2"><label class="lbl">リスク詳細</label><textarea id="rk-desc" rows="3" placeholder="具体的にどんなリスクか"></textarea></div>
+        <div class="fg span2"><label class="lbl">対応策</label><textarea id="rk-counter" rows="3" placeholder="どう対処するか"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('risk-modal')">キャンセル</button><button class="btn btn-primary" onclick="saveRisk()">リスクを追加</button></div>
+  </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="search-modal">
+  <div class="modal" style="width:750px">
+    <div class="modal-hdr"><div class="modal-title">🔍 全文検索</div><button class="modal-x" onclick="closeModal('search-modal')">✕</button></div>
+    <div class="modal-body">
+      <div style="display:-ms-flexbox;display:flex;">
+        <input type="text" id="gs-q" placeholder="キーワードを入力..." style="-ms-flex:1;flex:1;font-size:16px" onkeydown="if(event.keyCode===13)globalSearch()">
+        <button class="btn btn-primary" onclick="globalSearch()">検索</button>
+      </div>
+      <div id="gs-results" style="max-height:420px;overflow-y:auto;"><div class="empty" style="padding:24px"><div class="empty-icon">🔍</div>キーワードを入力してください</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script language="javascript">
+// ═══════════════════════════════════════════
+// The JavaScript logic is identical to v4.0
+// Only CSS/HTML structure was redesigned
+// ═══════════════════════════════════════════
+var FSO = new ActiveXObject("Scripting.FileSystemObject");
+var WS  = new ActiveXObject("WScript.Shell");
+var BASE_DIR = "";
+
+function getBaseDir(){if(BASE_DIR)return BASE_DIR;var p=window.location.pathname;p=decodeURIComponent(p).replace(/\//g,"\\");if(p.charAt(0)==="\\")p=p.substr(1);BASE_DIR=FSO.GetParentFolderName(p);return BASE_DIR;}
+function getDataDir(){var b=getBaseDir(),d=b+"\\cockpit_data";if(!FSO.FolderExists(d))FSO.CreateFolder(d);return d;}
+function getRawDir(){var d=getDataDir()+"\\raw";if(!FSO.FolderExists(d))FSO.CreateFolder(d);return d;}
+function getAiDir(){var d=getDataDir()+"\\ai";if(!FSO.FolderExists(d))FSO.CreateFolder(d);return d;}
+function getBackupDir(){var d=getDataDir()+"\\backup";if(!FSO.FolderExists(d))FSO.CreateFolder(d);var t=todayStr(),dd=d+"\\"+t;if(!FSO.FolderExists(dd))FSO.CreateFolder(dd);return dd;}
+
+var CSV_HEADERS={
+  thought_log:"id,datetime,type,framework,urgency,context,content_raw,framework_data,tags,project,status,ai_summary,ai_action,ai_deep,ai_link",
+  task_log:"id,datetime,title,priority,type,due,hours,owner,project,content,status,result",
+  intelligence_inbox:"id,datetime,source_type,title,url,url_summary,file_path,file_type,file_size,project,category,tags,memo,status,ai_summary,ai_implication",
+  meeting_minutes:"id,datetime,title,attendees_in,attendees_out,project,purpose,discussion_raw,decisions,todos,status,ai_summary,ai_teams,ai_email",
+  project_master:"id,datetime,name,client,phase,priority,type,fee,start,end,hypothesis,risk,status",
+  client_master:"id,datetime,name,division,key_person,key_title,email,tel,industry,relation_score,sales_phase,revenue_scale,pain_summary,memo",
+  delegation_log:"id,datetime,assignee,project,priority,due,channel,followup,instruction_raw,purpose,output_image,status,ai_message",
+  risk_log:"id,datetime,project,title,category,probability,impact,description,countermeasure,status",
+  knowledge_base:"id,datetime,category,title,project,content,source,tags,ai_summary"
+};
+
+function csvPath(n){return getRawDir()+"\\"+n+".csv";}
+function readCSV(n){var p=csvPath(n);if(!FSO.FileExists(p))return[];try{var f=FSO.OpenTextFile(p,1,false,-1);var c=f.ReadAll();f.Close();return parseCSV(c);}catch(e){toast("CSV読込エラー: "+n,"err");return[];}}
+function appendCSV(n,o){var p=csvPath(n),h=CSV_HEADERS[n].split(",");try{if(!FSO.FileExists(p)){var f=FSO.CreateTextFile(p,true,true);f.WriteLine(CSV_HEADERS[n]);var r=[];for(var i=0;i<h.length;i++)r.push(csvEscape(o[h[i]]||""));f.WriteLine(r.join(","));f.Close();}else{var f2=FSO.OpenTextFile(p,8,false,-1);var r2=[];for(var j=0;j<h.length;j++)r2.push(csvEscape(o[h[j]]||""));f2.WriteLine(r2.join(","));f2.Close();}}catch(e){toast("CSV書込エラー: "+n,"err");}}
+function writeCSV(n,rows){var p=csvPath(n),h=CSV_HEADERS[n].split(",");try{var f=FSO.CreateTextFile(p,true,true);f.WriteLine(CSV_HEADERS[n]);for(var i=0;i<rows.length;i++){var c=[];for(var j=0;j<h.length;j++)c.push(csvEscape(rows[i][h[j]]||""));f.WriteLine(c.join(","));}f.Close();}catch(e){toast("CSV書込エラー: "+n,"err");}}
+function csvEscape(v){var s=String(v).replace(/\r?\n/g,"\\n");if(s.indexOf(",")>=0||s.indexOf('"')>=0)return '"'+s.replace(/"/g,'""')+'"';return '"'+s+'"';}
+function parseCSV(t){var l=t.split(/\r?\n/);if(!l.length||!l[0])return[];var h=parseCSVLine(l[0]),r=[];for(var i=1;i<l.length;i++){if(!l[i].replace(/\s/g,""))continue;var v=parseCSVLine(l[i]),o={};for(var j=0;j<h.length;j++)o[h[j]]=(v[j]||"").replace(/\\n/g,"\n");r.push(o);}return r;}
+function parseCSVLine(l){var r=[],c="",q=false;for(var i=0;i<l.length;i++){var ch=l.charAt(i);if(q){if(ch==='"'&&l.charAt(i+1)==='"'){c+='"';i++;}else if(ch==='"')q=false;else c+=ch;}else{if(ch==='"')q=true;else if(ch===','){r.push(c);c="";}else c+=ch;}}r.push(c);return r;}
+function readCSVRaw(n){var p=csvPath(n);if(!FSO.FileExists(p))return CSV_HEADERS[n]+"\n(データなし)";try{var f=FSO.OpenTextFile(p,1,false,-1);var c=f.ReadAll();f.Close();return c;}catch(e){return"読み込みエラー";}}
+function backupAll(){var b=getBackupDir(),r=getRawDir();try{var fs=FSO.GetFolder(r).Files,e=new Enumerator(fs),c=0;for(;!e.atEnd();e.moveNext()){FSO.CopyFile(e.item().Path,b+"\\"+e.item().Name,true);c++;}toast("💾 バックアップ完了 ("+c+"ファイル)","ok");}catch(ex){toast("バックアップエラー","err");}}
+function openDataFolder(){try{WS.Run('explorer "'+getDataDir()+'"');}catch(e){}}
+
+function pad(n){return String(n).length<2?"0"+n:String(n);}
+function nowISO(){return new Date().toISOString();}
+function todayStr(){return new Date().toISOString().slice(0,10).replace(/-/g,"");}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function fmtDT(iso){if(!iso)return"";var d=new Date(iso);if(isNaN(d.getTime()))return iso.slice(0,16);return(d.getMonth()+1)+"/"+d.getDate()+" "+pad(d.getHours())+":"+pad(d.getMinutes());}
+function fmtD(iso){if(!iso)return"";var d=new Date(iso);if(isNaN(d.getTime()))return iso;return(d.getMonth()+1)+"/"+d.getDate();}
+function genId(p){return p+String(Date.now()).slice(-8);}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function updateClock(){var n=new Date(),s=pad(n.getHours())+":"+pad(n.getMinutes())+":"+pad(n.getSeconds());document.getElementById("clock").innerText=s;var cn=document.getElementById("cap-now");if(cn)cn.innerText=s;}
+setInterval(updateClock,1000);updateClock();
+
+function go(name){var s=document.querySelectorAll(".screen");for(var i=0;i<s.length;i++)s[i].className=s[i].className.replace(" active","");var n=document.querySelectorAll(".nav-btn");for(var j=0;j<n.length;j++)n[j].className=n[j].className.replace(" active","");var sc=document.getElementById("screen-"+name);if(sc)sc.className+=" active";var nb=document.getElementById("nav-"+name);if(nb)nb.className+=" active";if(name==="home")renderHome();if(name==="capture"){renderLogs("");renderQuickTags("q-tags-cap");document.getElementById("c-body").focus();}if(name==="framework"){renderFWLogs();populateFWLogSelector();}if(name==="inbox"){renderInbox("");renderQuickTags("q-tags-ib");}if(name==="tasks")renderMatrix();if(name==="projects")renderProjects();if(name==="meetings")renderMtgList();if(name==="delegate")renderDelegationList();if(name==="clients")renderClients("");if(name==="risks")renderRisks();if(name==="knowledge")renderKnowledge("");if(name==="ai"){pCount("a");pCount("b");pCount("c");previewCSV("a");}}
+
+function toast(msg,type){var t=document.getElementById("toast"),el=document.createElement("div");el.className="toast-msg"+(type?" "+type:"");el.innerText=msg;t.appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2900);}
+function openModal(id){document.getElementById(id).className+=" open";}
+function closeModal(id){document.getElementById(id).className=document.getElementById(id).className.replace(" open","");}
+
+var FW_DEF={"3C":{label:"3C 分析",fields:[{id:"fw_3c_customer",label:"顧客（Customer）",rows:3},{id:"fw_3c_competitor",label:"競合（Competitor）",rows:3},{id:"fw_3c_company",label:"自社（Company）",rows:3},{id:"fw_3c_insight",label:"統合示唆（So What）",rows:2,full:true}]},"SCR":{label:"SCR — 状況・課題・解決策",fields:[{id:"fw_scr_situation",label:"状況（聴衆が既知の事実）",rows:2},{id:"fw_scr_complication",label:"課題（状況の変化・問題）",rows:2},{id:"fw_scr_resolution",label:"解決策（我々の提言）",rows:2},{id:"fw_scr_sowhat",label:"So What — だから何か",rows:1,full:true}]},"MECE":{label:"MECE 分解",fields:[{id:"fw_mece_question",label:"分解したい問い",rows:1,full:true},{id:"fw_mece_axis",label:"分解軸",rows:1},{id:"fw_mece_elements",label:"要素（;区切り）",rows:2},{id:"fw_mece_check",label:"MECE確認メモ",rows:1}]},"仮説思考":{label:"仮説思考",fields:[{id:"fw_hyp_hypothesis",label:"仮説（〜ではないか）",rows:2,full:true},{id:"fw_hyp_basis",label:"仮説の根拠",rows:2},{id:"fw_hyp_method",label:"検証方法",rows:2},{id:"fw_hyp_result",label:"検証結果",rows:2},{id:"fw_hyp_insight",label:"示唆",rows:2}]},"イシューツリー":{label:"イシューツリー / So What・Why So",fields:[{id:"fw_issue_core",label:"コアイシュー",rows:1,full:true},{id:"fw_issue_sub1",label:"サブイシュー①",rows:1},{id:"fw_issue_sub2",label:"サブイシュー②",rows:1},{id:"fw_issue_sub3",label:"サブイシュー③",rows:1},{id:"fw_issue_sowhat",label:"So What",rows:2},{id:"fw_issue_whyso",label:"Why So",rows:2}]},"SWOT":{label:"SWOT 分析",fields:[{id:"fw_swot_s",label:"強み",rows:3},{id:"fw_swot_w",label:"弱み",rows:3},{id:"fw_swot_o",label:"機会",rows:3},{id:"fw_swot_t",label:"脅威",rows:3},{id:"fw_swot_cross",label:"クロスSWOT 示唆",rows:2,full:true}]},"4P":{label:"4P 分析",fields:[{id:"fw_4p_product",label:"Product",rows:2},{id:"fw_4p_price",label:"Price",rows:2},{id:"fw_4p_place",label:"Place",rows:2},{id:"fw_4p_promo",label:"Promotion",rows:2},{id:"fw_4p_insight",label:"統合示唆",rows:2,full:true}]},"5Forces":{label:"5Forces",fields:[{id:"fw_5f_rivalry",label:"業界内競争",rows:2},{id:"fw_5f_new",label:"新規参入の脅威",rows:2},{id:"fw_5f_sub",label:"代替品の脅威",rows:2},{id:"fw_5f_buyer",label:"買い手の交渉力",rows:2},{id:"fw_5f_supplier",label:"売り手の交渉力",rows:2},{id:"fw_5f_insight",label:"戦略示唆",rows:2,full:true}]},"ギャップ分析":{label:"ギャップ分析",fields:[{id:"fw_gap_asis",label:"現状（As-Is）",rows:2},{id:"fw_gap_tobe",label:"目指す姿（To-Be）",rows:2},{id:"fw_gap_gap",label:"ギャップ",rows:2},{id:"fw_gap_cause",label:"根本原因",rows:2},{id:"fw_gap_actions",label:"施策",rows:2,full:true}]},"シナリオ":{label:"シナリオ分析",fields:[{id:"fw_sc_var",label:"主要不確実変数",rows:1,full:true},{id:"fw_sc_opt",label:"楽観",rows:2},{id:"fw_sc_neu",label:"中立（最有力）",rows:2},{id:"fw_sc_pes",label:"悲観",rows:2},{id:"fw_sc_str",label:"ロバスト戦略",rows:2,full:true}]},"ピラミッド":{label:"ピラミッドストラクチャー",fields:[{id:"fw_pyr_conc",label:"結論",rows:1,full:true},{id:"fw_pyr_r1",label:"根拠①",rows:2},{id:"fw_pyr_r2",label:"根拠②",rows:2},{id:"fw_pyr_r3",label:"根拠③",rows:2},{id:"fw_pyr_data",label:"裏付けデータ",rows:2,full:true}]},"KPIツリー":{label:"KPIツリー",fields:[{id:"fw_kpi_goal",label:"最終目標KPI",rows:1,full:true},{id:"fw_kpi_l1a",label:"第1階層①",rows:1},{id:"fw_kpi_l1b",label:"第1階層②",rows:1},{id:"fw_kpi_l2a",label:"第2階層①",rows:1},{id:"fw_kpi_l2b",label:"第2階層②",rows:1},{id:"fw_kpi_drv",label:"重要ドライバー",rows:2,full:true}]},"意思決定":{label:"意思決定ツリー",fields:[{id:"fw_dt_q",label:"意思決定の問い",rows:1,full:true},{id:"fw_dt_o1",label:"選択肢①",rows:1},{id:"fw_dt_o2",label:"選択肢②",rows:1},{id:"fw_dt_crit",label:"判断基準",rows:2,full:true},{id:"fw_dt_r1",label:"選択肢①のリスク",rows:2},{id:"fw_dt_r2",label:"選択肢②のリスク",rows:2},{id:"fw_dt_vrd",label:"推奨選択肢と理由",rows:2,full:true}]}};
+
+function renderFW(){var fw=document.getElementById("c-fw").value,area=document.getElementById("fw-area");if(!fw||!FW_DEF[fw]){area.innerHTML="";return;}var d=FW_DEF[fw],h='<div class="fw-panel"><div class="fw-panel-hdr">◆ '+d.label+'</div><div class="g2" style="padding:14px 18px;">';for(var i=0;i<d.fields.length;i++){var f=d.fields[i],sp=f.full?"width:100% !important;margin-right:0 !important;":"";h+='<div class="fg" style="'+sp+'"><label class="lbl">'+f.label+'</label><textarea id="'+f.id+'" rows="'+f.rows+'" placeholder="'+f.label+'を入力..."></textarea></div>';}h+="</div></div>";area.innerHTML=h;}
+function getFWData(fw){if(!fw||!FW_DEF[fw])return"";var d={},f=FW_DEF[fw].fields;for(var i=0;i<f.length;i++){var el=document.getElementById(f[i].id);if(el&&el.value)d[f[i].id]=el.value;}return JSON.stringify(d);}
+
+function getTagPool(){var t={},p=readCSV("project_master");for(var i=0;i<p.length;i++){if(p[i].id)t[p[i].id]=1;if(p[i].client)t[p[i].client]=1;}var tb=["thought_log","intelligence_inbox","meeting_minutes"];for(var ti=0;ti<tb.length;ti++){var r=readCSV(tb[ti]);for(var ri=0;ri<r.length;ri++){if(r[ri].tags){var tg=r[ri].tags.split(";");for(var k=0;k<tg.length;k++){var s=tg[k].replace(/^\s+|\s+$/g,"");if(s)t[s]=1;}}}}var a=[];for(var key in t){if(t.hasOwnProperty(key))a.push(key);}a=a.slice(0,12);if(!a.length)a=["DX","コスト削減","競合","リスク","提言"];return a;}
+function renderQuickTags(cid){var el=document.getElementById(cid);if(!el)return;var tags=getTagPool(),iid=cid==="q-tags-cap"?"c-tags":"ib-tags",h="";for(var i=0;i<tags.length;i++)h+='<span class="tag" onclick="appendTag(\''+tags[i].replace(/'/g,"\\'")+'\',\''+iid+'\')">'+tags[i]+'</span>';el.innerHTML=h;}
+function appendTag(tag,iid){var el=document.getElementById(iid),c=el.value;if(c&&c.charAt(c.length-1)!==";")el.value=c+";"+tag;else el.value=c+tag;}
+
+function saveThought(){var b=document.getElementById("c-body").value.replace(/^\s+|\s+$/g,"");if(!b){toast("内容を入力してください");return;}
+// #ハッシュタグからフレームワークを自動検出
+var fwMap={"#3C":"3C","#SCR":"SCR","#MECE":"MECE","#仮説":"仮説思考","#イシュー":"イシューツリー","#SWOT":"SWOT","#4P":"4P","#5Forces":"5Forces","#ギャップ":"ギャップ分析","#シナリオ":"シナリオ","#ピラミッド":"ピラミッド","#KPI":"KPIツリー","#意思決定":"意思決定"};var detectedFW="";for(var tag in fwMap){if(fwMap.hasOwnProperty(tag)&&b.indexOf(tag)>=0){detectedFW=fwMap[tag];break;}}
+var ctx="その他";try{ctx=document.getElementById("c-ctx").value;}catch(e){}
+appendCSV("thought_log",{id:genId("TL"),datetime:nowISO(),type:document.getElementById("c-type").value,framework:detectedFW,urgency:document.getElementById("c-urgency").value,context:ctx,content_raw:b,framework_data:"",tags:document.getElementById("c-tags").value,project:document.getElementById("c-pj").value,status:"未処理",ai_summary:"",ai_action:"",ai_deep:"",ai_link:""});toast("⚡ 記録しました"+(detectedFW?" ["+detectedFW+" 検出]":""),"ok");clearCap();renderLogs("");updateHdr();}
+function clearCap(){document.getElementById("c-body").value="";document.getElementById("c-tags").value="";document.getElementById("c-pj").value="";document.getElementById("c-cnt").innerText="0";document.getElementById("c-body").focus();}
+
+// ═══════════════════════════════════════════
+// FRAMEWORK SCREEN
+// ═══════════════════════════════════════════
+function renderFWPanel(){var fw=document.getElementById("fw-select").value,area=document.getElementById("fw-panel-area");if(!fw||!FW_DEF[fw]){area.innerHTML='<div style="color:#6b7190;font-size:14px;padding:20px;text-align:center;">フレームワークを選択してください</div>';return;}var d=FW_DEF[fw],h='<div class="fw-panel"><div class="fw-panel-hdr">◆ '+d.label+'</div><div class="g2" style="padding:16px 20px;">';for(var i=0;i<d.fields.length;i++){var f=d.fields[i],sp=f.full?"width:100% !important;margin-right:0 !important;":"";h+='<div class="fg" style="'+sp+'"><label class="lbl">'+f.label+'</label><textarea id="'+f.id+'" rows="'+f.rows+'" style="font-size:15px" placeholder="'+f.label+'"></textarea></div>';}h+="</div></div>";area.innerHTML=h;}
+
+function saveFWAnalysis(){var fw=document.getElementById("fw-select").value;if(!fw||!FW_DEF[fw]){toast("フレームワークを選択してください");return;}var fwData=getFWData2(fw);var srcId=document.getElementById("fw-source-log").value;var body="【"+FW_DEF[fw].label+"】\n";var flds=FW_DEF[fw].fields;for(var i=0;i<flds.length;i++){var el=document.getElementById(flds[i].id);if(el&&el.value)body+=flds[i].label+": "+el.value+"\n";}
+appendCSV("thought_log",{id:genId("TL"),datetime:nowISO(),type:"学び",framework:fw,urgency:"記録だけ",context:"朝の整理",content_raw:body,framework_data:fwData,tags:"",project:document.getElementById("fw-pj").value,status:"未処理",ai_summary:"",ai_action:"",ai_deep:"",ai_link:srcId});toast("◆ フレームワーク分析を保存しました","ok");clearFWPanel();renderFWLogs();updateHdr();}
+
+function getFWData2(fw){if(!fw||!FW_DEF[fw])return"";var d={},f=FW_DEF[fw].fields;for(var i=0;i<f.length;i++){var el=document.getElementById(f[i].id);if(el&&el.value)d[f[i].id]=el.value;}return JSON.stringify(d);}
+
+function clearFWPanel(){document.getElementById("fw-select").value="";document.getElementById("fw-pj").value="";document.getElementById("fw-source-log").value="";document.getElementById("fw-panel-area").innerHTML='<div style="color:#6b7190;font-size:14px;padding:20px;text-align:center;">フレームワークを選択してください</div>';document.getElementById("fw-source-preview").style.display="none";}
+
+function populateFWLogSelector(){var logs=readCSV("thought_log").reverse().slice(0,30);var sel=document.getElementById("fw-source-log");sel.innerHTML='<option value="">— 新規で作成 —</option>';for(var i=0;i<logs.length;i++){var l=logs[i];sel.innerHTML+='<option value="'+l.id+'">'+fmtDT(l.datetime)+" ["+l.type+"] "+esc(l.content_raw.slice(0,40))+"</option>";}}
+
+function loadLogForFW(){var id=document.getElementById("fw-source-log").value;var prev=document.getElementById("fw-source-preview");if(!id){prev.style.display="none";return;}var logs=readCSV("thought_log"),log=null;for(var i=0;i<logs.length;i++){if(logs[i].id===id)log=logs[i];}if(!log){prev.style.display="none";return;}prev.style.display="block";prev.innerHTML='<div style="font-size:12px;color:#e8b84b;margin-bottom:6px;">'+log.type+" · "+fmtDT(log.datetime)+(log.framework?" · "+log.framework:"")+'</div><div style="white-space:pre-wrap;">'+esc(log.content_raw)+"</div>";if(log.project)document.getElementById("fw-pj").value=log.project;
+// auto-detect framework from hashtags
+var fwMap={"#3C":"3C","#SCR":"SCR","#MECE":"MECE","#仮説":"仮説思考","#イシュー":"イシューツリー","#SWOT":"SWOT","#4P":"4P","#5Forces":"5Forces","#ギャップ":"ギャップ分析","#シナリオ":"シナリオ","#ピラミッド":"ピラミッド","#KPI":"KPIツリー","#意思決定":"意思決定"};for(var tag in fwMap){if(fwMap.hasOwnProperty(tag)&&log.content_raw.indexOf(tag)>=0){document.getElementById("fw-select").value=fwMap[tag];renderFWPanel();break;}}}
+
+function renderFWLogs(){var data=readCSV("thought_log").filter(function(t){return t.framework;}).reverse();var list=document.getElementById("fw-log-list");if(!data.length){list.innerHTML='<div class="empty"><div class="empty-icon">◆</div>FW分析なし</div>';return;}list.innerHTML=data.map(function(t){return'<div class="log-item"><div class="log-hdr"><span class="fw-badge">'+t.framework+'</span><span class="type-badge type-'+t.type+'">'+t.type+'</span><span class="log-time">'+fmtDT(t.datetime)+'</span></div><div class="log-body">'+esc(t.content_raw.slice(0,120))+(t.content_raw.length>120?"...":"")+'</div></div>';}).join("");}
+function renderLogs(filter){var data=readCSV("thought_log");document.getElementById("log-badge").innerText=data.length;if(filter)data=data.filter(function(r){return r.content_raw.indexOf(filter)>=0||(r.tags||"").indexOf(filter)>=0||(r.type||"").indexOf(filter)>=0;});data=data.reverse();var list=document.getElementById("log-list");if(!data.length){list.innerHTML='<div class="empty"><div class="empty-icon">⚡</div>思考を記録してください</div>';return;}list.innerHTML=data.map(function(t){var tags=t.tags?t.tags.split(";").filter(Boolean):[];var tagH=tags.map(function(tg){return'<span class="tag" style="font-size:11px;padding:2px 8px">'+tg+'</span>';}).join("");return'<div class="log-item'+(t.ai_summary?' has-ai':'')+'"><div class="log-hdr"><span class="type-badge type-'+t.type+'">'+t.type+'</span>'+(t.framework?'<span class="fw-badge">'+t.framework+'</span>':'')+'<span style="font-size:12px;padding:3px 10px;border-radius:4px;background:#262a3a;border:1px solid #2a2e40;color:#a0a6bc">'+t.urgency+'</span><span class="log-time">'+fmtDT(t.datetime)+'</span></div><div class="log-body">'+esc(t.content_raw.slice(0,140))+(t.content_raw.length>140?"...":"")+'</div>'+(t.ai_summary?'<div class="log-ai">🤖 '+esc(t.ai_summary.slice(0,80))+'</div>':'')+(tagH?'<div class="log-tags">'+tagH+'</div>':'')+'</div>';}).join("");}
+
+var pendingFile=null;
+function fetchUrlMeta(){var url=document.getElementById("ib-url").value.replace(/^\s+|\s+$/g,"");if(!url){toast("URLを入力してください");return;}try{var x=new ActiveXObject("Msxml2.XMLHTTP");x.open("GET",url,false);x.send(null);var h=x.responseText,tm=h.match(/<title[^>]*>([^<]*)<\/title>/i),dm=h.match(/<meta[^>]*name=["\']description["\'][^>]*content=["\']([^"\']*)["\'][^>]*>/i);if(tm)document.getElementById("ib-title").value=tm[1].replace(/^\s+|\s+$/g,"");if(dm)document.getElementById("ib-summary").value=dm[1].replace(/^\s+|\s+$/g,"");toast("タイトルを取得しました","ok");}catch(e){toast("自動取得できませんでした","");}}
+function dzOver(e){e.returnValue=false;document.getElementById("drop-zone").className+=" over";}
+function dzLeave(){document.getElementById("drop-zone").className=document.getElementById("drop-zone").className.replace(" over","");}
+function dzDrop(e){e.returnValue=false;document.getElementById("drop-zone").className=document.getElementById("drop-zone").className.replace(" over","");var f=e.dataTransfer.files;if(f&&f.length)handleFiles(f);}
+function handleFiles(files){var info=[],exts={pdf:"PDF",xlsx:"Excel",xls:"Excel",csv:"CSV",pptx:"PowerPoint",ppt:"PowerPoint",docx:"Word",doc:"Word"};for(var i=0;i<files.length;i++){var f=files[i],ext=f.name.split(".").pop().toLowerCase(),ft=exts[ext]||"その他",fs=(f.size/1024).toFixed(1)+" KB";info.push({name:f.name,type:ft,size:fs});if(i===0){document.getElementById("ib-title").value=f.name;document.getElementById("ib-summary").value="["+ft+"] "+f.name+" ("+fs+")";pendingFile={name:f.name,type:ft,size:fs,path:f.name};}}document.getElementById("dropped-files").style.display="block";document.getElementById("dropped-paths").innerText=info.map(function(f){return f.type+": "+f.name+" ("+f.size+")";}).join("\n");toast("📁 "+files.length+"ファイル読込","ok");}
+function saveInbox(){var title=document.getElementById("ib-title").value.replace(/^\s+|\s+$/g,""),url=document.getElementById("ib-url").value.replace(/^\s+|\s+$/g,"");if(!title&&!url){toast("タイトルまたはURLを入力");return;}var pf=pendingFile||{};appendCSV("intelligence_inbox",{id:genId("II"),datetime:nowISO(),source_type:url?"URL":(pf.type||"その他"),title:title||url,url:url,url_summary:document.getElementById("ib-summary").value,file_path:pf.path||"",file_type:pf.type||"",file_size:pf.size||"",project:document.getElementById("ib-pj").value,category:document.getElementById("ib-cat").value,tags:document.getElementById("ib-tags").value,memo:document.getElementById("ib-memo").value,status:"未読",ai_summary:"",ai_implication:""});toast("📥 保存しました","ok");var c=["ib-url","ib-title","ib-summary","ib-pj","ib-tags","ib-memo"];for(var i=0;i<c.length;i++)document.getElementById(c[i]).value="";pendingFile=null;document.getElementById("dropped-files").style.display="none";renderInbox("");updateHdr();}
+function renderInbox(filter){var data=readCSV("intelligence_inbox").reverse();document.getElementById("ib-badge").innerText=data.length;if(filter)data=data.filter(function(r){return r.title.indexOf(filter)>=0||(r.tags||"").indexOf(filter)>=0;});var list=document.getElementById("ib-list");if(!data.length){list.innerHTML='<div class="empty"><div class="empty-icon">📥</div>情報がありません</div>';return;}var ic={PDF:"📄",Excel:"📊",CSV:"📊",PowerPoint:"📑",Word:"📝",URL:"🔗"};list.innerHTML=data.map(function(item){var icon=ic[item.source_type]||"📁",tags=item.tags?item.tags.split(";").filter(Boolean):[];return'<div class="inbox-item"><div class="inbox-hdr"><span style="font-size:16px">'+icon+'</span><span class="inbox-title">'+esc(item.title.slice(0,55))+'</span><span class="st-badge st-'+item.status+'">'+item.status+'</span></div><div class="inbox-meta">'+item.category+' · '+fmtDT(item.datetime)+(item.project?' · '+item.project:'')+'</div>'+(tags.length?'<div class="log-tags" style="margin-top:4px">'+tags.map(function(t){return'<span class="tag" style="font-size:11px;padding:2px 6px">'+t+'</span>';}).join("")+'</div>':'')+'</div>';}).join("");}
+
+function saveTask(){var t=document.getElementById("tk-title").value.replace(/^\s+|\s+$/g,"");if(!t){toast("タスク名を入力");return;}appendCSV("task_log",{id:genId("TK"),datetime:nowISO(),title:t,priority:document.getElementById("tk-pri").value,type:document.getElementById("tk-type").value,due:document.getElementById("tk-due").value,hours:document.getElementById("tk-h").value,owner:document.getElementById("tk-owner").value||"自分",project:document.getElementById("tk-pj").value,content:document.getElementById("tk-body").value,status:"未着手",result:""});closeModal("task-modal");toast("◈ タスク追加","ok");renderMatrix();updateHdr();var c=["tk-title","tk-due","tk-h","tk-owner","tk-pj","tk-body"];for(var i=0;i<c.length;i++)document.getElementById(c[i]).value="";}
+function renderMatrix(){var data=readCSV("task_log"),open=data.filter(function(t){return t.status!=="完了"&&t.status!=="中止";}),qm={S:"mq1",A:"mq2",B:"mq3",C:"mq4"},ps=["S","A","B","C"];for(var pi=0;pi<ps.length;pi++){var p=ps[pi],el=document.getElementById(qm[p]);if(!el)continue;var tasks=open.filter(function(t){return t.priority===p;});if(!tasks.length){el.innerHTML='<div class="empty" style="padding:20px;font-size:13px">なし</div>';continue;}el.innerHTML=tasks.map(function(t){var ov=t.due&&t.due<todayISO();return'<div class="m-task"><div class="done-btn" onclick="doneTask(\''+t.id+'\')">✓</div><span style="flex:1">'+esc(t.title)+'</span>'+(t.due?'<span style="font-family:Consolas,monospace;font-size:13px;color:'+(ov?"#f06060":"#6b7190")+'">'+fmtD(t.due)+'</span>':'')+'</div>';}).join("");}updateHdr();}
+function doneTask(id){var d=readCSV("task_log");for(var i=0;i<d.length;i++){if(d[i].id===id)d[i].status="完了";}writeCSV("task_log",d);toast("✓ 完了","ok");renderMatrix();}
+
+function saveProject(){var n=document.getElementById("pj-name").value.replace(/^\s+|\s+$/g,"");if(!n){toast("案件名を入力");return;}appendCSV("project_master",{id:genId("P"),datetime:nowISO(),name:n,client:document.getElementById("pj-client").value,phase:document.getElementById("pj-phase").value,priority:document.getElementById("pj-pri").value,type:document.getElementById("pj-type").value,fee:document.getElementById("pj-fee").value,start:document.getElementById("pj-start").value,end:document.getElementById("pj-end").value,hypothesis:document.getElementById("pj-hyp").value,risk:document.getElementById("pj-risk").value,status:"進行中"});closeModal("pj-modal");toast("◉ 案件追加","ok");renderProjects();var c=["pj-name","pj-client","pj-fee","pj-start","pj-end","pj-hyp","pj-risk"];for(var i=0;i<c.length;i++)document.getElementById(c[i]).value="";}
+function renderProjects(){var data=readCSV("project_master").filter(function(p){return p.status!=="完了"&&p.status!=="中止";}),board=document.getElementById("pj-board");if(!data.length){board.innerHTML='<div class="empty"><div class="empty-icon">◉</div>案件がありません</div>';return;}var ph={};for(var i=0;i<data.length;i++){var p=data[i];if(!ph[p.phase])ph[p.phase]=[];ph[p.phase].push(p);}var pc={S:"pj-s",A:"pj-a",B:"pj-b",C:""},h='<div style="display:-ms-flexbox;display:flex;-ms-flex-wrap:wrap;flex-wrap:wrap;">';for(var k in ph){if(!ph.hasOwnProperty(k))continue;h+='<div style="width:220px;margin:0 12px 12px 0;-ms-flex-negative:0;flex-shrink:0;"><div style="font-size:13px;font-weight:700;color:#6b7190;letter-spacing:2px;padding:6px 10px;border-bottom:1px solid #2a2e40;margin-bottom:8px;">'+k+' ('+ph[k].length+')</div>';for(var j=0;j<ph[k].length;j++){var p=ph[k][j];h+='<div class="pj-card '+(pc[p.priority]||'')+'"><div class="pj-name">'+esc(p.name)+'</div><div style="font-size:13px;color:#a0a6bc">'+esc(p.client||"—")+'</div><div class="pj-meta">'+p.type+(p.fee?' · '+p.fee+'万円':'')+'</div><div class="pj-bar"><div class="pj-fill" style="width:'+getPhaseProgress(p.phase)+'%"></div></div></div>';}h+='</div>';}h+='</div>';board.innerHTML=h;}
+function getPhaseProgress(phase){var p=["提案前","Dペーパー作成","提案書作成","提案済","契約交渉","契約締結","キックオフ","調査分析","仮説検証","提言作成","最終プレゼン","実行支援","完了"],idx=-1;for(var i=0;i<p.length;i++){if(p[i]===phase){idx=i;break;}}return idx<0?0:Math.round(idx/(p.length-1)*100);}
+
+var curMtgId=null;
+function newMtg(){curMtgId=null;var ids=["m-title","m-in","m-out","m-pj","m-purpose","m-disc","m-dec","m-todo"];for(var i=0;i<ids.length;i++)document.getElementById(ids[i]).value="";document.getElementById("m-dt").value=new Date().toISOString().slice(0,16);document.getElementById("mtg-form-title").innerText="NEW MEETING";}
+function saveMtg(){var t=document.getElementById("m-title").value.replace(/^\s+|\s+$/g,"");if(!t){toast("会議名を入力");return;}if(curMtgId){var d=readCSV("meeting_minutes");for(var i=0;i<d.length;i++){if(d[i].id===curMtgId){d[i].title=t;d[i].datetime=document.getElementById("m-dt").value;d[i].attendees_in=document.getElementById("m-in").value;d[i].attendees_out=document.getElementById("m-out").value;d[i].project=document.getElementById("m-pj").value;d[i].purpose=document.getElementById("m-purpose").value;d[i].discussion_raw=document.getElementById("m-disc").value;d[i].decisions=document.getElementById("m-dec").value;d[i].todos=document.getElementById("m-todo").value;}}writeCSV("meeting_minutes",d);toast("📋 更新","ok");}else{appendCSV("meeting_minutes",{id:genId("MT"),datetime:document.getElementById("m-dt").value||nowISO(),title:t,attendees_in:document.getElementById("m-in").value,attendees_out:document.getElementById("m-out").value,project:document.getElementById("m-pj").value,purpose:document.getElementById("m-purpose").value,discussion_raw:document.getElementById("m-disc").value,decisions:document.getElementById("m-dec").value,todos:document.getElementById("m-todo").value,status:"未処理",ai_summary:"",ai_teams:"",ai_email:""});toast("📋 保存","ok");}renderMtgList();updateHdr();}
+function renderMtgList(){var d=readCSV("meeting_minutes").reverse();document.getElementById("mtg-badge").innerText=d.length;var l=document.getElementById("mtg-list");if(!d.length){l.innerHTML='<div class="empty"><div class="empty-icon">📋</div>議事録なし</div>';return;}l.innerHTML=d.map(function(m){return'<div class="mtg-item'+(m.id===curMtgId?" sel":"")+'" onclick="loadMtg(\''+m.id+'\')"><div class="mtg-name">'+esc(m.title)+'</div><div class="mtg-meta">'+fmtDT(m.datetime)+(m.project?" · "+m.project:"")+'</div></div>';}).join("");}
+function loadMtg(id){var d=readCSV("meeting_minutes"),m=null;for(var i=0;i<d.length;i++){if(d[i].id===id)m=d[i];}if(!m)return;curMtgId=id;document.getElementById("m-title").value=m.title||"";document.getElementById("m-dt").value=(m.datetime||"").slice(0,16);document.getElementById("m-in").value=m.attendees_in||"";document.getElementById("m-out").value=m.attendees_out||"";document.getElementById("m-pj").value=m.project||"";document.getElementById("m-purpose").value=m.purpose||"";document.getElementById("m-disc").value=m.discussion_raw||"";document.getElementById("m-dec").value=m.decisions||"";document.getElementById("m-todo").value=m.todos||"";document.getElementById("mtg-form-title").innerText="EDIT: "+m.title;renderMtgList();}
+
+var curDlId=null;
+function newDelegation(){curDlId=null;var ids=["dl-assignee","dl-pj","dl-due","dl-followup","dl-instruction","dl-purpose","dl-output"];for(var i=0;i<ids.length;i++)document.getElementById(ids[i]).value="";document.getElementById("dl-form-title").innerText="NEW DELEGATION";}
+function saveDelegation(){var ins=document.getElementById("dl-instruction").value.replace(/^\s+|\s+$/g,"");if(!ins){toast("指示内容を入力");return;}if(curDlId){var d=readCSV("delegation_log");for(var i=0;i<d.length;i++){if(d[i].id===curDlId){d[i].assignee=document.getElementById("dl-assignee").value;d[i].project=document.getElementById("dl-pj").value;d[i].priority=document.getElementById("dl-pri").value;d[i].due=document.getElementById("dl-due").value;d[i].channel=document.getElementById("dl-channel").value;d[i].followup=document.getElementById("dl-followup").value;d[i].instruction_raw=ins;d[i].purpose=document.getElementById("dl-purpose").value;d[i].output_image=document.getElementById("dl-output").value;}}writeCSV("delegation_log",d);toast("📤 更新","ok");}else{appendCSV("delegation_log",{id:genId("DL"),datetime:nowISO(),assignee:document.getElementById("dl-assignee").value,project:document.getElementById("dl-pj").value,priority:document.getElementById("dl-pri").value,due:document.getElementById("dl-due").value,channel:document.getElementById("dl-channel").value,followup:document.getElementById("dl-followup").value,instruction_raw:ins,purpose:document.getElementById("dl-purpose").value,output_image:document.getElementById("dl-output").value,status:"未送信",ai_message:""});toast("📤 保存","ok");}renderDelegationList();}
+function renderDelegationList(){var d=readCSV("delegation_log").reverse();document.getElementById("dl-badge").innerText=d.length;var l=document.getElementById("dl-list");if(!d.length){l.innerHTML='<div class="empty"><div class="empty-icon">📤</div>指示なし</div>';return;}var sc={"未送信":"#f06060","送信済":"#e8b84b","進行中":"#5b9cf5","完了":"#4eca7a"};l.innerHTML=d.map(function(x){return'<div class="list-item'+(x.id===curDlId?" sel":"")+'" onclick="loadDelegation(\''+x.id+'\')"><div style="display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:'+(sc[x.status]||"#6b7190")+'"></span><span class="list-title">'+esc(x.assignee||"?")+'</span></div><div class="list-meta">'+x.status+' · '+fmtDT(x.datetime)+(x.due?' · 〆'+fmtD(x.due):'')+'</div><div style="font-size:13px;color:#a0a6bc;margin-top:4px">'+esc(x.instruction_raw.slice(0,50))+'</div></div>';}).join("");}
+function loadDelegation(id){var d=readCSV("delegation_log"),x=null;for(var i=0;i<d.length;i++){if(d[i].id===id)x=d[i];}if(!x)return;curDlId=id;document.getElementById("dl-assignee").value=x.assignee||"";document.getElementById("dl-pj").value=x.project||"";document.getElementById("dl-pri").value=x.priority||"A";document.getElementById("dl-due").value=x.due||"";document.getElementById("dl-channel").value=x.channel||"Teams_DM";document.getElementById("dl-followup").value=x.followup||"";document.getElementById("dl-instruction").value=x.instruction_raw||"";document.getElementById("dl-purpose").value=x.purpose||"";document.getElementById("dl-output").value=x.output_image||"";document.getElementById("dl-form-title").innerText="EDIT: "+x.assignee;renderDelegationList();}
+
+function saveClient(){var n=document.getElementById("cl-name").value.replace(/^\s+|\s+$/g,"");if(!n){toast("顧客名を入力");return;}appendCSV("client_master",{id:genId("C"),datetime:nowISO(),name:n,division:document.getElementById("cl-div").value,key_person:document.getElementById("cl-kp").value,key_title:document.getElementById("cl-title").value,email:document.getElementById("cl-email").value,tel:document.getElementById("cl-tel").value,industry:document.getElementById("cl-industry").value,relation_score:document.getElementById("cl-relation").value,sales_phase:document.getElementById("cl-phase").value,revenue_scale:document.getElementById("cl-rev").value,pain_summary:document.getElementById("cl-pain").value,memo:document.getElementById("cl-memo").value});closeModal("cl-modal");toast("👤 顧客追加","ok");renderClients("");var c=["cl-name","cl-div","cl-kp","cl-title","cl-email","cl-tel","cl-pain","cl-memo"];for(var i=0;i<c.length;i++)document.getElementById(c[i]).value="";}
+function renderClients(filter){var d=readCSV("client_master");document.getElementById("cl-badge").innerText=d.length;if(filter)d=d.filter(function(c){return c.name.indexOf(filter)>=0||(c.key_person||"").indexOf(filter)>=0;});var l=document.getElementById("cl-list");if(!d.length){l.innerHTML='<div class="empty"><div class="empty-icon">👤</div>顧客なし</div>';return;}var rc={"1":"#6b7190","2":"#a0a6bc","3":"#5b9cf5","4":"#e8b84b","5":"#4eca7a"};l.innerHTML=d.map(function(c){return'<div class="list-item" onclick="showClient(\''+c.id+'\')"><div style="display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:'+(rc[c.relation_score]||"#6b7190")+'"></span><span class="list-title">'+esc(c.name)+'</span></div><div class="list-meta">'+(c.industry||"")+" · "+(c.key_person||"")+" · "+(c.sales_phase||"")+'</div></div>';}).join("");}
+function showClient(id){var d=readCSV("client_master"),c=null;for(var i=0;i<d.length;i++){if(d[i].id===id)c=d[i];}if(!c)return;var pjs=readCSV("project_master").filter(function(p){return p.client===c.name;});var det=document.getElementById("cl-detail");det.innerHTML='<div class="sec-lbl">'+esc(c.name)+' — CUSTOMER CARD</div><div class="g2" style="margin-top:12px"><div class="stat-card"><div class="stat-lbl">KEY PERSON</div><div style="font-size:18px;font-weight:700">'+esc(c.key_person||"—")+'</div><div class="stat-sub">'+esc(c.key_title||"")+" · "+esc(c.division||"")+'</div></div><div class="stat-card blue"><div class="stat-lbl">RELATION SCORE</div><div class="stat-val">'+c.relation_score+'</div><div class="stat-sub">'+esc(c.sales_phase||"")+'</div></div></div><div class="g2" style="margin-top:12px"><div class="panel" style="padding:16px"><div class="panel-title" style="margin-bottom:8px">基本情報</div><div style="font-size:14px;color:#a0a6bc;line-height:2">業種: '+esc(c.industry||"")+'<br>売上規模: '+esc(c.revenue_scale||"")+'<br>Email: '+esc(c.email||"")+'<br>TEL: '+esc(c.tel||"")+'</div></div><div class="panel" style="padding:16px"><div class="panel-title" style="margin-bottom:8px">課題サマリー</div><div style="font-size:14px;color:#a0a6bc;line-height:1.7">'+esc(c.pain_summary||"未記入")+'</div></div></div>'+(c.memo?'<div class="panel" style="padding:16px;margin-top:12px"><div class="panel-title" style="margin-bottom:8px">関係者メモ</div><div style="font-size:14px;color:#a0a6bc;line-height:1.7">'+esc(c.memo)+'</div></div>':'')+'<div class="sec-lbl" style="margin-top:16px">関連案件 ('+pjs.length+')</div>'+(pjs.length?pjs.map(function(p){return'<div class="pj-card" style="margin-top:6px"><div class="pj-name">'+esc(p.name)+'</div><div class="pj-meta">'+p.phase+" · "+p.type+(p.fee?" · "+p.fee+"万円":"")+'</div></div>';}).join(""):'<div style="color:#6b7190;font-size:14px;padding:12px">なし</div>');}
+
+function saveRisk(){var t=document.getElementById("rk-title").value.replace(/^\s+|\s+$/g,"");if(!t){toast("リスク名を入力");return;}appendCSV("risk_log",{id:genId("RK"),datetime:nowISO(),project:document.getElementById("rk-pj").value,title:t,category:document.getElementById("rk-cat").value,probability:document.getElementById("rk-prob").value,impact:document.getElementById("rk-impact").value,description:document.getElementById("rk-desc").value,countermeasure:document.getElementById("rk-counter").value,status:"監視中"});closeModal("risk-modal");toast("⚠ リスク追加","ok");renderRisks();var c=["rk-title","rk-pj","rk-desc","rk-counter"];for(var i=0;i<c.length;i++)document.getElementById(c[i]).value="";}
+function renderRisks(){var d=readCSV("risk_log").filter(function(r){return r.status!=="クローズ";});document.getElementById("rk-badge").innerText=d.length;var l=document.getElementById("rk-list");if(!d.length){l.innerHTML='<div class="empty"><div class="empty-icon">⚠</div>リスクなし</div>';return;}var pc={"高":"#f06060","中":"#e8b84b","低":"#4eca7a"};l.innerHTML=d.map(function(r){return'<div class="list-item" onclick="showRisk(\''+r.id+'\')"><div style="display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center"><span style="width:8px;height:8px;border-radius:50%;background:'+(pc[r.probability]||"#6b7190")+'"></span><span class="list-title">'+esc(r.title)+'</span></div><div class="list-meta">'+r.category+" · 確率:"+r.probability+" · 影響:"+r.impact+(r.project?" · "+r.project:"")+'</div></div>';}).join("");}
+function showRisk(id){var d=readCSV("risk_log"),r=null;for(var i=0;i<d.length;i++){if(d[i].id===id)r=d[i];}if(!r)return;var pc={"高":"#f06060","中":"#e8b84b","低":"#4eca7a"},ic={"致命的":"#f06060","大":"#e8b84b","中":"#5b9cf5","小":"#4eca7a"};document.getElementById("rk-detail").innerHTML='<div class="sec-lbl">⚠ '+esc(r.title)+'</div><div class="g3" style="margin-top:12px"><div class="stat-card"><div class="stat-lbl">発生確率</div><div class="stat-val" style="color:'+(pc[r.probability]||"")+'">'+r.probability+'</div></div><div class="stat-card"><div class="stat-lbl">影響度</div><div class="stat-val" style="color:'+(ic[r.impact]||"")+'">'+r.impact+'</div></div><div class="stat-card"><div class="stat-lbl">STATUS</div><div style="font-size:20px;font-weight:700;margin-top:10px">'+r.status+'</div></div></div><div class="panel" style="padding:16px;margin-top:12px"><div class="panel-title" style="margin-bottom:8px">リスク詳細</div><div style="font-size:14px;line-height:1.7;color:#a0a6bc">'+esc(r.description||"未記入")+'</div></div><div class="panel" style="padding:16px;margin-top:12px"><div class="panel-title" style="margin-bottom:8px">対応策</div><div style="font-size:14px;line-height:1.7;color:#a0a6bc">'+esc(r.countermeasure||"未記入")+'</div></div><div style="margin-top:16px;display:-ms-flexbox;display:flex"><button class="btn btn-ghost btn-sm" onclick="updateRiskStatus(\''+r.id+'\',\'対応中\')">対応中にする</button><button class="btn btn-ghost btn-sm" onclick="updateRiskStatus(\''+r.id+'\',\'軽減済\')">軽減済</button><button class="btn btn-danger btn-sm" onclick="updateRiskStatus(\''+r.id+'\',\'クローズ\')">クローズ</button></div>';}
+function updateRiskStatus(id,st){var d=readCSV("risk_log");for(var i=0;i<d.length;i++){if(d[i].id===id)d[i].status=st;}writeCSV("risk_log",d);toast("⚠ ステータス更新","ok");renderRisks();showRisk(id);}
+
+function saveKnowledge(){var t=document.getElementById("kb-title").value.replace(/^\s+|\s+$/g,""),c=document.getElementById("kb-content").value.replace(/^\s+|\s+$/g,"");if(!t||!c){toast("タイトルと内容を入力");return;}appendCSV("knowledge_base",{id:genId("KB"),datetime:nowISO(),category:document.getElementById("kb-cat").value,title:t,project:document.getElementById("kb-pj").value,content:c,source:document.getElementById("kb-source").value,tags:document.getElementById("kb-tags").value,ai_summary:""});toast("📖 保存","ok");var cl=["kb-title","kb-pj","kb-content","kb-source","kb-tags"];for(var i=0;i<cl.length;i++)document.getElementById(cl[i]).value="";renderKnowledge("");}
+function renderKnowledge(filter){var d=readCSV("knowledge_base").reverse();document.getElementById("kb-badge").innerText=d.length;if(filter)d=d.filter(function(k){return k.title.indexOf(filter)>=0||k.content.indexOf(filter)>=0||(k.tags||"").indexOf(filter)>=0;});var l=document.getElementById("kb-list");if(!d.length){l.innerHTML='<div class="empty"><div class="empty-icon">📖</div>ナレッジなし</div>';return;}l.innerHTML=d.map(function(k){var tags=k.tags?k.tags.split(";").filter(Boolean):[];return'<div class="log-item"><div class="log-hdr"><span class="fw-badge">'+k.category+'</span><span style="-ms-flex:1;flex:1;font-size:15px;font-weight:600">'+esc(k.title)+'</span><span class="log-time">'+fmtDT(k.datetime)+'</span></div><div class="log-body">'+esc(k.content.slice(0,180))+(k.content.length>180?"...":"")+'</div>'+(k.source?'<div style="font-size:12px;color:#6b7190;margin-top:4px">📌 '+esc(k.source)+'</div>':'')+(tags.length?'<div class="log-tags">'+tags.map(function(t){return'<span class="tag" style="font-size:11px;padding:2px 8px">'+t+'</span>';}).join("")+'</div>':'')+'</div>';}).join("");}
+
+function generateWeeklyReport(){var now=new Date(),wa=new Date(now.getTime()-7*864e5),wai=wa.toISOString();var th=readCSV("thought_log").filter(function(t){return t.datetime>=wai;}),tk=readCSV("task_log"),ct=tk.filter(function(t){return t.status==="完了"&&t.datetime>=wai;}),ot=tk.filter(function(t){return t.status!=="完了"&&t.status!=="中止";}),mt=readCSV("meeting_minutes").filter(function(m){return m.datetime>=wai;}),ib=readCSV("intelligence_inbox").filter(function(i){return i.datetime>=wai;}),rk=readCSV("risk_log").filter(function(r){return r.status!=="クローズ";});var tc={};for(var i=0;i<th.length;i++){var tp=th[i].type||"その他";tc[tp]=(tc[tp]||0)+1;}var tH="";for(var k in tc){if(tc.hasOwnProperty(k))tH+='<span class="type-badge type-'+k+'" style="margin-right:6px">'+k+": "+tc[k]+"</span>";}var el=document.getElementById("weekly-content");el.innerHTML='<div class="g4"><div class="stat-card"><div class="stat-lbl">今週の思考</div><div class="stat-val">'+th.length+'</div></div><div class="stat-card blue"><div class="stat-lbl">完了タスク</div><div class="stat-val">'+ct.length+'</div></div><div class="stat-card green"><div class="stat-lbl">MTG数</div><div class="stat-val">'+mt.length+'</div></div><div class="stat-card red"><div class="stat-lbl">アクティブリスク</div><div class="stat-val">'+rk.length+'</div></div></div><div class="wr-section"><div class="wr-title">思考の種類分布</div>'+(tH||'<span style="color:#6b7190">データなし</span>')+'</div><div class="wr-section"><div class="wr-title">残タスク ('+ot.length+'件)</div>'+(ot.length?ot.slice(0,10).map(function(t){var pC={S:"#f06060",A:"#e8b84b",B:"#5b9cf5",C:"#6b7190"};return'<div style="display:-ms-flexbox;display:flex;align-items:center;padding:6px 0;font-size:14px"><span style="width:8px;height:8px;border-radius:50%;background:'+(pC[t.priority]||"")+'"></span><span style="flex:1">'+esc(t.title)+'</span><span style="font-family:Consolas,monospace;font-size:13px;color:#6b7190">'+fmtD(t.due)+'</span></div>';}).join(""):'<div style="color:#6b7190;font-size:14px">なし</div>')+'</div><div class="wr-section"><div class="wr-title">今週の議事録</div>'+(mt.length?mt.map(function(m){return'<div style="padding:6px 0;font-size:14px">'+fmtDT(m.datetime)+' — '+esc(m.title)+'</div>';}).join(""):'<div style="color:#6b7190">なし</div>')+'</div><div class="wr-section"><div class="wr-title">今週収集した情報 ('+ib.length+'件)</div>'+(ib.length?ib.slice(0,8).map(function(item){return'<div style="padding:4px 0;font-size:14px">'+esc(item.title.slice(0,55))+' ('+item.category+')</div>';}).join(""):'<div style="color:#6b7190">なし</div>')+'</div>';}
+function copyWeeklyReport(){clipCopy(document.getElementById("weekly-content").innerText);toast("📋 コピー","ok");}
+
+function globalSearch(){var q=document.getElementById("gs-q").value.replace(/^\s+|\s+$/g,"");if(!q)return;var results=[],tables=[{name:"thought_log",label:"思考ログ",fields:["content_raw","tags","type","ai_summary"]},{name:"meeting_minutes",label:"議事録",fields:["title","discussion_raw","decisions","todos"]},{name:"intelligence_inbox",label:"インボックス",fields:["title","url_summary","memo","tags"]},{name:"task_log",label:"タスク",fields:["title","content"]},{name:"project_master",label:"案件",fields:["name","client","hypothesis","risk"]},{name:"client_master",label:"顧客",fields:["name","key_person","pain_summary","memo"]},{name:"delegation_log",label:"部下指示",fields:["assignee","instruction_raw","purpose"]},{name:"risk_log",label:"リスク",fields:["title","description","countermeasure"]},{name:"knowledge_base",label:"ナレッジ",fields:["title","content","tags"]}];for(var ti=0;ti<tables.length;ti++){var tb=tables[ti],rows=readCSV(tb.name);for(var ri=0;ri<rows.length;ri++){var row=rows[ri];for(var fi=0;fi<tb.fields.length;fi++){var val=row[tb.fields[fi]]||"";if(val.indexOf(q)>=0){results.push({source:tb.label,id:row.id||"",text:val.slice(0,250),dt:row.datetime||""});break;}}}}var el=document.getElementById("gs-results");if(!results.length){el.innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">🔍</div>「'+esc(q)+'」が見つかりませんでした</div>';return;}el.innerHTML='<div style="font-size:13px;color:#6b7190;margin-bottom:10px">'+results.length+' 件の結果</div>'+results.map(function(r){var hl=esc(r.text).replace(new RegExp(esc(q),"gi"),'<span style="background:rgba(232,184,75,0.10);color:#e8b84b;padding:0 3px;border-radius:2px">$&</span>');return'<div class="sr-item"><div class="sr-source">'+r.source+(r.id?" · "+r.id:"")+(r.dt?" · "+fmtDT(r.dt):"")+'</div><div class="sr-body">'+hl+'</div></div>';}).join("");}
+
+function renderHome(){var th=readCSV("thought_log"),tk=readCSV("task_log"),ib=readCSV("intelligence_inbox"),rk=readCSV("risk_log").filter(function(r){return r.status!=="クローズ";});var tp=todayISO(),tl=th.filter(function(t){return t.datetime.indexOf(tp)===0;}),op=tk.filter(function(t){return t.status!=="完了"&&t.status!=="中止";}),so=op.filter(function(t){return t.priority==="S";}),ur=ib.filter(function(i){return i.status==="未読";}),hr=rk.filter(function(r){return r.probability==="高";});document.getElementById("st-logs").innerText=th.length;document.getElementById("st-logs2").innerText="今日: "+tl.length+" 件";document.getElementById("st-tasks").innerText=op.length;document.getElementById("st-tasks2").innerText="S優先: "+so.length+" 件";document.getElementById("st-inbox").innerText=ib.length;document.getElementById("st-inbox2").innerText="未読: "+ur.length+" 件";document.getElementById("st-risks").innerText=rk.length;document.getElementById("st-risks2").innerText="高: "+hr.length+" 件";var sorted=op.slice().sort(function(a,b){var p={S:0,A:1,B:2,C:3};return(p[a.priority]||3)-(p[b.priority]||3);}).slice(0,8);var dtE=document.getElementById("dash-tasks");if(!sorted.length)dtE.innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">◈</div>タスクなし</div>';else{var pC={S:"#f06060",A:"#e8b84b",B:"#5b9cf5",C:"#6b7190"};dtE.innerHTML=sorted.map(function(t){return'<div style="display:-ms-flexbox;display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;font-size:14px" onclick="go(\'tasks\')"><div style="width:8px;height:8px;border-radius:50%;background:'+(pC[t.priority]||"")+'"></div><span style="flex:1">'+esc(t.title)+'</span><span style="font-family:Consolas,monospace;font-size:13px;color:#6b7190">'+fmtD(t.due)+'</span></div>';}).join("");}var recent=th.slice().reverse().slice(0,5);var thE=document.getElementById("dash-thoughts");if(!recent.length)thE.innerHTML='<div class="empty" style="padding:24px"><div class="empty-icon">⚡</div>思考ログなし</div>';else thE.innerHTML=recent.map(function(t){return'<div style="display:-ms-flexbox;display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;font-size:14px" onclick="go(\'capture\')"><span class="type-badge type-'+t.type+'" style="font-size:10px;padding:2px 8px">'+t.type+'</span><span style="flex:1">'+esc(t.content_raw.slice(0,70))+(t.content_raw.length>70?"...":"")+'</span><span style="font-family:Consolas,monospace;font-size:12px;color:#6b7190">'+fmtDT(t.datetime)+'</span></div>';}).join("");var pjs=readCSV("project_master").filter(function(p){return p.status!=="完了"&&p.status!=="中止";});var dpE=document.getElementById("dash-projects");if(!pjs.length)dpE.innerHTML='<div class="empty" style="padding:20px"><div class="empty-icon">◉</div>案件なし</div>';else dpE.innerHTML=pjs.slice(0,6).map(function(p){return'<div style="display:-ms-flexbox;display:flex;align-items:center;padding:12px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;font-size:14px" onclick="go(\'projects\')"><span style="width:4px;height:28px;border-radius:2px;background:'+(p.priority==="S"?"#f06060":p.priority==="A"?"#e8b84b":"#5b9cf5")+'"></span><span style="-ms-flex:1;flex:1;font-weight:600">'+esc(p.name)+'</span><span style="font-size:13px;color:#6b7190">'+p.phase+'</span><span style="font-size:13px;color:#a0a6bc">'+(p.fee?p.fee+"万":"")+'</span></div>';}).join("");updateHdr();}
+function updateHdr(){var th=readCSV("thought_log"),tk=readCSV("task_log"),op=tk.filter(function(t){return t.status!=="完了"&&t.status!=="中止";});document.getElementById("hd-logs").innerText=th.length+" LOGS";document.getElementById("hd-tasks").innerText=op.length+" TASKS";}
+
+function updateFlow(){var a=document.getElementById("ck-a").checked,b=document.getElementById("ck-b").checked;document.getElementById("arr-ab").className="agent-arrow"+(a?" ready":"");document.getElementById("card-b").style.opacity=a?"1":"0.5";document.getElementById("badge-b").className="ag-badge "+(a?(b?"bg-done":"bg-ready"):"bg-wait");document.getElementById("badge-b").innerText=a?(b?"DONE":"READY"):"WAITING";document.getElementById("btn-b-prev").disabled=!a;document.getElementById("btn-b-copy").disabled=!a;document.getElementById("ck-b").disabled=!a;document.getElementById("arr-bc").className="agent-arrow"+(b?" ready":"");document.getElementById("card-c").style.opacity=b?"1":"0.5";document.getElementById("badge-c").className="ag-badge "+(b?"bg-ready":"bg-wait");document.getElementById("badge-c").innerText=b?"READY":"WAITING";document.getElementById("btn-c-prev").disabled=!b;document.getElementById("btn-c-copy").disabled=!b;document.getElementById("ck-c").disabled=!b;document.getElementById("btn-final").disabled=!b;if(a)previewCSV("b");if(b)previewCSV("c");}
+function previewCSV(agent){var el=document.getElementById("prev-"+agent);if(agent==="a"){var cnt=parseInt(document.getElementById("a-cnt").value)||10,txt="# AGENT A INPUT\n";if(document.getElementById("a-logs").checked){txt+="\n## thought_log_raw.csv（直近"+cnt+"件）\nid,datetime,type,framework,urgency,context,content_raw,tags,project\n";var logs=readCSV("thought_log").slice(-cnt);for(var i=0;i<logs.length;i++){var r=logs[i];txt+='"'+r.id+'","'+r.datetime+'","'+r.type+'","'+(r.framework||"")+'","'+(r.urgency||"")+'","'+(r.context||"")+'","'+(r.content_raw||"").replace(/\n/g,"\\n")+'","'+(r.tags||"")+'","'+(r.project||"")+'"\n';}}if(document.getElementById("a-mtg").checked){var u=readCSV("meeting_minutes").filter(function(m){return!m.ai_summary;});if(u.length){txt+="\n## meeting_minutes_raw.csv\n";for(var j=0;j<u.length;j++){var m=u[j];txt+='"'+m.id+'","'+m.datetime+'","'+m.title+'","'+(m.discussion_raw||"").replace(/\n/g,"\\n")+'","'+(m.decisions||"")+'","'+(m.todos||"")+'"\n';}}}if(document.getElementById("a-ib").checked){var ui=readCSV("intelligence_inbox").filter(function(ii){return!ii.ai_summary;});if(ui.length){txt+="\n## intelligence_inbox.csv\n";for(var k=0;k<ui.length;k++){var ii=ui[k];txt+='"'+ii.id+'","'+ii.source_type+'","'+ii.title+'","'+(ii.url||"")+'","'+(ii.url_summary||"")+'","'+ii.category+'","'+(ii.tags||"")+'"\n';}}}el.innerText=txt.slice(0,800)+(txt.length>800?"\n...(省略)":"");return txt;}if(agent==="b"){var aIn=document.getElementById("b-in").value,t2="# AGENT B INPUT\n"+aIn+"\n\n## framework_log\n";var fl=readCSV("thought_log").filter(function(t){return t.framework;}).slice(0,5);for(var fi=0;fi<fl.length;fi++)t2+='"'+fl[fi].id+'","'+fl[fi].framework+'","'+(fl[fi].framework_data||"")+'"\n';el.innerText=t2.slice(0,600);return t2;}if(agent==="c"){var t3="# AGENT C INPUT\n"+document.getElementById("c-in").value;el.innerText=t3.slice(0,600);return t3;}}
+function copyForAgent(agent){var csv=previewCSV(agent),prompt=document.getElementById("prompt-"+agent).value;clipCopy("【システムプロンプト】\n"+prompt+"\n\n【入力データ】\n"+csv);toast("📋 Agent "+agent.toUpperCase()+" へコピー","cy");}
+function copyFinal(){clipCopy(document.getElementById("c-in").value);toast("📋 最終出力コピー","ok");}
+function pCount(agent){var ta=document.getElementById("prompt-"+agent),b=document.getElementById("pc-"+agent);if(!ta||!b)return;var n=ta.value.length;b.innerText=n+"/8000";b.style.color=n>7000?"#f06060":n>6000?"#e8b84b":"";}
+function copyCSV(n){clipCopy(readCSVRaw(n));toast("📋 "+n+".csv コピー","cy");}
+function clipCopy(t){try{window.clipboardData.setData("Text",t);}catch(e){try{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);}catch(e2){toast("コピー失敗","err");}}}
+
+document.onkeydown=function(e){if((e.ctrlKey||e.metaKey)&&e.keyCode===13){var sc=document.querySelector(".screen.active");if(sc&&sc.id==="screen-capture")saveThought();if(sc&&sc.id==="screen-framework")saveFWAnalysis();}if(e.keyCode===27){var m=document.querySelectorAll(".modal-overlay.open");for(var i=0;i<m.length;i++)m[i].className=m[i].className.replace(" open","");}};
+
+function init(){try{getDataDir();getRawDir();getAiDir();}catch(e){toast("データフォルダ作成エラー","err");}renderLogs("");renderQuickTags("q-tags-cap");newMtg();newDelegation();pCount("a");pCount("b");pCount("c");setTimeout(function(){toast("⚡ COCKPIT 起動 | Ctrl+Enter で即時記録");try{document.getElementById("c-body").focus();}catch(e){}},800);}
+window.onload=init;
+</script>
+</body>
+</html>
