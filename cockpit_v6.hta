@@ -48,7 +48,7 @@ body{
 .ribbon-brand{font-size:18px;font-weight:800;color:#e8b84b;letter-spacing:3px;margin-right:16px;}
 .ribbon-sep{width:1px;height:24px;background:#2a2e40;margin:0 6px;}
 .ribbon-btn{
-  display:flex;align-items:center;gap:6px;
+  display:inline-block;vertical-align:middle;
   padding:6px 14px;border:1px solid transparent;border-radius:6px;
   background:transparent;color:#a0a6bc;font-size:13px;font-weight:600;
   cursor:pointer;white-space:nowrap;
@@ -81,19 +81,20 @@ body{
 .nav-btn{
   width:100%;
   height:auto;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:9px 16px;
+  display:block;
+  padding:10px 16px;
   cursor:pointer;
   border:none;
   border-left:3px solid transparent;
   background:transparent;
   color:#8892a6;
+  font-family:Meiryo,sans-serif;
   font-size:14px;
-  transition:all .15s;
   text-align:left;
+  outline:none;
 }
+.nav-icon{display:inline;margin-right:10px;font-size:18px;vertical-align:middle;}
+.nav-label{display:inline;font-size:14px;vertical-align:middle;}
 .nav-btn:hover{
   background:#1e2230;
   color:#c0c6d6;
@@ -503,14 +504,14 @@ select option{background:#1f2230;}
 <div id="ribbon">
   <span class="ribbon-brand">COCKPIT</span>
   <div class="ribbon-sep"></div>
-  <div class="ribbon-btn" onclick="go('capture')">⚡ 思考メモ</div>
-  <div class="ribbon-btn" onclick="openModal('task-modal')">◈ タスク追加</div>
-  <div class="ribbon-btn" onclick="go('inbox')">📥 情報収集</div>
-  <div class="ribbon-btn" onclick="go('meetings')">📋 議事録</div>
+  <button class="ribbon-btn" onclick="go('capture')">⚡ 思考メモ</button>
+  <button class="ribbon-btn" onclick="openModal('task-modal')">◈ タスク追加</button>
+  <button class="ribbon-btn" onclick="go('inbox')">📥 情報収集</button>
+  <button class="ribbon-btn" onclick="go('meetings')">📋 議事録</button>
   <div class="ribbon-sep"></div>
-  <div class="ribbon-btn" onclick="openModal('search-modal')">🔍 全文検索</div>
-  <div class="ribbon-btn" onclick="backupAll()">💾 バックアップ</div>
-  <div class="ribbon-btn" onclick="openDataFolder()">📂 フォルダ</div>
+  <button class="ribbon-btn" onclick="openModal('search-modal')">🔍 全文検索</button>
+  <button class="ribbon-btn" onclick="backupAll()">💾 バックアップ</button>
+  <button class="ribbon-btn" onclick="openDataFolder()">📂 フォルダ</button>
   <div class="ribbon-right">
     <div class="ribbon-stat"><div class="ribbon-dot"></div><span id="hd-logs">0 LOGS</span></div>
     <div class="ribbon-stat"><div class="ribbon-dot warn"></div><span id="hd-tasks">0 TASKS</span></div>
@@ -522,24 +523,24 @@ select option{background:#1f2230;}
   <!-- ═══ 左ツリーナビ ═══ -->
   <div id="sidebar">
     <div class="nav-group-label">記録</div>
-    <div class="nav-btn active" id="nav-capture" onclick="go('capture')"><div class="nav-icon">⚡</div><div class="nav-label">思考メモ</div></div>
-    <div class="nav-btn" id="nav-framework" onclick="go('framework')"><div class="nav-icon">◆</div><div class="nav-label">フレームワーク</div></div>
-    <div class="nav-btn" id="nav-inbox" onclick="go('inbox')"><div class="nav-icon">📥</div><div class="nav-label">情報インボックス</div></div>
-    <div class="nav-btn" id="nav-meetings" onclick="go('meetings')"><div class="nav-icon">📋</div><div class="nav-label">議事録</div></div>
-    <div class="nav-btn" id="nav-delegate" onclick="go('delegate')"><div class="nav-icon">📤</div><div class="nav-label">部下への指示</div></div>
+    <button class="nav-btn active" id="nav-capture" onclick="go('capture')"><span class="nav-icon">⚡</span><span class="nav-label">思考メモ</span></button>
+    <button class="nav-btn" id="nav-framework" onclick="go('framework')"><span class="nav-icon">◆</span><span class="nav-label">フレームワーク</span></button>
+    <button class="nav-btn" id="nav-inbox" onclick="go('inbox')"><span class="nav-icon">📥</span><span class="nav-label">情報インボックス</span></button>
+    <button class="nav-btn" id="nav-meetings" onclick="go('meetings')"><span class="nav-icon">📋</span><span class="nav-label">議事録</span></button>
+    <button class="nav-btn" id="nav-delegate" onclick="go('delegate')"><span class="nav-icon">📤</span><span class="nav-label">部下への指示</span></button>
     <div class="nav-sep"></div>
     <div class="nav-group-label">管理</div>
-    <div class="nav-btn" id="nav-tasks" onclick="go('tasks')"><div class="nav-icon">◈</div><div class="nav-label">タスク管理</div></div>
-    <div class="nav-btn" id="nav-projects" onclick="go('projects')"><div class="nav-icon">◉</div><div class="nav-label">案件ボード</div></div>
-    <div class="nav-btn" id="nav-clients" onclick="go('clients')"><div class="nav-icon">👤</div><div class="nav-label">顧客カルテ</div></div>
-    <div class="nav-btn" id="nav-risks" onclick="go('risks')"><div class="nav-icon">⚠</div><div class="nav-label">リスク管理</div></div>
+    <button class="nav-btn" id="nav-tasks" onclick="go('tasks')"><span class="nav-icon">◈</span><span class="nav-label">タスク管理</span></button>
+    <button class="nav-btn" id="nav-projects" onclick="go('projects')"><span class="nav-icon">◉</span><span class="nav-label">案件ボード</span></button>
+    <button class="nav-btn" id="nav-clients" onclick="go('clients')"><span class="nav-icon">👤</span><span class="nav-label">顧客カルテ</span></button>
+    <button class="nav-btn" id="nav-risks" onclick="go('risks')"><span class="nav-icon">⚠</span><span class="nav-label">リスク管理</span></button>
     <div class="nav-sep"></div>
     <div class="nav-group-label">分析</div>
-    <div class="nav-btn" id="nav-knowledge" onclick="go('knowledge')"><div class="nav-icon">📖</div><div class="nav-label">ナレッジ</div></div>
-    <div class="nav-btn" id="nav-review" onclick="go('review')"><div class="nav-icon">📊</div><div class="nav-label">週次レビュー</div></div>
-    <div class="nav-btn" id="nav-ai" onclick="go('ai')"><div class="nav-icon">🤖</div><div class="nav-label">AIコンソール</div></div>
+    <button class="nav-btn" id="nav-knowledge" onclick="go('knowledge')"><span class="nav-icon">📖</span><span class="nav-label">ナレッジ</span></button>
+    <button class="nav-btn" id="nav-review" onclick="go('review')"><span class="nav-icon">📊</span><span class="nav-label">週次レビュー</span></button>
+    <button class="nav-btn" id="nav-ai" onclick="go('ai')"><span class="nav-icon">🤖</span><span class="nav-label">AIコンソール</span></button>
     <div class="nav-sep"></div>
-    <div class="nav-btn" id="nav-home" onclick="go('home')"><div class="nav-icon">⊞</div><div class="nav-label">ダッシュボード</div></div>
+    <button class="nav-btn" id="nav-home" onclick="go('home')"><span class="nav-icon">⊞</span><span class="nav-label">ダッシュボード</span></button>
   </div>
 
   <div id="main">
@@ -572,36 +573,40 @@ select option{background:#1f2230;}
     </div>
 
     <!-- ═══ CAPTURE — メモ帳スタイル ═══ -->
-    <div class="screen active" id="screen-capture" style="flex-direction:row;overflow:hidden;">
-      <!-- LEFT: 入力エリア — メモ帳のようにシンプル -->
-      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #2a2e40;">
-        <!-- テキストエリア: 画面の大半を占める -->
-        <textarea id="c-body" style="flex:1;background:#12141a;border:none;color:#eaecf4;font-family:'Segoe UI','Meiryo',sans-serif;font-size:17px;line-height:1.8;padding:28px 32px;resize:none;outline:none;" placeholder="頭の中をここに吐き出す。&#10;&#10;フレームワーク使うなら:&#10;  #3C #SCR #SWOT #MECE #仮説 #イシュー&#10;  #4P #5Forces #ギャップ #シナリオ #ピラミッド #KPI #意思決定&#10;&#10;例: #仮説 A社はDXに本腰だが、現場がついてきていないのではないか" oninput="document.getElementById('c-cnt').textContent=this.value.length"></textarea>
-        <!-- 下部バー: タグ・種類・保存をコンパクトに -->
-        <div style="flex-shrink:0;border-top:1px solid #2a2e40;background:#181b23;padding:10px 20px;display:flex;align-items:center;gap:10px;">
-          <select id="c-type" style="width:100px;padding:6px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#a0a6bc;border-radius:6px;">
-            <option>仮説</option><option>違和感</option><option>閃き</option><option>リスク</option><option>問い</option><option>愚痴</option><option>観察</option><option>学び</option><option>アイデア</option><option>決断</option>
-          </select>
-          <select id="c-urgency" style="width:110px;padding:6px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#a0a6bc;border-radius:6px;">
-            <option>記録だけ</option><option>今すぐ行動</option><option>今週中に深堀</option><option>アーカイブ</option>
-          </select>
-          <input type="text" id="c-tags" placeholder="タグ ;区切り" style="flex:1;padding:6px 10px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#eaecf4;border-radius:6px;">
-          <input type="text" id="c-pj" placeholder="案件ID" style="width:80px;padding:6px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#eaecf4;border-radius:6px;">
-          <span style="font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#6b7190;"><span id="c-cnt">0</span>字</span>
-          <button class="btn btn-primary btn-sm" onclick="saveThought()" style="padding:7px 18px;">⚡ 記録 (Ctrl+Enter)</button>
-        </div>
-        <!-- クイックタグ行 -->
-        <div style="flex-shrink:0;background:#181b23;padding:4px 20px 8px;display:flex;align-items:center;gap:6px;border-top:1px solid #1f2230;">
-          <span style="font-size:11px;color:#6b7190;margin-right:4px;">QUICK:</span>
-          <div class="qtags" id="q-tags-cap" style="margin-top:0;"></div>
-        </div>
-        <!-- 非表示のフィールド（互換用） -->
-        <select id="c-ctx" style="display:none"><option>その他</option><option>会議中</option><option>移動中</option><option>朝の整理</option><option>深夜</option><option>資料作成中</option><option>会食</option></select>
-        <select id="c-fw" style="display:none"><option value="">なし</option></select>
-        <div id="fw-area" style="display:none"></div>
-      </div>
-      <!-- RIGHT: ログ一覧 -->
-      <div style="width:380px;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;">
+    <div class="screen active" id="screen-capture" style="overflow:hidden;">
+      <table style="width:100%;height:100%;border-collapse:collapse;">
+        <tr>
+          <!-- LEFT: メモ帳 -->
+          <td style="vertical-align:top;border-right:1px solid #2a2e40;position:relative;">
+            <table style="width:100%;height:100%;border-collapse:collapse;">
+              <tr><td style="padding:0;height:100%;vertical-align:top;">
+                <textarea id="c-body" style="width:100%;height:100%;background:#12141a;border:none;color:#eaecf4;font-family:Meiryo,sans-serif;font-size:17px;line-height:1.8;padding:24px 28px;resize:none;outline:none;overflow-y:auto;" placeholder="頭の中をここに吐き出す。&#10;&#10;フレームワーク使うなら:&#10;  #3C  #SCR  #SWOT  #MECE  #仮説  #イシュー&#10;  #4P  #5Forces  #ギャップ  #シナリオ  #ピラミッド  #KPI  #意思決定&#10;&#10;例: #仮説 A社はDXに本腰だが現場がついてきていないのではないか" onkeyup="document.getElementById('c-cnt').innerText=this.value.length"></textarea>
+              </td></tr>
+              <tr><td style="height:40px;border-top:1px solid #2a2e40;background:#181b23;padding:8px 16px;white-space:nowrap;">
+                <select id="c-type" style="width:90px;padding:5px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#a0a6bc;">
+                  <option>仮説</option><option>違和感</option><option>閃き</option><option>リスク</option><option>問い</option><option>愚痴</option><option>観察</option><option>学び</option><option>アイデア</option><option>決断</option>
+                </select>
+                <select id="c-urgency" style="width:100px;padding:5px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#a0a6bc;">
+                  <option>記録だけ</option><option>今すぐ行動</option><option>今週中に深堀</option><option>アーカイブ</option>
+                </select>
+                <input type="text" id="c-tags" placeholder="タグ ;区切り" style="width:180px;padding:5px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#eaecf4;">
+                <input type="text" id="c-pj" placeholder="案件ID" style="width:70px;padding:5px 8px;font-size:13px;background:#12141a;border:1px solid #363b52;color:#eaecf4;">
+                <span style="font-size:12px;color:#6b7190;margin:0 8px;"><span id="c-cnt">0</span>字</span>
+                <button class="btn btn-primary btn-sm" onclick="saveThought()" style="padding:6px 16px;">⚡ 記録 (Ctrl+Enter)</button>
+              </td></tr>
+              <tr><td style="height:28px;background:#181b23;padding:2px 16px;border-top:1px solid #1f2230;">
+                <span style="font-size:11px;color:#6b7190;">QUICK: </span>
+                <span id="q-tags-cap"></span>
+              </td></tr>
+            </table>
+            <select id="c-ctx" style="display:none"><option>その他</option></select>
+            <select id="c-fw" style="display:none"><option value="">なし</option></select>
+            <div id="fw-area" style="display:none"></div>
+          </td>
+          <!-- RIGHT: ログ一覧 -->
+          <td style="width:380px;vertical-align:top;">
+            <table style="width:100%;height:100%;border-collapse:collapse;">
+              <tr><td style="height:48px;padding:0;">
         <div class="panel-hdr">
           <div class="panel-title">THOUGHT LOG</div><span class="badge" id="log-badge">0</span>
           <div style="margin-left:auto;display:flex;gap:6px;">
@@ -609,9 +614,17 @@ select option{background:#1f2230;}
             <button class="btn btn-ghost btn-xs" onclick="copyCSV('thought_log')">📋 CSV</button>
           </div>
         </div>
-        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="検索..." oninput="renderLogs(this.value)" id="log-search"></div>
-        <div style="flex:1;overflow-y:auto;padding:12px;" id="log-list"><div class="empty"><div class="empty-icon">⚡</div>思考を記録してください</div></div>
-      </div>
+              </td></tr>
+              <tr><td style="height:40px;padding:0;">
+                <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="検索..." onkeyup="renderLogs(this.value)" id="log-search"></div>
+              </td></tr>
+              <tr><td style="padding:0;vertical-align:top;position:relative;">
+                <div style="overflow-y:auto;padding:12px;position:absolute;top:0;left:0;right:0;bottom:0;" id="log-list"><div class="empty"><div class="empty-icon">⚡</div>思考を記録してください</div></div>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <!-- ═══ FRAMEWORK 専用画面 ═══ -->
@@ -697,7 +710,7 @@ select option{background:#1f2230;}
           <div class="panel-title">SAVED ITEMS</div><span class="badge" id="ib-badge">0</span>
           <div style="margin-left:auto"><button class="btn btn-ghost btn-xs" onclick="copyCSV('intelligence_inbox')">📋 CSV</button></div>
         </div>
-        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="検索..." oninput="renderInbox(this.value)"></div>
+        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="検索..." onkeyup="renderInbox(this.value)"></div>
         <div style="flex:1;overflow-y:auto;" id="ib-list"><div class="empty"><div class="empty-icon">📥</div>情報がありません</div></div>
       </div>
     </div>
@@ -798,7 +811,7 @@ select option{background:#1f2230;}
           <div class="panel-title">CLIENTS</div><span class="badge" id="cl-badge">0</span>
           <div style="margin-left:auto"><button class="btn btn-primary btn-xs" onclick="openModal('cl-modal')">＋ 新規</button></div>
         </div>
-        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="顧客名で検索..." oninput="renderClients(this.value)"></div>
+        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="顧客名で検索..." onkeyup="renderClients(this.value)"></div>
         <div style="overflow-y:auto;flex:1" id="cl-list"><div class="empty"><div class="empty-icon">👤</div>顧客なし</div></div>
       </div>
       <div style="flex:1;padding:24px;overflow-y:auto;" id="cl-detail">
@@ -839,7 +852,7 @@ select option{background:#1f2230;}
           <div class="panel-title">SAVED KNOWLEDGE</div><span class="badge" id="kb-badge">0</span>
           <div style="margin-left:auto"><button class="btn btn-ghost btn-xs" onclick="copyCSV('knowledge_base')">📋 CSV</button></div>
         </div>
-        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="ナレッジ検索..." oninput="renderKnowledge(this.value)"></div>
+        <div class="search-row"><span style="font-size:16px">🔍</span><input type="text" placeholder="ナレッジ検索..." onkeyup="renderKnowledge(this.value)"></div>
         <div style="flex:1;overflow-y:auto;padding:12px;" id="kb-list"><div class="empty"><div class="empty-icon">📖</div>ナレッジなし</div></div>
       </div>
     </div>
@@ -934,7 +947,7 @@ select option{background:#1f2230;}
       <div class="g3">
         <div class="panel">
           <div class="panel-hdr"><div class="panel-title">AGENT A</div><span class="badge" id="pc-a">0/8000</span></div>
-          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-a" oninput="pCount('a')">あなたは戦略コンサルタントの専属「記録整理AI」です。rawデータを構造化・要約・タグ提案します。
+          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-a" onkeyup="pCount('a')">あなたは戦略コンサルタントの専属「記録整理AI」です。rawデータを構造化・要約・タグ提案します。
 
 【絶対ルール】
 1. *_raw フィールドには絶対に書き込まない
@@ -960,7 +973,7 @@ select option{background:#1f2230;}
         </div>
         <div class="panel">
           <div class="panel-hdr"><div class="panel-title">AGENT B</div><span class="badge" id="pc-b">0/8000</span></div>
-          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-b" oninput="pCount('b')">あなたは戦略コンサルタントの専属「思考深化AI」です。Agent Aの整理済みデータを受け取り戦略的洞察を深めます。
+          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-b" onkeyup="pCount('b')">あなたは戦略コンサルタントの専属「思考深化AI」です。Agent Aの整理済みデータを受け取り戦略的洞察を深めます。
 
 【絶対ルール】
 1. rawデータは参照のみ
@@ -983,7 +996,7 @@ select option{background:#1f2230;}
         </div>
         <div class="panel">
           <div class="panel-hdr"><div class="panel-title">AGENT C</div><span class="badge" id="pc-c">0/8000</span></div>
-          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-c" oninput="pCount('c')">あなたは戦略コンサルタントの専属「実行出力AI」です。深化データを受け取り、そのまま使えるアウトプットを生成します。
+          <textarea style="width:100%;height:140px;padding:12px;background:#161820;border:none;font-family:'Consolas','MS Gothic',monospace;font-size:12px;color:#a0a6bc;resize:none;outline:none;line-height:1.6" id="prompt-c" onkeyup="pCount('c')">あなたは戦略コンサルタントの専属「実行出力AI」です。深化データを受け取り、そのまま使えるアウトプットを生成します。
 
 【絶対ルール】
 1. 出力は「そのまま使える」品質
@@ -1101,7 +1114,7 @@ select option{background:#1f2230;}
 <!-- SEARCH MODAL -->
 <div class="modal-overlay" id="search-modal">
   <div class="modal" style="width:750px">
-    <div class="modal-hdr"><div class="modal-title">🔍 全文検索</div><button class="modal-x" onclick="closeModal('search-modal')">✕</button></div>
+    <div class="modal-hdr"><div class="modal-title">🔍 全文検索</button><button class="modal-x" onclick="closeModal('search-modal')">✕</button></div>
     <div class="modal-body">
       <div style="display:flex;gap:10px;">
         <input type="text" id="gs-q" placeholder="キーワードを入力..." style="flex:1;font-size:16px" onkeydown="if(event.keyCode===13)globalSearch()">
