@@ -1,0 +1,1496 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>COCKPIT v9 — 戦略コンサルタント自律進化型コックピット</title>
+<HTA:APPLICATION
+  ID="COCKPIT_v9"
+  APPLICATIONNAME="COCKPIT v9"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  CONTEXTMENU="no"
+  INNERBORDER="no"
+  MAXIMIZEBUTTON="yes"
+  MINIMIZEBUTTON="yes"
+  NAVIGABLE="no"
+  SCROLL="no"
+  SCROLLFLAT="yes"
+  SELECTION="no"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="maximize"
+/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;background:#12141a;color:#eaecf4;font-family:'Segoe UI','Meiryo',sans-serif;font-size:15px;line-height:1.6;}
+#layout-table{width:100%;height:100%;border-collapse:collapse;}
+#layout-table td{vertical-align:top;padding:0;}
+#ribbon-row td{height:44px;}
+#content-row td{height:100%;}
+#ribbon{height:44px;background:#1a1d28;border-bottom:1px solid #2a2e40;padding:0 16px;white-space:nowrap;overflow:hidden;}
+#ribbon table{height:100%;border-collapse:collapse;}
+#ribbon td{vertical-align:middle;padding:0 4px;white-space:nowrap;}
+.ribbon-brand{font-size:18px;font-weight:800;color:#e8b84b;letter-spacing:3px;padding-right:12px;}
+.ribbon-sep{display:inline-block;width:1px;height:24px;background:#2a2e40;margin:0 4px;vertical-align:middle;}
+.ribbon-btn{display:inline-block;padding:6px 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:#a0a6bc;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;vertical-align:middle;font-family:'Segoe UI','Meiryo',sans-serif;}
+.ribbon-btn:hover{background:#262a3a;border-color:#363b52;color:#eaecf4;}
+.ribbon-stat{display:inline-block;vertical-align:middle;font-size:13px;color:#a0a6bc;margin-left:12px;}
+.ribbon-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4eca7a;box-shadow:0 0 6px #4eca7a;vertical-align:middle;margin-right:6px;}
+.ribbon-dot.warn{background:#e8b84b;box-shadow:0 0 6px #e8b84b;}
+#clock{font-family:Consolas,monospace;font-size:16px;color:#e8b84b;font-weight:700;letter-spacing:2px;margin-left:14px;}
+#sidebar-cell{width:200px;background:#151820;border-right:1px solid #2a2e40;overflow:hidden;}
+#sidebar-cell.collapsed{width:44px;}
+#sidebar{height:100%;overflow-y:auto;overflow-x:hidden;padding:8px 0;}
+#sidebar-toggle{display:block;width:100%;padding:8px 12px;cursor:pointer;border:none;background:transparent;color:#6b7190;font-size:16px;text-align:right;font-family:'Segoe UI','Meiryo',sans-serif;outline:none;}
+#sidebar-toggle:hover{color:#e8b84b;background:#1e2230;}
+.nav-group-label{font-size:11px;font-weight:700;letter-spacing:2px;color:#6b7190;text-transform:uppercase;padding:12px 16px 4px;overflow:hidden;white-space:nowrap;}
+.nav-btn{width:100%;display:block;padding:10px 16px;cursor:pointer;border:none;border-left:3px solid transparent;background:transparent;color:#8892a6;font-family:'Segoe UI','Meiryo',sans-serif;font-size:14px;text-align:left;outline:none;overflow:hidden;white-space:nowrap;}
+.nav-btn:hover{background:#1e2230;color:#c0c6d6;}
+.nav-btn.active{background:rgba(232,184,75,0.08);color:#e8b84b;border-left-color:#e8b84b;}
+.nav-icon{display:inline-block;width:22px;font-size:18px;text-align:center;vertical-align:middle;margin-right:8px;}
+.nav-label{display:inline;font-size:14px;font-weight:500;vertical-align:middle;}
+.nav-sep{height:1px;background:#2a2e40;margin:6px 12px;}
+#sidebar-cell.collapsed .nav-label,#sidebar-cell.collapsed .nav-group-label{display:none;}
+#sidebar-cell.collapsed .nav-btn{padding:10px 0;text-align:center;}
+#sidebar-cell.collapsed .nav-icon{margin:0;width:100%;}
+#tree-cell{width:220px;background:#161820;border-right:1px solid #2a2e40;overflow:hidden;}
+#tree-cell.hidden{width:0;border:none;overflow:hidden;}
+#folder-tree{height:100%;overflow-y:auto;overflow-x:hidden;padding:8px 0;}
+.tree-hdr{padding:10px 14px;border-bottom:1px solid #2a2e40;font-size:12px;font-weight:700;letter-spacing:2px;color:#6b7190;text-transform:uppercase;}
+.tree-hdr button{float:right;background:none;border:none;color:#6b7190;cursor:pointer;font-size:14px;padding:0 4px;}
+.tree-hdr button:hover{color:#e8b84b;}
+.tree-item{display:block;width:100%;padding:7px 14px 7px 24px;border:none;background:transparent;color:#8892a6;font-family:'Segoe UI','Meiryo',sans-serif;font-size:13px;text-align:left;cursor:pointer;outline:none;white-space:nowrap;overflow:hidden;}
+.tree-item:hover{background:#1e2230;color:#c0c6d6;}
+.tree-folder{padding-left:14px;font-weight:700;color:#a0a6bc;}
+#main-cell{background:#12141a;}
+#main{width:100%;height:100%;overflow:hidden;position:relative;}
+.screen{display:none;width:100%;height:100%;overflow-y:auto;overflow-x:hidden;padding:24px;}
+.screen.active{display:block;}
+.panel{background:#1f2230;border:1px solid #2a2e40;border-radius:10px;margin-bottom:14px;}
+.panel-hdr{padding:14px 20px;border-bottom:1px solid #2a2e40;}
+.panel-hdr:after{content:'';display:block;clear:both;}
+.panel-title{float:left;font-size:13px;font-weight:700;letter-spacing:2px;color:#e8b84b;text-transform:uppercase;line-height:28px;}
+.panel-hdr .badge{float:left;margin-left:10px;}
+.panel-hdr-right{float:right;}
+.badge{display:inline-block;font-family:'Consolas','MS Gothic',monospace;font-size:12px;font-weight:700;background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);padding:2px 10px;border-radius:4px;line-height:22px;}
+.fg{margin-bottom:10px;}
+label.lbl{display:block;font-size:12px;font-weight:600;letter-spacing:1px;color:#6b7190;text-transform:uppercase;margin-bottom:4px;}
+input[type=text],input[type=date],input[type=datetime-local],input[type=url],input[type=number],textarea,select{background:#161820;border:1px solid #363b52;border-radius:6px;color:#eaecf4;font-family:'Segoe UI','Meiryo',sans-serif;font-size:15px;padding:10px 14px;outline:none;width:100%;}
+input:focus,textarea:focus,select:focus{border-color:#c9982e;box-shadow:0 0 0 3px rgba(232,184,75,0.10);}
+textarea{resize:vertical;min-height:80px;line-height:1.7;}
+select option{background:#1f2230;}
+.btn{display:inline-block;padding:10px 20px;border:1px solid;border-radius:6px;font-family:'Segoe UI','Meiryo',sans-serif;font-size:13px;font-weight:700;letter-spacing:.5px;cursor:pointer;white-space:nowrap;vertical-align:middle;}
+.btn-primary{background:#e8b84b;border-color:#e8b84b;color:#12141a;}
+.btn-primary:hover{background:#f5d78e;border-color:#f5d78e;}
+.btn-ghost{background:transparent;border-color:#363b52;color:#a0a6bc;}
+.btn-ghost:hover{border-color:#c9982e;color:#e8b84b;}
+.btn-blue{background:rgba(91,156,245,0.10);border-color:rgba(91,156,245,0.25);color:#5b9cf5;}
+.btn-danger{background:transparent;border-color:rgba(240,96,96,0.28);color:#f06060;}
+.btn-sm{padding:7px 14px;font-size:12px;}
+.btn-xs{padding:5px 12px;font-size:11px;}
+.row{margin:0 -6px;}.row:after{content:'';display:block;clear:both;}
+.col2{float:left;width:50%;padding:0 6px;margin-bottom:12px;}
+.col3{float:left;width:33.333%;padding:0 6px;margin-bottom:12px;}
+.col4{float:left;width:25%;padding:0 6px;margin-bottom:12px;}
+.col-full{float:left;width:100%;padding:0 6px;margin-bottom:12px;}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:4px 12px;border-radius:4px;background:#262a3a;border:1px solid #363b52;color:#a0a6bc;cursor:pointer;margin:0 4px 4px 0;}
+.tag:hover,.tag.active{border-color:rgba(232,184,75,0.28);color:#e8b84b;background:rgba(232,184,75,0.10);}
+#toast{position:absolute;bottom:28px;right:28px;z-index:9999;}
+.toast-msg{background:#262a3a;border:1px solid rgba(232,184,75,0.28);color:#e8b84b;font-size:14px;font-weight:600;padding:14px 22px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.4);margin-top:10px;}
+.toast-msg.ok{border-color:rgba(78,202,122,0.28);color:#4eca7a;}
+.toast-msg.cy{border-color:rgba(91,156,245,0.25);color:#5b9cf5;}
+.toast-msg.err{border-color:rgba(240,96,96,0.28);color:#f06060;}
+.sec-lbl{font-size:13px;font-weight:700;letter-spacing:2.5px;color:#6b7190;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #2a2e40;}
+.empty{text-align:center;padding:48px 20px;color:#6b7190;font-size:14px;letter-spacing:1px;}
+.empty-icon{font-size:40px;opacity:.25;margin-bottom:12px;}
+.search-row{padding:10px 16px;border-bottom:1px solid #2a2e40;background:#181b23;}
+.search-row input{background:transparent;border:none;padding:4px 0;font-size:15px;color:#eaecf4;width:calc(100% - 30px);display:inline;vertical-align:middle;outline:none;}
+.list-item{padding:14px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;}
+.list-item:hover{background:#2e3348;}
+.list-item.sel{background:rgba(232,184,75,0.10);border-left:3px solid #e8b84b;}
+.list-title{font-size:15px;margin-bottom:4px;}
+.list-meta{font-size:13px;color:#6b7190;}
+.stat-card{background:#262a3a;border:1px solid #2a2e40;border-radius:10px;padding:20px;position:relative;overflow:hidden;}
+.stat-card:before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#e8b84b;border-radius:10px 10px 0 0;}
+.stat-card.blue:before{background:#5b9cf5;}
+.stat-card.green:before{background:#4eca7a;}
+.stat-card.red:before{background:#f06060;}
+.stat-lbl{font-size:12px;font-weight:700;letter-spacing:2px;color:#6b7190;text-transform:uppercase;margin-bottom:10px;}
+.stat-val{font-size:42px;font-weight:800;line-height:1;color:#eaecf4;}
+.stat-sub{font-size:13px;color:#a0a6bc;margin-top:8px;}
+.split-tbl{width:100%;height:100%;border-collapse:collapse;}
+.split-tbl td{vertical-align:top;padding:0;}
+.split-left{border-right:1px solid #2a2e40;overflow-y:auto;}
+.split-right{overflow-y:auto;}
+.tpl-bar{padding:6px 12px;border-bottom:1px solid #2a2e40;background:#181b23;white-space:nowrap;overflow-x:auto;}
+.tpl-btn{display:inline-block;padding:5px 10px;border:1px solid #363b52;border-radius:5px;background:#1f2230;color:#a0a6bc;font-size:12px;font-weight:600;cursor:pointer;margin:2px 3px;font-family:'Segoe UI','Meiryo',sans-serif;white-space:nowrap;}
+.tpl-btn:hover{border-color:rgba(232,184,75,0.28);color:#e8b84b;background:rgba(232,184,75,0.10);}
+.tpl-sep{display:inline-block;width:1px;height:20px;background:#2a2e40;margin:0 4px;vertical-align:middle;}
+
+/* === EDITOR with syntax highlight === */
+#editor-area{width:100%;height:100%;background:#12141a;color:#eaecf4;font-family:'Consolas','MS Gothic','Meiryo',monospace;font-size:16px;line-height:1.9;padding:24px 28px;overflow-y:auto;outline:none;white-space:pre-wrap;word-wrap:break-word;}
+#editor-area .ed-tag{color:#e8b84b;font-weight:700;}
+#editor-area .ed-field{color:#5b9cf5;font-weight:700;}
+#editor-area .ed-table{color:#4eca7a;}
+#editor-area .ed-star{color:#e8b84b;font-weight:700;background:rgba(232,184,75,0.08);}
+.autosave-ind{display:inline-block;font-size:11px;color:#4eca7a;margin-left:10px;opacity:0;transition:opacity 0.3s;}
+.autosave-ind.show{opacity:1;}
+
+/* エディタ内動的テーブルのスタイル */
+.editor-inline-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  background: #1a1d28;
+}
+.editor-inline-table td {
+  border: 1px solid #363b52;
+  padding: 8px 12px;
+  color: #c0c6d6;
+  vertical-align: top;
+}
+.editor-inline-table td:focus {
+  outline: 2px solid rgba(232,184,75,0.40);
+  background: #262a3a;
+}
+
+/* === STRUCTURED VIEW === */
+.sv-kv-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.sv-kv-table td{padding:10px 14px;border:1px solid #2a2e40;font-size:14px;vertical-align:top;}
+.sv-kv-table td:first-child{width:130px;font-weight:700;color:#e8b84b;background:#1a1d28;white-space:nowrap;}
+.sv-kv-table td:last-child{background:#1f2230;color:#c0c6d6;}
+.sv-kv-table td.sv-editable:focus{outline:2px solid rgba(232,184,75,0.40);background:#262a3a;}
+.sv-data-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.sv-data-table th{padding:8px 12px;border:1px solid #2a2e40;background:#1a1d28;font-size:12px;font-weight:700;color:#e8b84b;letter-spacing:1px;text-align:left;}
+.sv-data-table td{padding:8px 12px;border:1px solid #2a2e40;background:#1f2230;font-size:14px;color:#c0c6d6;}
+.sv-data-table td.sv-editable:focus{outline:2px solid rgba(232,184,75,0.40);background:#262a3a;}
+.sv-section-label{font-size:13px;font-weight:700;color:#e8b84b;letter-spacing:2px;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #2a2e40;text-transform:uppercase;}
+.sv-freetext{font-size:14px;line-height:1.7;color:#a0a6bc;padding:10px 14px;background:#1f2230;border:1px solid #2a2e40;border-radius:6px;margin-bottom:12px;white-space:pre-wrap;}
+.sv-star{color:#e8b84b;font-weight:700;padding:4px 8px;background:rgba(232,184,75,0.06);border-left:3px solid #e8b84b;margin:4px 0;}
+.sv-media{max-width:100%;border-radius:6px;margin:8px 0;border:1px solid #2a2e40;}
+.pj-card{background:#262a3a;border:1px solid #2a2e40;border-radius:6px;padding:14px 16px;cursor:pointer;margin-bottom:8px;}
+.pj-card:hover{border-color:#363b52;}
+.pj-s{border-left:3px solid #f06060;}.pj-a{border-left:3px solid #e8b84b;}.pj-b{border-left:3px solid #5b9cf5;}
+.pj-name{font-size:15px;font-weight:600;margin-bottom:4px;}
+.pj-meta{font-size:13px;color:#6b7190;}
+.pj-bar{height:3px;background:#2a2e40;border-radius:2px;margin-top:8px;}
+.pj-fill{height:100%;background:#e8b84b;border-radius:2px;}
+.inbox-item{padding:14px 18px;border-bottom:1px solid #2a2e40;cursor:pointer;}
+.inbox-item:hover{background:#2e3348;}
+.inbox-title{display:inline;font-size:14px;line-height:1.4;}
+.inbox-meta{font-size:13px;color:#6b7190;}
+.drop-zone{border:2px dashed #363b52;border-radius:10px;padding:32px 20px;text-align:center;cursor:pointer;background:#161820;margin-bottom:14px;}
+.drop-zone.over{border-color:#e8b84b;background:rgba(232,184,75,0.10);}
+.filepath-box{background:#161820;border:1px solid #363b52;border-radius:6px;padding:12px 14px;font-family:'Consolas','MS Gothic',monospace;font-size:13px;color:#a0a6bc;word-break:break-all;}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:500;display:none;overflow-y:auto;}
+.modal-overlay.open{display:block;}
+.modal{background:#1f2230;border:1px solid #363b52;border-radius:10px;width:680px;max-width:95%;margin:40px auto;box-shadow:0 8px 60px rgba(0,0,0,.6);position:relative;}
+.modal-hdr{padding:16px 24px;border-bottom:1px solid #2a2e40;}.modal-hdr:after{content:'';display:block;clear:both;}
+.modal-title{float:left;font-size:15px;font-weight:700;letter-spacing:2px;color:#e8b84b;text-transform:uppercase;}
+.modal-x{float:right;background:none;border:none;color:#6b7190;cursor:pointer;font-size:20px;padding:4px 8px;}.modal-x:hover{color:#eaecf4;}
+.modal-body{padding:24px;overflow:visible;}
+.modal-foot{padding:16px 24px;border-top:1px solid #2a2e40;text-align:right;}.modal-foot .btn{margin-left:10px;}
+.progress-entry{padding:10px 14px;border-left:2px solid #363b52;margin:6px 0 6px 8px;font-size:13px;color:#a0a6bc;}
+.progress-entry .pe-date{font-family:Consolas,monospace;font-size:12px;color:#6b7190;margin-bottom:4px;}
+.setting-section{background:#1f2230;border:1px solid #2a2e40;border-radius:10px;padding:20px;margin-bottom:16px;}
+.setting-title{font-size:14px;font-weight:700;color:#e8b84b;letter-spacing:1px;margin-bottom:12px;text-transform:uppercase;}
+.setting-row{padding:8px 0;border-bottom:1px solid #2a2e40;font-size:14px;color:#a0a6bc;}.setting-row:last-child{border-bottom:none;}
+.setting-label{display:inline-block;width:180px;color:#6b7190;font-weight:600;}
+.sr-item{background:#262a3a;border:1px solid #2a2e40;border-radius:6px;padding:14px;margin-bottom:8px;}
+.sr-source{font-family:'Consolas','MS Gothic',monospace;font-size:11px;color:#e8b84b;letter-spacing:1px;margin-bottom:6px;}
+.sr-body{font-size:14px;line-height:1.6;color:#a0a6bc;}
+.task-status{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:4px;}
+.ts-open{background:rgba(240,96,96,0.10);color:#f06060;border:1px solid rgba(240,96,96,0.28);}
+.ts-progress{background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);}
+.ts-done{background:rgba(78,202,122,0.10);color:#4eca7a;border:1px solid rgba(78,202,122,0.28);}
+</style>
+</head>
+<body>
+<table id="layout-table">
+<tr id="ribbon-row"><td colspan="3"><div id="ribbon"><table style="width:100%;height:100%;border-collapse:collapse"><tr>
+<td style="width:auto"><span class="ribbon-brand">COCKPIT</span><span class="ribbon-sep"></span>
+<button class="ribbon-btn" onclick="go('editor')">&#9997; エディタ</button>
+<button class="ribbon-btn" onclick="go('inbox')">&#128229; 情報収集</button>
+<button class="ribbon-btn" onclick="go('meetings')">&#128203; 議事録</button>
+<span class="ribbon-sep"></span>
+<button class="ribbon-btn" onclick="openModal('search-modal')">&#128270; 全文検索</button>
+<button class="ribbon-btn" onclick="backupAll()">&#128190; バックアップ</button>
+<button class="ribbon-btn" onclick="openDataFolder()">&#128194; フォルダ</button></td>
+<td style="width:1px;white-space:nowrap;text-align:right">
+<span class="ribbon-stat"><span class="ribbon-dot"></span><span id="hd-records">0 REC</span></span>
+<span class="ribbon-stat"><span class="ribbon-dot warn"></span><span id="hd-tasks">0 TASKS</span></span>
+<span id="clock">--:--:--</span></td>
+</tr></table></div></td></tr>
+<tr id="content-row">
+<td id="sidebar-cell"><div id="sidebar">
+<button id="sidebar-toggle" onclick="toggleSidebar()">&#9664;</button>
+<div class="nav-group-label">入力</div>
+<button class="nav-btn active" id="nav-editor" onclick="go('editor')"><span class="nav-icon">&#9997;</span><span class="nav-label">エディタ</span></button>
+<button class="nav-btn" id="nav-inbox" onclick="go('inbox')"><span class="nav-icon">&#128229;</span><span class="nav-label">情報収集</span></button>
+<div class="nav-sep"></div>
+<div class="nav-group-label">管理</div>
+<button class="nav-btn" id="nav-meetings" onclick="go('meetings')"><span class="nav-icon">&#128203;</span><span class="nav-label">議事録</span></button>
+<button class="nav-btn" id="nav-tasks" onclick="go('tasks')"><span class="nav-icon">&#9672;</span><span class="nav-label">タスク管理</span></button>
+<button class="nav-btn" id="nav-delegate" onclick="go('delegate')"><span class="nav-icon">&#128228;</span><span class="nav-label">ディレクション</span></button>
+<button class="nav-btn" id="nav-projects" onclick="go('projects')"><span class="nav-icon">&#9673;</span><span class="nav-label">案件ボード</span></button>
+<button class="nav-btn" id="nav-clients" onclick="go('clients')"><span class="nav-icon">&#128100;</span><span class="nav-label">顧客カルテ</span></button>
+<div class="nav-sep"></div>
+<div class="nav-group-label">参照</div>
+<button class="nav-btn" id="nav-knowledge" onclick="go('knowledge')"><span class="nav-icon">&#128214;</span><span class="nav-label">ナレッジ</span></button>
+<button class="nav-btn" id="nav-home" onclick="go('home')"><span class="nav-icon">&#8862;</span><span class="nav-label">ダッシュボード</span></button>
+<button class="nav-btn" id="nav-settings" onclick="go('settings')"><span class="nav-icon">&#9881;</span><span class="nav-label">設定</span></button>
+</div></td>
+<td id="tree-cell" class="hidden"><div id="folder-tree"><div class="tree-hdr">DATA TREE <button onclick="toggleTree()">&#10005;</button><button onclick="refreshTree()" style="margin-right:4px">&#8635;</button></div><div id="tree-items"></div></div></td>
+<td id="main-cell"><div id="main">
+
+<!-- HOME -->
+<div class="screen" id="screen-home">
+<div class="sec-lbl">DASHBOARD <span style="float:right"><button class="btn btn-primary btn-sm" onclick="go('editor')">&#9997; エディタを開く</button></span></div>
+<div class="row">
+<div class="col4"><div class="stat-card"><div class="stat-lbl">RECORDS</div><div class="stat-val" id="st-records">0</div><div class="stat-sub" id="st-records2"></div></div></div>
+<div class="col4"><div class="stat-card blue"><div class="stat-lbl">OPEN TASKS</div><div class="stat-val" id="st-tasks">0</div><div class="stat-sub" id="st-tasks2"></div></div></div>
+<div class="col4"><div class="stat-card green"><div class="stat-lbl">MEETINGS</div><div class="stat-val" id="st-mtg">0</div><div class="stat-sub" id="st-mtg2"></div></div></div>
+<div class="col4"><div class="stat-card red"><div class="stat-lbl">INBOX</div><div class="stat-val" id="st-inbox">0</div><div class="stat-sub" id="st-inbox2"></div></div></div>
+</div>
+<div class="row">
+<div class="col2"><div class="sec-lbl">RECENT TASKS</div><div id="dash-tasks" class="panel" style="padding:0;overflow:hidden"><div class="empty"><div class="empty-icon">&#9672;</div>タスクなし</div></div></div>
+<div class="col2"><div class="sec-lbl">RECENT RECORDS</div><div id="dash-records" class="panel" style="padding:0;overflow:hidden"><div class="empty"><div class="empty-icon">&#9997;</div>レコードなし</div></div></div>
+</div>
+<div class="sec-lbl">ACTIVE PROJECTS</div>
+<div id="dash-projects" class="panel" style="padding:0;overflow:hidden"><div class="empty"><div class="empty-icon">&#9673;</div>案件なし</div></div>
+</div>
+
+<!-- EDITOR -->
+<div class="screen active" id="screen-editor" style="padding:0;overflow:hidden;">
+<table class="split-tbl"><tr>
+<td style="padding:0;position:relative;"><table style="width:100%;height:100%;border-collapse:collapse;">
+<tr><td style="height:36px;padding:0;"><div class="tpl-bar">
+<span style="font-size:11px;color:#6b7190;margin-right:6px;">TPL:</span>
+<button class="tpl-btn" onclick="insertTpl('議事録')">&#128203; 議事録</button>
+<button class="tpl-btn" onclick="insertTpl('タスク')">&#9672; タスク</button>
+<button class="tpl-btn" onclick="insertTpl('ディレクション')">&#128228; ディレクション</button>
+<button class="tpl-btn" onclick="insertTpl('折衝記録')">&#129309; 折衝</button>
+<span class="tpl-sep"></span>
+<button class="tpl-btn" onclick="insertTpl('3C')">&#9670; 3C</button>
+<button class="tpl-btn" onclick="insertTpl('SCR')">&#9670; SCR</button>
+<button class="tpl-btn" onclick="insertTpl('SWOT')">&#9670; SWOT</button>
+<button class="tpl-btn" onclick="insertTpl('MECE')">&#9670; MECE</button>
+<button class="tpl-btn" onclick="insertTpl('仮説思考')">&#9670; 仮説</button>
+<button class="tpl-btn" onclick="insertTpl('イシューツリー')">&#9670; イシュー</button>
+<button class="tpl-btn" onclick="insertTpl('4P')">&#9670; 4P</button>
+<button class="tpl-btn" onclick="insertTpl('5Forces')">&#9670; 5Forces</button>
+<button class="tpl-btn" onclick="insertTpl('ギャップ分析')">&#9670; ギャップ</button>
+<button class="tpl-btn" onclick="insertTpl('シナリオ分析')">&#9670; シナリオ</button>
+<button class="tpl-btn" onclick="insertTpl('ピラミッド')">&#9670; ピラミッド</button>
+<button class="tpl-btn" onclick="insertTpl('KPIツリー')">&#9670; KPI</button>
+<button class="tpl-btn" onclick="insertTpl('意思決定')">&#9670; 意思決定</button>
+</div></td></tr>
+<tr><td style="padding:0;height:100%;vertical-align:top;"><div id="editor-area" contenteditable="true" style="" oninput="handleEditorInput(event)" onkeydown="handleEditorKeydown(event)" onpaste="handlePaste(event)" ondrop="handleDrop(event)" ondragover="event.returnValue=false"></div></td></tr>
+<tr><td style="height:44px;border-top:1px solid #2a2e40;background:#181b23;padding:8px 16px;white-space:nowrap;">
+<span style="font-size:12px;color:#6b7190;margin-right:12px;"><span id="ed-cnt">0</span>字</span>
+<button class="btn btn-primary btn-sm" onclick="saveRecord()">&#128190; 保存 (Ctrl+Enter)</button>
+<button class="btn btn-ghost btn-sm" onclick="newRecord()" style="margin-left:8px;">新規作成</button>
+<span id="ed-edit-id" style="display:none"></span>
+<span id="ed-mode" style="font-size:12px;color:#e8b84b;margin-left:12px;"></span>
+<span id="autosave-ind" class="autosave-ind">&#10003; 自動保存済</span>
+</td></tr>
+</table></td>
+<td style="width:420px;" class="split-left"><table style="width:100%;height:100%;border-collapse:collapse;">
+<tr><td style="height:48px;padding:0;"><div class="panel-hdr"><span class="panel-title">STRUCTURED VIEW</span><span class="panel-hdr-right" style="font-size:11px;color:#6b7190">&#8644; 双方向同期</span></div></td></tr>
+<tr><td style="padding:0;vertical-align:top;position:relative;"><div style="overflow-y:auto;padding:16px;position:absolute;top:0;left:0;right:0;bottom:0;" id="sv"><div class="empty"><div class="empty-icon">&#9997;</div>左のエディタに入力すると構造化表示されます</div></div></td></tr>
+</table></td>
+</tr></table></div>
+
+<!-- INBOX -->
+<div class="screen" id="screen-inbox"><table class="split-tbl"><tr>
+<td style="width:420px;padding:24px;" class="split-left">
+<div class="sec-lbl">INTELLIGENCE INBOX</div>
+<div class="panel" style="padding:16px;margin-bottom:14px;">
+<div style="font-size:12px;font-weight:700;color:#e8b84b;letter-spacing:2px;margin-bottom:8px">URL 収集</div>
+<div style="margin-bottom:8px"><input type="text" id="ib-url" placeholder="https://..." style="width:calc(100% - 60px);display:inline;"> <button class="btn btn-blue btn-sm" onclick="fetchUrl()">取得</button></div>
+<input type="text" id="ib-title" placeholder="タイトル" style="margin-bottom:8px">
+<textarea id="ib-summary" rows="2" placeholder="要約・メモ" style="min-height:60px"></textarea>
+</div>
+<div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-in').click()" ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+<div style="font-size:36px;opacity:.5;margin-bottom:10px">&#128193;</div><div style="font-size:14px;color:#6b7190">ファイルをドロップ</div>
+<input type="file" id="file-in" style="display:none" multiple onchange="handleFiles(this.files)">
+</div>
+<div id="dropped-files" style="display:none;margin-bottom:14px"><div class="filepath-box" id="dropped-paths"></div></div>
+<div class="fg"><label class="lbl">案件ID</label><input type="text" id="ib-pj" placeholder="P001"></div>
+<div class="fg"><label class="lbl">カテゴリ</label><select id="ib-cat"><option>業界動向</option><option>競合動向</option><option>規制・政策</option><option>技術トレンド</option><option>M&A情報</option><option>調査レポート</option><option>その他</option></select></div>
+<div class="fg"><label class="lbl">タグ ;区切り</label><input type="text" id="ib-tags"></div>
+<div class="fg"><label class="lbl">メモ</label><textarea id="ib-memo" rows="2" style="min-height:60px"></textarea></div>
+<button class="btn btn-primary" onclick="saveInbox()">&#128229; 保存</button>
+</td>
+<td class="split-right" style="padding:0;">
+<div class="panel-hdr"><span class="panel-title">SAVED ITEMS</span><span class="badge" id="ib-badge">0</span></div>
+<div class="search-row"><span>&#128270;</span><input type="text" placeholder="検索..." onkeyup="renderInbox(this.value)"></div>
+<div style="overflow-y:auto;padding:12px;" id="ib-list"><div class="empty"><div class="empty-icon">&#128229;</div>なし</div></div>
+</td></tr></table></div>
+
+<!-- MEETINGS -->
+<div class="screen" id="screen-meetings" style="padding:0;overflow:hidden;"><table class="split-tbl"><tr>
+<td style="width:320px;" class="split-left">
+<div class="panel-hdr"><span class="panel-title">MEETINGS</span><span class="badge" id="mtg-badge">0</span></div>
+<div class="search-row"><span>&#128270;</span><input type="text" placeholder="検索..." onkeyup="renderMtgList(this.value)"></div>
+<div style="overflow-y:auto;" id="mtg-list"></div>
+</td>
+<td style="padding:24px;overflow-y:auto;" class="split-right" id="mtg-detail"><div class="empty"><div class="empty-icon">&#128203;</div>議事録を選択</div></td>
+</tr></table></div>
+
+<!-- TASKS -->
+<div class="screen" id="screen-tasks" style="padding:0;overflow:hidden;"><table class="split-tbl"><tr>
+<td style="width:360px;" class="split-left">
+<div class="panel-hdr"><span class="panel-title">TASKS</span><span class="badge" id="tk-badge">0</span><span class="panel-hdr-right"><button class="btn btn-ghost btn-xs" onclick="go('editor');insertTpl('タスク')">+ 新規</button></span></div>
+<div style="padding:8px 12px;border-bottom:1px solid #2a2e40;background:#181b23;">
+<select id="tk-filter" onchange="renderTkList()" style="width:auto;padding:4px 8px;font-size:12px;display:inline;background:#12141a;border:1px solid #363b52;color:#a0a6bc;"><option value="open">未完了</option><option value="all">全て</option><option value="done">完了</option></select>
+<select id="tk-sort" onchange="renderTkList()" style="width:auto;padding:4px 8px;font-size:12px;display:inline;background:#12141a;border:1px solid #363b52;color:#a0a6bc;margin-left:4px;"><option value="date">日付順</option><option value="due">期限順</option></select>
+</div>
+<div style="overflow-y:auto;" id="tk-list"></div>
+</td>
+<td style="padding:24px;overflow-y:auto;" class="split-right" id="tk-detail"><div class="empty"><div class="empty-icon">&#9672;</div>タスクを選択</div></td>
+</tr></table></div>
+
+<!-- DELEGATION -->
+<div class="screen" id="screen-delegate" style="padding:0;overflow:hidden;"><table class="split-tbl"><tr>
+<td style="width:320px;" class="split-left">
+<div class="panel-hdr"><span class="panel-title">DIRECTION</span><span class="badge" id="dl-badge">0</span><span class="panel-hdr-right"><button class="btn btn-ghost btn-xs" onclick="go('editor');insertTpl('ディレクション')">+ 新規</button></span></div>
+<div style="overflow-y:auto;" id="dl-list"></div>
+</td>
+<td style="padding:24px;overflow-y:auto;" class="split-right" id="dl-detail"><div class="empty"><div class="empty-icon">&#128228;</div>選択してください</div></td>
+</tr></table></div>
+
+<!-- PROJECTS -->
+<div class="screen" id="screen-projects">
+<div class="sec-lbl">PROJECT BOARD <span style="float:right"><button class="btn btn-primary btn-sm" onclick="openModal('pj-modal')">+ 案件追加</button></span></div>
+<div id="pj-board"></div></div>
+
+<!-- CLIENTS -->
+<div class="screen" id="screen-clients" style="padding:0;overflow:hidden;"><table class="split-tbl"><tr>
+<td style="width:320px;" class="split-left">
+<div class="panel-hdr"><span class="panel-title">CLIENTS</span><span class="badge" id="cl-badge">0</span><span class="panel-hdr-right"><button class="btn btn-primary btn-xs" onclick="openModal('cl-modal')">+ 新規</button></span></div>
+<div class="search-row"><span>&#128270;</span><input type="text" placeholder="検索..." onkeyup="renderCl(this.value)"></div>
+<div style="overflow-y:auto;" id="cl-list"></div>
+</td>
+<td style="padding:24px;overflow-y:auto;" class="split-right" id="cl-detail"><div class="empty"><div class="empty-icon">&#128100;</div>顧客を選択</div></td>
+</tr></table></div>
+
+<!-- KNOWLEDGE -->
+<div class="screen" id="screen-knowledge" style="padding:0;overflow:hidden;"><table class="split-tbl"><tr>
+<td style="width:360px;" class="split-left">
+<div class="panel-hdr"><span class="panel-title">KNOWLEDGE</span><span class="badge" id="kb-badge">0</span></div>
+<div class="search-row"><span>&#128270;</span><input type="text" placeholder="検索..." onkeyup="renderKbList(this.value)"></div>
+<div style="overflow-y:auto;" id="kb-list"></div>
+</td>
+<td style="padding:24px;overflow-y:auto;" class="split-right" id="kb-detail"><div class="empty"><div class="empty-icon">&#128214;</div>選択してください</div></td>
+</tr></table></div>
+
+<!-- SETTINGS -->
+<div class="screen" id="screen-settings">
+<div class="sec-lbl">設定</div>
+<div class="setting-section"><div class="setting-title">データフォルダ</div>
+<div class="setting-row"><span class="setting-label">保存先:</span> <span id="set-datadir" style="font-family:Consolas,monospace;font-size:12px;color:#a0a6bc">localStorage</span></div>
+<div class="setting-row"><button class="btn btn-ghost btn-sm" onclick="backupAll()">&#128190; バックアップ(JSONコピー)</button></div>
+</div>
+<div class="setting-section"><div class="setting-title">データ統計</div><div id="set-stats"></div></div>
+<div class="setting-section"><div class="setting-title">データ管理</div>
+<div class="setting-row"><button class="btn btn-ghost btn-sm" onclick="exportAll()">全データJSONコピー</button> <button class="btn btn-danger btn-sm" onclick="if(confirm('全データを削除しますか?')){localStorage.clear();toast('削除完了','ok');}" style="margin-left:8px">全データ削除</button></div>
+</div>
+<div class="setting-section"><div class="setting-title">表示設定</div>
+<div class="setting-row"><span class="setting-label">サイドバー:</span><button class="btn btn-ghost btn-xs" onclick="toggleSidebar()">折りたたみ切替</button></div>
+</div></div>
+
+</div><div id="toast"></div></td></tr></table>
+
+<!-- PJ MODAL -->
+<div class="modal-overlay" id="pj-modal"><div class="modal">
+<div class="modal-hdr"><span class="modal-title">案件追加</span><button class="modal-x" onclick="closeModal('pj-modal')">&#10005;</button></div>
+<div class="modal-body"><div class="row">
+<div class="col-full"><div class="fg"><label class="lbl">案件名</label><input type="text" id="pj-name"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">顧客名</label><input type="text" id="pj-client"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">優先度</label><select id="pj-pri"><option value="S">S</option><option value="A" selected>A</option><option value="B">B</option><option value="C">C</option></select></div></div>
+<div class="col2"><div class="fg"><label class="lbl">フェーズ</label><select id="pj-phase"><option>提案前</option><option>提案書作成</option><option>提案済</option><option>契約交渉</option><option>契約締結</option><option>キックオフ</option><option>調査分析</option><option>提言作成</option><option>実行支援</option><option>完了</option></select></div></div>
+<div class="col2"><div class="fg"><label class="lbl">タイプ</label><select id="pj-type"><option>戦略策定</option><option>業務改革</option><option>M&A支援</option><option>マーケティング</option><option>その他</option></select></div></div>
+<div class="col2"><div class="fg"><label class="lbl">フィー（万）</label><input type="text" id="pj-fee"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">開始日</label><input type="date" id="pj-start"></div></div>
+</div></div>
+<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('pj-modal')">キャンセル</button><button class="btn btn-primary" onclick="savePj()">追加</button></div>
+</div></div>
+
+<!-- CL MODAL -->
+<div class="modal-overlay" id="cl-modal"><div class="modal">
+<div class="modal-hdr"><span class="modal-title">顧客追加</span><button class="modal-x" onclick="closeModal('cl-modal')">&#10005;</button></div>
+<div class="modal-body"><div class="row">
+<div class="col-full"><div class="fg"><label class="lbl">顧客名</label><input type="text" id="cl-name"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">部署</label><input type="text" id="cl-div"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">キーパーソン</label><input type="text" id="cl-kp"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">役職</label><input type="text" id="cl-title"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">Email</label><input type="text" id="cl-email"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">TEL</label><input type="text" id="cl-tel"></div></div>
+<div class="col2"><div class="fg"><label class="lbl">業種</label><select id="cl-industry"><option>製造</option><option>金融</option><option>商社</option><option>小売</option><option>IT</option><option>その他</option></select></div></div>
+<div class="col2"><div class="fg"><label class="lbl">関係性</label><select id="cl-relation"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></div></div>
+<div class="col-full"><div class="fg"><label class="lbl">課題</label><textarea id="cl-pain" rows="2"></textarea></div></div>
+<div class="col-full"><div class="fg"><label class="lbl">メモ</label><textarea id="cl-memo" rows="2"></textarea></div></div>
+</div></div>
+<div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('cl-modal')">キャンセル</button><button class="btn btn-primary" onclick="saveCl()">追加</button></div>
+</div></div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="search-modal"><div class="modal" style="width:750px">
+<div class="modal-hdr"><span class="modal-title">&#128270; 全文検索</span><button class="modal-x" onclick="closeModal('search-modal')">&#10005;</button></div>
+<div class="modal-body">
+<div style="margin-bottom:14px"><input type="text" id="gs-q" placeholder="キーワード..." style="width:calc(100% - 80px);display:inline;font-size:16px" onkeydown="if(event.keyCode===13)gSearch()"> <button class="btn btn-primary" onclick="gSearch()">検索</button></div>
+<div id="gs-results" style="max-height:420px;overflow-y:auto;"><div class="empty" style="padding:24px"><div class="empty-icon">&#128270;</div>キーワードを入力</div></div>
+</div></div></div>
+
+<script>
+// ============================================================
+// STORAGE ENGINE — localStorage for HTML, FileSystemObject for HTA
+// ============================================================
+var IS_HTA = (typeof ActiveXObject !== 'undefined');
+var FSO, WS, BASE_DIR = '';
+
+function lsRead(key) {
+  try { var d = localStorage.getItem('ck_' + key); return d ? JSON.parse(d) : []; }
+  catch(e) { return []; }
+}
+function lsWrite(key, arr) {
+  try { localStorage.setItem('ck_' + key, JSON.stringify(arr)); } catch(e) {}
+}
+function lsAppend(key, obj) {
+  var arr = lsRead(key); arr.push(obj); lsWrite(key, arr);
+}
+function readDB(n) { return lsRead(n); }
+function writeDB(n, arr) { lsWrite(n, arr); }
+function appendDB(n, obj) { lsAppend(n, obj); }
+function backupAll() {
+  var tables = ['records','task_log','intelligence_inbox','project_master','client_master'];
+  var data = {};
+  for (var i = 0; i < tables.length; i++) data[tables[i]] = readDB(tables[i]);
+  clipCopy(JSON.stringify(data, null, 2));
+  toast('バックアップJSONをコピーしました', 'ok');
+}
+function openDataFolder() { toast('HTML版: localStorageに保存中'); }
+function clipCopy(t) {
+  try {
+    if (navigator.clipboard) { navigator.clipboard.writeText(t); return; }
+    var ta = document.createElement('textarea'); ta.value = t;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch(e) {}
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function pad(n){return String(n).length<2?'0'+n:String(n);}
+function nowISO(){return new Date().toISOString();}
+function todayISO(){return new Date().toISOString().slice(0,10);}
+function fmtDT(iso){if(!iso)return'';var d=new Date(iso);if(isNaN(d.getTime()))return iso.slice(0,16);return(d.getMonth()+1)+'/'+d.getDate()+' '+pad(d.getHours())+':'+pad(d.getMinutes());}
+function fmtD(iso){if(!iso)return'';var d=new Date(iso);if(isNaN(d.getTime()))return iso;return(d.getMonth()+1)+'/'+d.getDate();}
+function genId(p){return p+String(Date.now()).slice(-8);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function updateClock(){var n=new Date();document.getElementById('clock').innerText=pad(n.getHours())+':'+pad(n.getMinutes())+':'+pad(n.getSeconds());}
+setInterval(updateClock,1000);updateClock();
+
+// ============================================================
+// TEMPLATES
+// ============================================================
+var TPL={
+"議事録":"#議事録\n##会議名\n\n##日時\n\n##場所\n\n##先方参加者\n\n##当方参加者\n\n##決定事項\n\n##Todo\n\n##議事\n",
+"タスク":"#タスク\n##内容\n\n##期限\n\n##担当\n\n##関係者\n",
+"ディレクション":"#ディレクション\n##担当者\n\n##指示内容\n\n##目的・背景\n\n##期待するアウトプット\n\n##期限\n\n##連絡手段\n",
+"折衝記録":"#折衝記録\n##相手先\n\n##日時\n\n##手法\n\n##提案・交渉内容\n\n##ネクストアクション\n",
+"3C":"#3C\n##顧客（Customer）\n\n##競合（Competitor）\n\n##自社（Company）\n\n##統合示唆\n",
+"SCR":"#SCR\n##状況（Situation）\n\n##課題（Complication）\n\n##解決策（Resolution）\n\n##So What\n",
+"SWOT":"#SWOT\n##強み\n\n##弱み\n\n##機会\n\n##脅威\n\n##クロスSWOT示唆\n",
+"MECE":"#MECE\n##分解したい問い\n\n##分解軸\n\n##要素\n\n##MECE確認メモ\n",
+"仮説思考":"#仮説思考\n##仮説\n\n##根拠\n\n##検証方法\n\n##検証結果\n\n##示唆\n",
+"イシューツリー":"#イシューツリー\n##コアイシュー\n\n##サブイシュー①\n\n##サブイシュー②\n\n##サブイシュー③\n\n##So What\n\n##Why So\n",
+"4P":"#4P\n##Product\n\n##Price\n\n##Place\n\n##Promotion\n\n##統合示唆\n",
+"5Forces":"#5Forces\n##業界内競争\n\n##新規参入の脅威\n\n##代替品の脅威\n\n##買い手の交渉力\n\n##売り手の交渉力\n\n##戦略示唆\n",
+"ギャップ分析":"#ギャップ分析\n##現状（As-Is）\n\n##目指す姿（To-Be）\n\n##ギャップ\n\n##根本原因\n\n##施策\n",
+"シナリオ分析":"#シナリオ分析\n##主要不確実変数\n\n##楽観シナリオ\n\n##中立シナリオ\n\n##悲観シナリオ\n\n##ロバスト戦略\n",
+"ピラミッド":"#ピラミッド\n##結論\n\n##根拠①\n\n##根拠②\n\n##根拠③\n\n##裏付けデータ\n",
+"KPIツリー":"#KPIツリー\n##最終目標KPI\n\n##第1階層①\n\n##第1階層②\n\n##第2階層①\n\n##第2階層②\n\n##重要ドライバー\n",
+"意思決定":"#意思決定\n##意思決定の問い\n\n##選択肢①\n\n##選択肢②\n\n##判断基準\n\n##選択肢①のリスク\n\n##選択肢②のリスク\n\n##推奨選択肢と理由\n"
+};
+
+// ============================================================
+// EDITOR CORE — 動的テーブル展開 & シンタックスハイライト
+// ============================================================
+var editorDirty = false;
+var autoSaveTimer = null;
+
+// エディタ内のDOM（DivとTable）をパースして、純粋なMarkdown風のrawTextに復元する
+// ブラウザごとのcontenteditable差異（DIV/P/BR/SPAN混在）を吸収
+function getEditorPlain() {
+  var el = document.getElementById('editor-area');
+  var lines = [];
+  collectLines(el, lines);
+  // フォールバック：DOM走査で空なら innerText を使う
+  if (lines.length === 0) {
+    var fallback = el.innerText || el.textContent || '';
+    return fallback;
+  }
+  return lines.join('\n');
+}
+
+// 再帰的にDOMノードを走査してテキスト行に分解する
+function collectLines(parent, lines) {
+  for (var i = 0; i < parent.childNodes.length; i++) {
+    var node = parent.childNodes[i];
+
+    // 1) インラインテーブル → ||記法に変換
+    if (node.nodeName === 'TABLE' && (node.className || '').indexOf('editor-inline-table') >= 0) {
+      var rows = node.querySelectorAll('tr');
+      for (var r = 0; r < rows.length; r++) {
+        var cells = rows[r].querySelectorAll('td');
+        var parts = [];
+        for (var c = 0; c < 3; c++) {
+          parts.push(cells[c] ? (cells[c].innerText || '').replace(/[\n\r]/g, '') : '');
+        }
+        lines.push('||' + parts.join('|'));
+      }
+      continue;
+    }
+
+    // 2) ブロック要素（DIV, P） → 1行として抽出し、改行を区切りにする
+    if (node.nodeName === 'DIV' || node.nodeName === 'P') {
+      // 中身がBRだけの空行
+      if (node.childNodes.length === 1 && node.childNodes[0].nodeName === 'BR') {
+        lines.push('');
+        continue;
+      }
+      // 中身がさらにブロック要素を含む場合は再帰（Chrome等が入れ子DIVを作る場合）
+      var hasBlock = false;
+      for (var j = 0; j < node.childNodes.length; j++) {
+        var cn = node.childNodes[j].nodeName;
+        if (cn === 'DIV' || cn === 'P' || cn === 'TABLE') { hasBlock = true; break; }
+      }
+      if (hasBlock) {
+        collectLines(node, lines);
+      } else {
+        // インライン要素のみ → innerTextで1行抽出
+        var txt = (node.innerText || node.textContent || '').replace(/\r/g, '');
+        // innerTextが複数行を返す場合（BRが含まれる場合）は分割
+        var subLines = txt.split('\n');
+        for (var sl = 0; sl < subLines.length; sl++) {
+          lines.push(subLines[sl]);
+        }
+      }
+      continue;
+    }
+
+    // 3) BR → 改行
+    if (node.nodeName === 'BR') {
+      lines.push('');
+      continue;
+    }
+
+    // 4) SPAN等のインライン要素 → テキスト抽出
+    if (node.nodeType === 1) {
+      var inlineTxt = (node.innerText || node.textContent || '');
+      if (inlineTxt) lines.push(inlineTxt);
+      continue;
+    }
+
+    // 5) テキストノード
+    if (node.nodeType === 3) {
+      var val = node.nodeValue || '';
+      if (val.replace(/\s/g, '') !== '') {
+        lines.push(val);
+      }
+      continue;
+    }
+  }
+}
+
+// rawTextを読み込み、エディタ用のDOM（DivブロックとTable）に変換してレンダリング
+function setEditorContent(text) {
+  var lines = text.split('\n');
+  var html = '';
+  var inTable = false;
+  for (var i = 0; i < lines.length; i++) {
+    var ln = lines[i];
+    if (ln.indexOf('||') === 0) {
+      if (!inTable) {
+        html += '<table class="editor-inline-table"><tbody>';
+        inTable = true;
+      }
+      var parts = ln.substring(2).split('|');
+      html += '<tr>';
+      for (var c = 0; c < 3; c++) {
+        html += '<td>' + esc(parts[c] || '') + '</td>';
+      }
+      html += '</tr>';
+    } else {
+      if (inTable) { html += '</tbody></table>'; inTable = false; }
+      html += '<div>' + highlightLine(ln) + '</div>';
+    }
+  }
+  if (inTable) html += '</tbody></table>';
+  
+  document.getElementById('editor-area').innerHTML = html || '<div><br></div>';
+  document.getElementById('ed-cnt').innerText = text.length;
+}
+
+function highlightLine(ln) {
+  if (!ln) return '<br>';
+  if (ln.indexOf('#') === 0 && ln.indexOf('##') !== 0) return '<span class="ed-tag">' + esc(ln) + '</span>';
+  if (ln.indexOf('##') === 0) return '<span class="ed-field">' + esc(ln) + '</span>';
+  if (ln.indexOf('\u2605') >= 0) return '<span class="ed-star">' + esc(ln) + '</span>';
+  return esc(ln);
+}
+
+// 【魔法のUI】エディタへの入力を監視し、「||」が打たれたらテーブルに変換する
+function handleEditorInput(e) {
+  editorDirty = true;
+  scheduleAutoSave();
+
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var node = sel.focusNode;
+
+  // テキストノードで「||」が入力された瞬間を検知
+  if (node.nodeType === 3 && node.nodeValue.endsWith('||')) {
+    var pos = sel.focusOffset;
+    if (pos >= 2 && node.nodeValue.substring(pos-2, pos) === '||') {
+      // 1. 打たれた「||」を削除
+      node.nodeValue = node.nodeValue.substring(0, pos-2) + node.nodeValue.substring(pos);
+
+      // 2. 3列のHTMLテーブルを生成
+      var tbl = document.createElement('table');
+      tbl.className = 'editor-inline-table';
+      tbl.innerHTML = '<tbody><tr><td><br></td><td><br></td><td><br></td></tr></tbody>';
+
+      // 3. 現在の行（DIV）の直下にテーブルを挿入
+      var block = node.parentNode;
+      while(block && block.id !== 'editor-area' && block.nodeName !== 'DIV') {
+        block = block.parentNode;
+      }
+      if (block && block.id !== 'editor-area') {
+        block.parentNode.insertBefore(tbl, block.nextSibling);
+        // テーブルの下にクリック用の空行(div)を確保
+        var emptyDiv = document.createElement('div');
+        emptyDiv.innerHTML = '<br>';
+        block.parentNode.insertBefore(emptyDiv, tbl.nextSibling);
+      } else {
+        document.getElementById('editor-area').appendChild(tbl);
+      }
+
+      // 4. 生成したテーブルの最初のセルにカーソルを移動
+      var newRange = document.createRange();
+      newRange.selectNodeContents(tbl.querySelector('td'));
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+    }
+  }
+
+  // 右ペイン同期（テーブル変換が起きなかった通常入力時）
+  var text = getEditorPlain();
+  document.getElementById('ed-cnt').innerText = text.length;
+  syncToView();
+}
+
+// 【魔法のUI】テーブル内でTabキーを押した時の行追加挙動などを制御
+function handleEditorKeydown(e) {
+  // Ctrl+Enter で保存
+  if ((e.ctrlKey || e.metaKey) && e.keyCode === 13) {
+    e.preventDefault(); saveRecord(); return;
+  }
+
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var node = sel.focusNode;
+
+  // 現在カーソルがテーブル(TD)の中にいるか判定
+  var td = node.nodeType === 3 ? node.parentNode : node;
+  while (td && td.nodeName !== 'TD' && td.id !== 'editor-area') {
+    td = td.parentNode;
+  }
+
+  if (td && td.nodeName === 'TD') {
+    var tr = td.parentNode;
+    var tbody = tr.parentNode;
+    var tbl = tbody.parentNode;
+    
+    // === Tabキー: セル間移動 + 最終セルで行追加 ===
+    if (e.keyCode === 9) {
+      e.preventDefault();
+      var nextTd = null;
+
+      if (!e.shiftKey) {
+        // Tab → 次のセル
+        if (td.nextElementSibling) {
+          nextTd = td.nextElementSibling;
+        } else if (tr.nextElementSibling) {
+          nextTd = tr.nextElementSibling.querySelector('td');
+        } else {
+          // 最終セル → 新しい行を追加
+          var newRow = document.createElement('tr');
+          newRow.innerHTML = '<td><br></td><td><br></td><td><br></td>';
+          tbody.appendChild(newRow);
+          nextTd = newRow.querySelector('td');
+        }
+      } else {
+        // Shift+Tab → 前のセル
+        if (td.previousElementSibling) {
+          nextTd = td.previousElementSibling;
+        } else if (tr.previousElementSibling) {
+          var prevCells = tr.previousElementSibling.querySelectorAll('td');
+          nextTd = prevCells[prevCells.length - 1];
+        }
+      }
+
+      if (nextTd) {
+        var newRange = document.createRange();
+        newRange.selectNodeContents(nextTd);
+        newRange.collapse(false); // カーソルを末尾に
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+      return;
+    }
+
+    // === Backspace: セル内が空＋最初のセル＋行が1つしかない → テーブル全体を削除 ===
+    if (e.keyCode === 8) {
+      var cellText = (td.innerText || '').replace(/\s/g, '');
+      if (cellText === '') {
+        // テーブル内の全セルが空かチェック
+        var allEmpty = true;
+        var allCells = tbl.querySelectorAll('td');
+        for (var ci = 0; ci < allCells.length; ci++) {
+          if ((allCells[ci].innerText || '').replace(/\s/g, '') !== '') { allEmpty = false; break; }
+        }
+        if (allEmpty) {
+          e.preventDefault();
+          // テーブルの次の要素にカーソルを移動してからテーブルを削除
+          var nextEl = tbl.nextElementSibling || tbl.previousElementSibling;
+          if (!nextEl) {
+            var emptyDiv = document.createElement('div');
+            emptyDiv.innerHTML = '<br>';
+            tbl.parentNode.insertBefore(emptyDiv, tbl);
+            nextEl = emptyDiv;
+          }
+          tbl.parentNode.removeChild(tbl);
+          var newRange = document.createRange();
+          newRange.selectNodeContents(nextEl);
+          newRange.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+          // 同期
+          editorDirty = true;
+          var text = getEditorPlain();
+          document.getElementById('ed-cnt').innerText = text.length;
+          syncToView();
+          scheduleAutoSave();
+          return;
+        }
+        // 現在の行の全セルが空 → 行だけ削除（テーブルに複数行ある場合）
+        var rowCells = tr.querySelectorAll('td');
+        var rowEmpty = true;
+        for (var ri = 0; ri < rowCells.length; ri++) {
+          if ((rowCells[ri].innerText || '').replace(/\s/g, '') !== '') { rowEmpty = false; break; }
+        }
+        if (rowEmpty && tbody.querySelectorAll('tr').length > 1) {
+          e.preventDefault();
+          var prevRow = tr.previousElementSibling;
+          tbody.removeChild(tr);
+          if (prevRow) {
+            var lastCell = prevRow.querySelectorAll('td');
+            var focusCell = lastCell[lastCell.length - 1];
+            var nr = document.createRange();
+            nr.selectNodeContents(focusCell);
+            nr.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(nr);
+          }
+          editorDirty = true;
+          syncToView();
+          scheduleAutoSave();
+          return;
+        }
+      }
+    }
+
+    // === Delete: テーブル外の直前位置からテーブルを削除 ===
+    // (通常のDelete動作はブラウザに委ねる)
+  }
+
+  // テーブル外でBackspaceを押し、直後にテーブルがある場合 → テーブル全体選択
+  if (e.keyCode === 46 && !td) { // Deleteキー
+    var range = sel.getRangeAt(0);
+    var container = range.startContainer;
+    var nextSib = null;
+    if (container.nodeType === 3) nextSib = container.parentNode.nextSibling;
+    else nextSib = container.nextSibling;
+    if (nextSib && nextSib.nodeName === 'TABLE' && (nextSib.className||'').indexOf('editor-inline-table') >= 0) {
+      var allEmpty2 = true;
+      var allCells2 = nextSib.querySelectorAll('td');
+      for (var ci2 = 0; ci2 < allCells2.length; ci2++) {
+        if ((allCells2[ci2].innerText||'').replace(/\s/g,'') !== '') { allEmpty2 = false; break; }
+      }
+      if (allEmpty2) {
+        e.preventDefault();
+        nextSib.parentNode.removeChild(nextSib);
+        editorDirty = true;
+        syncToView();
+        scheduleAutoSave();
+      }
+    }
+  }
+}
+
+function insertTpl(name) {
+  var t = TPL[name]; if (!t) return;
+  var cur = getEditorPlain();
+  var next = (cur.replace(/\s/g, '').length > 0) ? cur + '\n' + t : t;
+  setEditorContent(next);
+  syncToView();
+  document.getElementById('editor-area').focus();
+  editorDirty = true;
+  scheduleAutoSave();
+}
+
+// Media paste/drop support — HTMLペーストを排除し、プレーンテキストを強制
+function handlePaste(e) {
+  var clipData = e.clipboardData || window.clipboardData;
+  if (!clipData) return;
+
+  // 1) 画像がある場合 → 画像として挿入
+  var items = clipData.items;
+  if (items) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') === 0) {
+        e.preventDefault();
+        var blob = items[i].getAsFile();
+        insertMediaBlob(blob);
+        return;
+      }
+    }
+  }
+
+  // 2) テキストの場合 → HTMLを排除してプレーンテキストのみ貼り付け
+  e.preventDefault();
+  var plainText = clipData.getData('text/plain') || clipData.getData('Text') || '';
+  if (!plainText) return;
+
+  // プレーンテキストを現在のカーソル位置に挿入
+  // ||行はテーブルに変換すべきだが、ここではそのまま挿入して
+  // 次回のsetEditorContent呼び出し時に変換される
+  var sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  var range = sel.getRangeAt(0);
+  range.deleteContents();
+
+  // 改行を含むテキストの場合、行ごとにDIV要素を作成
+  var lines = plainText.split('\n');
+  var frag = document.createDocumentFragment();
+  for (var li = 0; li < lines.length; li++) {
+    if (li > 0) {
+      // 2行目以降は新しいDIVとして追加
+      var div = document.createElement('div');
+      div.textContent = lines[li] || '';
+      if (!lines[li]) div.innerHTML = '<br>';
+      frag.appendChild(div);
+    } else {
+      // 1行目はテキストノードとして挿入（現在行に結合）
+      frag.appendChild(document.createTextNode(lines[li]));
+    }
+  }
+  range.insertNode(frag);
+
+  // カーソルを挿入したテキストの末尾に移動
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+
+  // 同期
+  var text = getEditorPlain();
+  document.getElementById('ed-cnt').innerText = text.length;
+  syncToView();
+  editorDirty = true;
+  scheduleAutoSave();
+}
+
+function handleDrop(e) {
+  var files = (e.dataTransfer || {}).files;
+  if (files && files.length) {
+    for (var i = 0; i < files.length; i++) {
+      if (files[i].type.indexOf('image') === 0 || files[i].type.indexOf('audio') === 0 || files[i].type.indexOf('video') === 0) {
+        e.preventDefault();
+        insertMediaBlob(files[i]);
+        return;
+      }
+    }
+  }
+}
+
+function insertMediaBlob(blob) {
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var el = document.getElementById('editor-area');
+    if (blob.type.indexOf('image') === 0) {
+      var img = document.createElement('img');
+      img.src = ev.target.result;
+      img.className = 'sv-media';
+      img.style.maxWidth = '300px';
+      el.appendChild(img);
+    } else if (blob.type.indexOf('audio') === 0) {
+      var aud = document.createElement('audio');
+      aud.src = ev.target.result; aud.controls = true;
+      el.appendChild(aud);
+    } else if (blob.type.indexOf('video') === 0) {
+      var vid = document.createElement('video');
+      vid.src = ev.target.result; vid.controls = true;
+      vid.style.maxWidth = '400px';
+      el.appendChild(vid);
+    }
+    el.appendChild(document.createTextNode('\n'));
+    editorDirty = true;
+    scheduleAutoSave();
+  };
+  reader.readAsDataURL(blob);
+}
+
+// ============================================================
+// AUTO-SAVE: saves every 5s if dirty, without clearing editor
+// ============================================================
+function scheduleAutoSave() {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(function() {
+    if (!editorDirty) return;
+    // 右ペインから同期されたテキストがあればそれを優先、なければ左ペインから取得
+    var text;
+    if (window._syncedRawText) {
+      text = window._syncedRawText;
+      window._syncedRawText = null; // 使い切る
+    } else {
+      text = getEditorPlain().replace(/^\s+|\s+$/g, '');
+    }
+    if (!text) return;
+    var editId = document.getElementById('ed-edit-id').innerText;
+    var parsed = parseText(text);
+    if (editId) {
+      var recs = readDB('records');
+      for (var i = 0; i < recs.length; i++) {
+        if (recs[i].id === editId) { recs[i].rawText = text; recs[i].type = parsed.type || 'memo'; }
+      }
+      writeDB('records', recs);
+    } else {
+      // First auto-save creates a new record and sets editId
+      var newId = genId('RC');
+      appendDB('records', { id: newId, datetime: nowISO(), type: parsed.type || 'memo', rawText: text, project: '', status: 'active', ai_data: '' });
+      document.getElementById('ed-edit-id').innerText = newId;
+      document.getElementById('ed-mode').innerText = '[編集中: ' + newId + ']';
+    }
+    editorDirty = false;
+    var ind = document.getElementById('autosave-ind');
+    ind.className = 'autosave-ind show';
+    setTimeout(function() { ind.className = 'autosave-ind'; }, 2000);
+    updateHdr();
+  }, 5000);
+}
+
+// ============================================================
+// parseText — core parser
+// ============================================================
+function parseText(raw) {
+  var lines = raw.split('\n'), res = {type:'', fields:[], tables:[], freeTexts:[], stars:[]};
+  var cf = null, cv = [];
+  function flush() { if (cf !== null) { res.fields.push({key:cf, value:cv.join('\n').replace(/^\s+|\s+$/g,'')}); cf=null; cv=[]; } }
+  for (var i = 0; i < lines.length; i++) {
+    var ln = lines[i], tr = ln.replace(/^\s+|\s+$/g,'');
+    if (tr.indexOf('#') === 0 && tr.indexOf('##') !== 0 && !res.type) { flush(); res.type = tr.substr(1).replace(/^\s+|\s+$/g,''); continue; }
+    if (tr.indexOf('##') === 0) { flush(); cf = tr.substr(2).replace(/^\s+|\s+$/g,''); continue; }
+    if (tr.indexOf('||') === 0) {
+      var cells = tr.substr(2).split('|');
+      for (var ci = 0; ci < cells.length; ci++) cells[ci] = cells[ci].replace(/^\s+|\s+$/g,'');
+      res.tables.push({fk: cf, cells: cells}); continue;
+    }
+    if (tr.indexOf('\u2605') >= 0) res.stars.push({line: tr, fieldKey: cf});
+    if (cf !== null) cv.push(ln);
+    else if (res.type && tr) res.freeTexts.push(ln);
+  }
+  flush(); return res;
+}
+
+// ============================================================
+// renderSection — structured view builder
+// ============================================================
+function renderSection(p, editable) {
+  var h = '';
+  if (p.type) h += '<div style="margin-bottom:14px"><span style="display:inline-block;font-size:14px;font-weight:700;padding:6px 16px;border-radius:6px;background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);letter-spacing:2px">#' + esc(p.type) + '</span></div>';
+
+  var tblMap = {};
+  for (var ti = 0; ti < p.tables.length; ti++) {
+    var tk = p.tables[ti].fk || '';
+    if (!tblMap[tk]) tblMap[tk] = [];
+    tblMap[tk].push(p.tables[ti].cells);
+  }
+
+  if (p.fields.length) {
+    h += '<table class="sv-kv-table">';
+    for (var i = 0; i < p.fields.length; i++) {
+      var f = p.fields[i];
+      if (tblMap[f.key]) {
+        h += '</table>';
+        h += '<div class="sv-section-label">' + esc(f.key) + '</div>';
+        h += '<table class="sv-data-table"><tr><th>項目</th><th>担当</th><th>期限</th></tr>';
+        var rows = tblMap[f.key];
+        for (var ri = 0; ri < rows.length; ri++) {
+          h += '<tr>';
+          for (var ci = 0; ci < rows[ri].length; ci++) {
+            h += '<td class="sv-editable" contenteditable="' + (editable?'true':'false') + '" data-field="' + esc(f.key) + '" data-row="' + ri + '" data-col="' + ci + '" onblur="syncToEditor()">' + esc(rows[ri][ci]) + '</td>';
+          }
+          for (var mi = rows[ri].length; mi < 3; mi++) {
+            h += '<td class="sv-editable" contenteditable="' + (editable?'true':'false') + '" data-field="' + esc(f.key) + '" data-row="' + ri + '" data-col="' + mi + '" onblur="syncToEditor()"></td>';
+          }
+          h += '</tr>';
+        }
+        h += '</table>';
+        if (f.value) h += '<div class="sv-freetext">' + esc(f.value).replace(/\n/g,'<br>') + '</div>';
+        h += '<table class="sv-kv-table">';
+      } else {
+        // Render star lines specially within field values
+        var val = f.value;
+        var valHtml = '';
+        var valLines = val.split('\n');
+        for (var vl = 0; vl < valLines.length; vl++) {
+          if (valLines[vl].indexOf('\u2605') >= 0) {
+            valHtml += '<div class="sv-star">' + esc(valLines[vl]) + '</div>';
+          } else {
+            valHtml += esc(valLines[vl]) + '<br>';
+          }
+        }
+        h += '<tr><td>' + esc(f.key) + '</td><td class="sv-editable" contenteditable="' + (editable?'true':'false') + '" data-field="' + esc(f.key) + '" data-row="-1" data-col="-1" onblur="syncToEditor()">' + valHtml + '</td></tr>';
+      }
+    }
+    h += '</table>';
+  }
+
+  // Star summary
+  if (p.stars.length) {
+    h += '<div class="sv-section-label">&#9733; Todo連動マーカー</div>';
+    for (var si = 0; si < p.stars.length; si++) {
+      h += '<div class="sv-star">' + esc(p.stars[si].line) + '</div>';
+    }
+  }
+
+  if (p.freeTexts.length) {
+    var ft = '';
+    for (var fi = 0; fi < p.freeTexts.length; fi++) {
+      var line = p.freeTexts[fi];
+      ft += (line.indexOf('\u2605') >= 0) ? '<div class="sv-star">' + esc(line) + '</div>' : esc(line) + '<br>';
+    }
+    h += '<div class="sv-freetext">' + ft + '</div>';
+  }
+  return h;
+}
+
+// ============================================================
+// syncToView — editor → right pane
+// ============================================================
+function syncToView() {
+  var text = getEditorPlain();
+  var sv = document.getElementById('sv');
+  if (!text.replace(/\s/g,'')) {
+    sv.innerHTML = '<div class="empty"><div class="empty-icon">&#9997;</div>左のエディタに入力すると構造化表示されます</div>';
+    return;
+  }
+  sv.innerHTML = renderSection(parseText(text), true);
+}
+
+// ============================================================
+// syncToEditor — right pane → left editor (BIDIRECTIONAL SYNC)
+// ============================================================
+function syncToEditor() {
+  // 右ペインの編集内容を収集し、rawTextを再構築する
+  // ※ 左ペインは再描画しない（カーソル位置を維持するため）
+  // 代わりに、再構築したテキストを _syncedRawText に保持し、
+  // 次回の自動保存・手動保存時にこちらを優先使用する
+
+  var text = getEditorPlain();
+  var lines = text.split('\n');
+
+  // 右ペインのDOM要素から編集値を収集
+  var editedFields = {};
+  var editedTables = {};
+  var svCells = document.querySelectorAll('#sv .sv-editable');
+  for (var i = 0; i < svCells.length; i++) {
+    var cell = svCells[i];
+    var fld = cell.getAttribute('data-field');
+    var row = parseInt(cell.getAttribute('data-row'));
+    var col = parseInt(cell.getAttribute('data-col'));
+    var val = cell.innerText || cell.textContent || '';
+    if (row === -1) {
+      editedFields[fld] = val;
+    } else {
+      if (!editedTables[fld]) editedTables[fld] = {};
+      if (!editedTables[fld][row]) editedTables[fld][row] = {};
+      editedTables[fld][row][col] = val;
+    }
+  }
+
+  // 元のrawTextの構造を維持しながら、編集箇所だけ差し替える
+  var currentField = null;
+  var fieldValueStarted = false;
+  var result = [];
+  var tblCounters = {};
+
+  for (var li = 0; li < lines.length; li++) {
+    var ln = lines[li];
+    var tr = ln.replace(/^\s+|\s+$/g, '');
+
+    if (tr.indexOf('#') === 0 && tr.indexOf('##') !== 0) {
+      result.push(ln); currentField = null; continue;
+    }
+    if (tr.indexOf('##') === 0) {
+      currentField = tr.substr(2).replace(/^\s+|\s+$/g, '');
+      result.push(ln); fieldValueStarted = true; continue;
+    }
+    if (tr.indexOf('||') === 0) {
+      var fk = currentField || '';
+      if (!tblCounters[fk]) tblCounters[fk] = 0;
+      var rowIdx = tblCounters[fk]; tblCounters[fk]++;
+      if (editedTables[fk] && editedTables[fk][rowIdx]) {
+        var cells = tr.substr(2).split('|');
+        var newCells = [];
+        for (var ci = 0; ci < cells.length; ci++) {
+          newCells.push(editedTables[fk][rowIdx][ci] !== undefined ? editedTables[fk][rowIdx][ci] : cells[ci].replace(/^\s+|\s+$/g,''));
+        }
+        result.push('||' + newCells.join('|'));
+      } else { result.push(ln); }
+      continue;
+    }
+
+    if (currentField && editedFields[currentField] !== undefined && fieldValueStarted) {
+      result.push(editedFields[currentField].replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''));
+      delete editedFields[currentField];
+      fieldValueStarted = false;
+      continue;
+    }
+    if (fieldValueStarted && currentField && editedFields[currentField] === undefined) {
+      result.push(ln); continue;
+    }
+    result.push(ln);
+  }
+
+  var newText = result.join('\n');
+
+  // 左ペインを再描画せず、内部状態だけ更新してauto-saveに委ねる
+  // _syncedRawText に保持しておき、getEditorPlain()の代わりに使えるようにする
+  window._syncedRawText = newText;
+  editorDirty = true;
+  scheduleAutoSave();
+
+  // ステータスバーに同期完了を表示
+  var ind = document.getElementById('autosave-ind');
+  ind.innerText = '\u2194 右ペイン同期済';
+  ind.className = 'autosave-ind show';
+  setTimeout(function() { ind.innerText = '\u2713 自動保存済'; ind.className = 'autosave-ind'; }, 2000);
+}
+
+// ============================================================
+// showDetail — read-only structured view for detail panes
+// ============================================================
+function showDetail(rec, cid) {
+  var el = document.getElementById(cid);
+  if (!rec || !rec.rawText) { el.innerHTML = '<div class="empty">データなし</div>'; return; }
+  el.innerHTML = '<div style="margin-bottom:12px"><button class="btn btn-primary btn-sm" onclick="editRec(\'' + rec.id + '\')">&#9997; 編集</button> <span style="font-family:Consolas,monospace;font-size:12px;color:#6b7190;margin-left:12px">' + fmtDT(rec.datetime) + '</span></div>' + renderSection(parseText(rec.rawText), false);
+}
+
+// ============================================================
+// SAVE — does NOT clear editor; stays in edit mode
+// ============================================================
+function saveRecord() {
+  // 右ペインから同期されたテキストがあればそれを優先
+  var text;
+  if (window._syncedRawText) {
+    text = window._syncedRawText;
+    window._syncedRawText = null;
+  } else {
+    text = getEditorPlain();
+  }
+  text = text.replace(/^\s+|\s+$/g, '');
+  if (!text) { toast('内容を入力'); return; }
+  var parsed = parseText(text);
+  var editId = document.getElementById('ed-edit-id').innerText;
+
+  if (editId) {
+    var recs = readDB('records');
+    for (var i = 0; i < recs.length; i++) {
+      if (recs[i].id === editId) { recs[i].rawText = text; recs[i].type = parsed.type || 'memo'; }
+    }
+    writeDB('records', recs);
+    toast('保存しました (上書き)', 'ok');
+  } else {
+    var newId = genId('RC');
+    appendDB('records', { id: newId, datetime: nowISO(), type: parsed.type || 'memo', rawText: text, project: '', status: 'active', ai_data: '' });
+    document.getElementById('ed-edit-id').innerText = newId;
+    document.getElementById('ed-mode').innerText = '[編集中: ' + newId + ']';
+    toast('新規保存 [#' + (parsed.type || 'memo') + ']', 'ok');
+  }
+
+  // Extract tasks from ★ AND from ||table in Todo/ネクストアクション fields
+  extractTasks(parsed, editId || document.getElementById('ed-edit-id').innerText);
+  editorDirty = false;
+  updateHdr();
+}
+
+function extractTasks(parsed, srcId) {
+  // 1) Table rows in Todo-like fields
+  var todoFields = ['Todo', 'ネクストアクション', 'アクションアイテム'];
+  for (var i = 0; i < parsed.tables.length; i++) {
+    var tbl = parsed.tables[i];
+    var isTodo = false;
+    for (var tf = 0; tf < todoFields.length; tf++) {
+      if (tbl.fk && tbl.fk.indexOf(todoFields[tf]) >= 0) { isTodo = true; break; }
+    }
+    if (isTodo && tbl.cells.length >= 1) {
+      // Check if task already exists to avoid duplicates
+      var existing = readDB('task_log');
+      var dup = false;
+      for (var k = 0; k < existing.length; k++) {
+        if (existing[k].title === tbl.cells[0] && existing[k].source_record === srcId) { dup = true; break; }
+      }
+      if (!dup) {
+        appendDB('task_log', { id: genId('TK'), datetime: nowISO(), title: tbl.cells[0], due: tbl.cells[2] || '', owner: tbl.cells[1] || '', project: '', content: '', status: '未着手', progress: '', source_record: srcId });
+      }
+    }
+  }
+  // 2) ★ lines → also create tasks
+  for (var si = 0; si < parsed.stars.length; si++) {
+    var starLine = parsed.stars[si].line.replace(/\u2605/g, '').replace(/^\s+|\s+$/g, '');
+    if (!starLine) continue;
+    var existing2 = readDB('task_log');
+    var dup2 = false;
+    for (var k2 = 0; k2 < existing2.length; k2++) {
+      if (existing2[k2].title === starLine && existing2[k2].source_record === srcId) { dup2 = true; break; }
+    }
+    if (!dup2) {
+      appendDB('task_log', { id: genId('TK'), datetime: nowISO(), title: starLine, due: '', owner: '', project: '', content: '★マーカーから自動抽出', status: '未着手', progress: '', source_record: srcId });
+    }
+  }
+}
+
+function newRecord() {
+  document.getElementById('editor-area').innerHTML = '';
+  document.getElementById('ed-edit-id').innerText = '';
+  document.getElementById('ed-mode').innerText = '';
+  document.getElementById('ed-cnt').innerText = '0';
+  syncToView();
+  document.getElementById('editor-area').focus();
+  editorDirty = false;
+}
+
+function editRec(id) {
+  var recs = readDB('records'), rec = null;
+  for (var i = 0; i < recs.length; i++) { if (recs[i].id === id) rec = recs[i]; }
+  if (!rec) return;
+  go('editor');
+  setEditorContent(rec.rawText);
+  document.getElementById('ed-edit-id').innerText = id;
+  document.getElementById('ed-mode').innerText = '[編集中: ' + id + ']';
+  syncToView();
+}
+
+// ============================================================
+// MEETINGS
+// ============================================================
+var curMtg = null;
+function renderMtgList(filter) {
+  var recs = readDB('records').filter(function(r){return r.type === '議事録';}).reverse();
+  document.getElementById('mtg-badge').innerText = recs.length;
+  if (filter) { var f = filter.replace(/^\s+|\s+$/g,''); if (f) recs = recs.filter(function(r){return r.rawText.indexOf(f)>=0;}); }
+  var el = document.getElementById('mtg-list');
+  if (!recs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#128203;</div>議事録なし</div>'; return; }
+  var h = '';
+  for (var i = 0; i < recs.length; i++) {
+    var rec = recs[i], parsed = parseText(rec.rawText), title = '';
+    for (var j = 0; j < parsed.fields.length; j++) { if (parsed.fields[j].key === '会議名') { title = parsed.fields[j].value; break; } }
+    h += '<div class="list-item' + (rec.id===curMtg?' sel':'') + '" onclick="showMtg(\'' + rec.id + '\')"><div class="list-title">' + esc(title||'(無題)') + '</div><div class="list-meta">' + fmtDT(rec.datetime) + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+function showMtg(id) { curMtg = id; var recs = readDB('records'), rec = null; for (var i = 0; i < recs.length; i++) { if (recs[i].id === id) rec = recs[i]; } showDetail(rec, 'mtg-detail'); renderMtgList(''); }
+
+// ============================================================
+// TASKS
+// ============================================================
+var curTk = null;
+function renderTkList() {
+  var tasks = readDB('task_log'), f = document.getElementById('tk-filter').value, s = document.getElementById('tk-sort').value;
+  if (f==='open') tasks = tasks.filter(function(t){return t.status!=='完了' && t.status!=='中止';});
+  else if (f==='done') tasks = tasks.filter(function(t){return t.status==='完了';});
+  if (s==='due') tasks.sort(function(a,b){return (a.due||'9999')>(b.due||'9999')?1:-1;});
+  else tasks.reverse();
+  document.getElementById('tk-badge').innerText = tasks.length;
+  var el = document.getElementById('tk-list');
+  if (!tasks.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#9672;</div>タスクなし</div>'; return; }
+  var h = '';
+  for (var i = 0; i < tasks.length; i++) {
+    var t = tasks[i], sc = t.status==='完了'?'ts-done':t.status==='進行中'?'ts-progress':'ts-open';
+    h += '<div class="list-item' + (t.id===curTk?' sel':'') + '" onclick="showTk(\'' + t.id + '\')"><div><span class="task-status ' + sc + '">' + t.status + '</span> <span style="vertical-align:middle;margin-left:6px">' + esc(t.title) + '</span></div><div class="list-meta">' + (t.owner||'') + (t.due?' 〆'+t.due:'') + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+function showTk(id) {
+  curTk = id; var tasks = readDB('task_log'), t = null;
+  for (var i = 0; i < tasks.length; i++) { if (tasks[i].id === id) t = tasks[i]; }
+  if (!t) return;
+  var pe = (t.progress||'').split('|||').filter(function(x){return x.replace(/\s/g,'');}), ph = '';
+  for (var pi = 0; pi < pe.length; pi++) { var pts = pe[pi].split(':::'); ph += '<div class="progress-entry"><div class="pe-date">' + (pts[0]||'') + '</div><div>' + esc(pts[1]||'') + '</div></div>'; }
+  document.getElementById('tk-detail').innerHTML = '<div class="sec-lbl">TASK DETAIL</div><table class="sv-kv-table"><tr><td>内容</td><td>' + esc(t.title) + '</td></tr><tr><td>期限</td><td>' + esc(t.due||'未設定') + '</td></tr><tr><td>担当</td><td>' + esc(t.owner||'未設定') + '</td></tr><tr><td>ステータス</td><td><select id="tk-st" style="width:auto;padding:4px 8px;font-size:13px;display:inline;background:#12141a;border:1px solid #363b52;color:#a0a6bc;"><option' + (t.status==='未着手'?' selected':'') + '>未着手</option><option' + (t.status==='進行中'?' selected':'') + '>進行中</option><option' + (t.status==='完了'?' selected':'') + '>完了</option><option' + (t.status==='中止'?' selected':'') + '>中止</option></select> <button class="btn btn-ghost btn-xs" onclick="updateTkSt(\'' + t.id + '\')">更新</button></td></tr>' + (t.source_record ? '<tr><td>関連</td><td><button class="btn btn-ghost btn-xs" onclick="editRec(\'' + t.source_record + '\')">元レコードを開く</button></td></tr>' : '') + '</table><div class="sv-section-label">進捗コメント</div>' + (ph || '<div style="color:#6b7190;font-size:13px;padding:8px 0;">なし</div>') + '<div style="margin-top:12px"><textarea id="tk-prog" rows="2" placeholder="進捗コメント..." style="font-size:14px;min-height:60px"></textarea><button class="btn btn-primary btn-sm" onclick="addTkProg(\'' + t.id + '\')" style="margin-top:6px">追加</button></div>';
+  renderTkList();
+}
+function updateTkSt(id) { var st = document.getElementById('tk-st').value, tasks = readDB('task_log'); for (var i = 0; i < tasks.length; i++) { if (tasks[i].id === id) tasks[i].status = st; } writeDB('task_log', tasks); toast('ステータス更新','ok'); showTk(id); updateHdr(); }
+function addTkProg(id) { var c = (document.getElementById('tk-prog').value||'').replace(/^\s+|\s+$/g,''); if (!c) { toast('コメントを入力'); return; } var tasks = readDB('task_log'); for (var i = 0; i < tasks.length; i++) { if (tasks[i].id === id) { var ex = tasks[i].progress||''; tasks[i].progress = ex ? (ex+'|||'+fmtDT(nowISO())+':::'+c) : (fmtDT(nowISO())+':::'+c); } } writeDB('task_log', tasks); toast('コメント追加','ok'); showTk(id); }
+
+// ============================================================
+// DELEGATION
+// ============================================================
+var curDl = null;
+function renderDlList() {
+  var recs = readDB('records').filter(function(r){return r.type === 'ディレクション';}).reverse();
+  document.getElementById('dl-badge').innerText = recs.length;
+  var el = document.getElementById('dl-list');
+  if (!recs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#128228;</div>なし</div>'; return; }
+  var h = '';
+  for (var i = 0; i < recs.length; i++) {
+    var rec = recs[i], parsed = parseText(rec.rawText), assignee = '';
+    for (var j = 0; j < parsed.fields.length; j++) { if (parsed.fields[j].key === '担当者') { assignee = parsed.fields[j].value; break; } }
+    h += '<div class="list-item' + (rec.id===curDl?' sel':'') + '" onclick="showDl(\'' + rec.id + '\')"><div class="list-title">' + esc(assignee||'(未設定)') + '</div><div class="list-meta">' + fmtDT(rec.datetime) + '</div></div>';
+  }
+  el.innerHTML = h;
+}
+function showDl(id) { curDl = id; var recs = readDB('records'), rec = null; for (var i = 0; i < recs.length; i++) { if (recs[i].id === id) rec = recs[i]; } showDetail(rec, 'dl-detail'); renderDlList(); }
+
+// ============================================================
+// KNOWLEDGE
+// ============================================================
+var curKb = null;
+function renderKbList(filter) {
+  var recs = readDB('records').reverse(), skip = {'議事録':1,'タスク':1,'ディレクション':1};
+  recs = recs.filter(function(r){return !skip[r.type];});
+  document.getElementById('kb-badge').innerText = recs.length;
+  if (filter) { var f = filter.replace(/^\s+|\s+$/g,''); if (f) recs = recs.filter(function(r){return r.rawText.indexOf(f)>=0;}); }
+  var el = document.getElementById('kb-list');
+  if (!recs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#128214;</div>なし</div>'; return; }
+  var h = '';
+  for (var i = 0; i < recs.length; i++) { var rec = recs[i]; h += '<div class="list-item' + (rec.id===curKb?' sel':'') + '" onclick="showKb(\'' + rec.id + '\')"><div class="list-title"><span style="font-size:11px;padding:2px 8px;border-radius:4px;background:rgba(232,184,75,0.10);color:#e8b84b;border:1px solid rgba(232,184,75,0.28);margin-right:6px">#' + esc(rec.type) + '</span>' + esc(rec.rawText.slice(0,50)) + '</div><div class="list-meta">' + fmtDT(rec.datetime) + '</div></div>'; }
+  el.innerHTML = h;
+}
+function showKb(id) { curKb = id; var recs = readDB('records'), rec = null; for (var i = 0; i < recs.length; i++) { if (recs[i].id === id) rec = recs[i]; } showDetail(rec, 'kb-detail'); renderKbList(''); }
+
+// ============================================================
+// PROJECTS
+// ============================================================
+function savePj() { var n = document.getElementById('pj-name').value.replace(/^\s+|\s+$/g,''); if (!n) { toast('案件名を入力'); return; } appendDB('project_master', {id:genId('P'),datetime:nowISO(),name:n,client:document.getElementById('pj-client').value,phase:document.getElementById('pj-phase').value,priority:document.getElementById('pj-pri').value,type:document.getElementById('pj-type').value,fee:document.getElementById('pj-fee').value,start:document.getElementById('pj-start').value,end:'',hypothesis:'',risk:'',status:'進行中'}); closeModal('pj-modal'); toast('案件追加','ok'); renderPj(); document.getElementById('pj-name').value=''; document.getElementById('pj-client').value=''; }
+function renderPj() { var data = readDB('project_master').filter(function(p){return p.status!=='完了';}), board = document.getElementById('pj-board'); if (!data.length) { board.innerHTML = '<div class="empty"><div class="empty-icon">&#9673;</div>案件なし</div>'; return; } var ph = {}; for (var i = 0; i < data.length; i++) { var p = data[i]; if (!ph[p.phase]) ph[p.phase] = []; ph[p.phase].push(p); } var pc = {S:'pj-s',A:'pj-a',B:'pj-b'}, h = '<div class="row">'; for (var k in ph) { if (!ph.hasOwnProperty(k)) continue; h += '<div class="col3"><div style="font-size:13px;font-weight:700;color:#6b7190;letter-spacing:2px;padding:6px 0;border-bottom:1px solid #2a2e40;margin-bottom:8px">' + k + ' (' + ph[k].length + ')</div>'; for (var j = 0; j < ph[k].length; j++) { var p = ph[k][j]; h += '<div class="pj-card ' + (pc[p.priority]||'') + '"><div class="pj-name">' + esc(p.name) + '</div><div style="font-size:13px;color:#a0a6bc">' + esc(p.client||'') + '</div><div class="pj-meta">' + p.type + (p.fee?' / '+p.fee+'万':'') + '</div></div>'; } h += '</div>'; } h += '</div>'; board.innerHTML = h; }
+
+// ============================================================
+// CLIENTS
+// ============================================================
+function saveCl() { var n = document.getElementById('cl-name').value.replace(/^\s+|\s+$/g,''); if (!n) { toast('顧客名を入力'); return; } appendDB('client_master', {id:genId('C'),datetime:nowISO(),name:n,division:document.getElementById('cl-div').value,key_person:document.getElementById('cl-kp').value,key_title:document.getElementById('cl-title').value,email:document.getElementById('cl-email').value,tel:document.getElementById('cl-tel').value,industry:document.getElementById('cl-industry').value,relation_score:document.getElementById('cl-relation').value,sales_phase:'',revenue_scale:'',pain_summary:document.getElementById('cl-pain').value,memo:document.getElementById('cl-memo').value}); closeModal('cl-modal'); toast('顧客追加','ok'); renderCl(''); document.getElementById('cl-name').value=''; }
+function renderCl(filter) { var d = readDB('client_master'); document.getElementById('cl-badge').innerText = d.length; if (filter) d = d.filter(function(c){return c.name.indexOf(filter)>=0||(c.key_person||'').indexOf(filter)>=0;}); var l = document.getElementById('cl-list'); if (!d.length) { l.innerHTML = '<div class="empty"><div class="empty-icon">&#128100;</div>顧客なし</div>'; return; } l.innerHTML = d.map(function(c){return '<div class="list-item" onclick="showCl(\''+c.id+'\')"><div class="list-title">'+esc(c.name)+'</div><div class="list-meta">'+(c.industry||'')+' / '+(c.key_person||'')+'</div></div>';}).join(''); }
+function showCl(id) { var d = readDB('client_master'), c = null; for (var i = 0; i < d.length; i++) { if (d[i].id === id) c = d[i]; } if (!c) return; var pjs = readDB('project_master').filter(function(p){return p.client === c.name;}); var mtgs = readDB('records').filter(function(r){return r.type === '議事録' && r.rawText.indexOf(c.name) >= 0;}); document.getElementById('cl-detail').innerHTML = '<div class="sec-lbl">' + esc(c.name) + '</div><table class="sv-kv-table"><tr><td>キーパーソン</td><td>' + esc(c.key_person||'') + ' / ' + esc(c.key_title||'') + '</td></tr><tr><td>業種</td><td>' + esc(c.industry||'') + '</td></tr><tr><td>Email</td><td>' + esc(c.email||'') + '</td></tr><tr><td>TEL</td><td>' + esc(c.tel||'') + '</td></tr><tr><td>関係性</td><td>' + c.relation_score + '</td></tr><tr><td>課題</td><td>' + esc(c.pain_summary||'') + '</td></tr></table><div class="sv-section-label">関連案件 (' + pjs.length + ')</div>' + (pjs.length ? pjs.map(function(p){return '<div class="pj-card"><div class="pj-name">'+esc(p.name)+'</div><div class="pj-meta">'+p.phase+' / '+p.type+'</div></div>';}).join('') : '<div style="color:#6b7190;padding:12px">なし</div>') + '<div class="sv-section-label">関連議事録 (' + mtgs.length + ')</div>' + (mtgs.length ? mtgs.slice(0,5).map(function(m){return '<div class="list-item" onclick="go(\'meetings\');showMtg(\''+m.id+'\')"><div class="list-meta">' + fmtDT(m.datetime) + '</div></div>';}).join('') : '<div style="color:#6b7190;padding:12px">なし</div>'); }
+
+// ============================================================
+// INBOX
+// ============================================================
+var pendingFile = null;
+function fetchUrl() { toast('HTML版ではURL取得は制限されます'); }
+function dzOver(e) { e.preventDefault(); document.getElementById('drop-zone').className = 'drop-zone over'; }
+function dzLeave() { document.getElementById('drop-zone').className = 'drop-zone'; }
+function dzDrop(e) { e.preventDefault(); document.getElementById('drop-zone').className = 'drop-zone'; if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); }
+function handleFiles(files) { for (var i = 0; i < files.length; i++) { if (i===0) { document.getElementById('ib-title').value = files[i].name; pendingFile = {name:files[i].name, type:files[i].type}; } } document.getElementById('dropped-files').style.display='block'; document.getElementById('dropped-paths').innerText = files.length + ' ファイル'; }
+function saveInbox() { var title = document.getElementById('ib-title').value.replace(/^\s+|\s+$/g,''), url = document.getElementById('ib-url').value.replace(/^\s+|\s+$/g,''); if (!title && !url) { toast('タイトルかURLを入力'); return; } appendDB('intelligence_inbox', {id:genId('II'),datetime:nowISO(),source_type:url?'URL':'file',title:title||url,url:url,url_summary:document.getElementById('ib-summary').value,project:document.getElementById('ib-pj').value,category:document.getElementById('ib-cat').value,tags:document.getElementById('ib-tags').value,memo:document.getElementById('ib-memo').value,status:'未読'}); toast('保存','ok'); var c = ['ib-url','ib-title','ib-summary','ib-pj','ib-tags','ib-memo']; for (var i = 0; i < c.length; i++) document.getElementById(c[i]).value = ''; pendingFile = null; document.getElementById('dropped-files').style.display = 'none'; renderInbox(''); updateHdr(); }
+function renderInbox(filter) { var data = readDB('intelligence_inbox').reverse(); document.getElementById('ib-badge').innerText = data.length; if (filter) data = data.filter(function(r){return r.title.indexOf(filter)>=0||(r.tags||'').indexOf(filter)>=0;}); var list = document.getElementById('ib-list'); if (!data.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">&#128229;</div>なし</div>'; return; } list.innerHTML = data.map(function(item){return '<div class="inbox-item"><div><span class="inbox-title">'+esc(item.title.slice(0,55))+'</span></div><div class="inbox-meta">'+item.category+' / '+fmtDT(item.datetime)+'</div></div>';}).join(''); }
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderHome() {
+  var recs = readDB('records'), tasks = readDB('task_log'), ib = readDB('intelligence_inbox');
+  var mtgs = recs.filter(function(r){return r.type==='議事録';}), open = tasks.filter(function(t){return t.status!=='完了'&&t.status!=='中止';});
+  document.getElementById('st-records').innerText = recs.length;
+  document.getElementById('st-records2').innerText = '今日: ' + recs.filter(function(r){return r.datetime.indexOf(todayISO())===0;}).length;
+  document.getElementById('st-tasks').innerText = open.length;
+  document.getElementById('st-tasks2').innerText = '未着手: ' + tasks.filter(function(t){return t.status==='未着手';}).length;
+  document.getElementById('st-mtg').innerText = mtgs.length;
+  document.getElementById('st-inbox').innerText = ib.length;
+  document.getElementById('st-inbox2').innerText = '未読: ' + ib.filter(function(i){return i.status==='未読';}).length;
+  var dtE = document.getElementById('dash-tasks');
+  dtE.innerHTML = open.length ? open.slice(0,6).map(function(t){return '<div style="padding:10px 18px;border-bottom:1px solid #2a2e40;font-size:14px;cursor:pointer" onclick="go(\'tasks\')">'+esc(t.title)+'<span style="float:right;font-size:13px;color:#6b7190">'+fmtD(t.due)+'</span></div>';}).join('') : '<div class="empty" style="padding:20px"><div class="empty-icon">&#9672;</div>なし</div>';
+  var recent = recs.slice().reverse().slice(0,5);
+  document.getElementById('dash-records').innerHTML = recent.length ? recent.map(function(r){return '<div style="padding:10px 18px;border-bottom:1px solid #2a2e40;font-size:14px;cursor:pointer" onclick="editRec(\''+r.id+'\')"><span style="font-size:10px;padding:2px 6px;border-radius:3px;background:rgba(232,184,75,0.10);color:#e8b84b;margin-right:6px">#'+esc(r.type)+'</span>'+esc(r.rawText.slice(0,50))+'</div>';}).join('') : '<div class="empty" style="padding:20px">なし</div>';
+  var pjs = readDB('project_master').filter(function(p){return p.status!=='完了';});
+  document.getElementById('dash-projects').innerHTML = pjs.length ? pjs.slice(0,6).map(function(p){return '<div style="padding:10px 18px;border-bottom:1px solid #2a2e40;font-size:14px;cursor:pointer" onclick="go(\'projects\')"><b>'+esc(p.name)+'</b><span style="float:right;font-size:13px;color:#6b7190">'+p.phase+'</span></div>';}).join('') : '<div class="empty" style="padding:20px">なし</div>';
+  updateHdr();
+}
+function updateHdr() { document.getElementById('hd-records').innerText = readDB('records').length + ' REC'; document.getElementById('hd-tasks').innerText = readDB('task_log').filter(function(t){return t.status!=='完了'&&t.status!=='中止';}).length + ' TASKS'; }
+
+// ============================================================
+// SEARCH
+// ============================================================
+function gSearch() { var q = document.getElementById('gs-q').value.replace(/^\s+|\s+$/g,''); if (!q) return; var results = []; readDB('records').forEach(function(r){if ((r.rawText||'').indexOf(q)>=0) results.push({src:'#'+(r.type||'memo'),text:r.rawText.slice(0,200),dt:r.datetime});}); readDB('intelligence_inbox').forEach(function(ib){if ((ib.title||'').indexOf(q)>=0) results.push({src:'Inbox',text:ib.title,dt:ib.datetime});}); var el = document.getElementById('gs-results'); if (!results.length) { el.innerHTML = '<div class="empty" style="padding:24px">見つかりません</div>'; return; } el.innerHTML = '<div style="font-size:13px;color:#6b7190;margin-bottom:10px">' + results.length + ' 件</div>' + results.map(function(r){return '<div class="sr-item"><div class="sr-source">'+r.src+' / '+fmtDT(r.dt)+'</div><div class="sr-body">'+esc(r.text)+'</div></div>';}).join(''); }
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettings() { var tables = ['records','task_log','intelligence_inbox','project_master','client_master']; var h = ''; for (var i = 0; i < tables.length; i++) h += '<div class="setting-row"><span class="setting-label">'+tables[i]+'</span> '+readDB(tables[i]).length+' 件</div>'; document.getElementById('set-stats').innerHTML = h; }
+function exportAll() { var tables = ['records','task_log','intelligence_inbox','project_master','client_master']; var data = {}; for (var i = 0; i < tables.length; i++) data[tables[i]] = readDB(tables[i]); clipCopy(JSON.stringify(data,null,2)); toast('全データJSONコピー','ok'); }
+
+// ============================================================
+// NAV
+// ============================================================
+function go(name) {
+  var s = document.querySelectorAll('.screen'); for (var i = 0; i < s.length; i++) s[i].className = 'screen';
+  var n = document.querySelectorAll('.nav-btn'); for (var j = 0; j < n.length; j++) n[j].className = n[j].className.replace(' active','');
+  var sc = document.getElementById('screen-' + name); if (sc) sc.className = 'screen active';
+  var nb = document.getElementById('nav-' + name); if (nb) nb.className += ' active';
+  if (name==='home') renderHome();
+  if (name==='editor') syncToView();
+  if (name==='inbox') renderInbox('');
+  if (name==='meetings') renderMtgList('');
+  if (name==='tasks') renderTkList();
+  if (name==='delegate') renderDlList();
+  if (name==='projects') renderPj();
+  if (name==='clients') renderCl('');
+  if (name==='knowledge') renderKbList('');
+  if (name==='settings') renderSettings();
+}
+function toast(msg,type) { var t = document.getElementById('toast'), el = document.createElement('div'); el.className = 'toast-msg' + (type?' '+type:''); el.innerText = msg; t.appendChild(el); setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},2900); }
+function openModal(id) { document.getElementById(id).className = 'modal-overlay open'; }
+function closeModal(id) { document.getElementById(id).className = 'modal-overlay'; }
+function toggleSidebar() { var c = document.getElementById('sidebar-cell'), b = document.getElementById('sidebar-toggle'); if (c.className.indexOf('collapsed')>=0) { c.className = ''; b.innerText = '\u25C0'; } else { c.className = 'collapsed'; b.innerText = '\u25B6'; } }
+function toggleTree() { var c = document.getElementById('tree-cell'); c.className = c.className.indexOf('hidden')>=0?'':'hidden'; }
+function refreshTree() { document.getElementById('tree-items').innerHTML = '<div style="padding:12px;font-size:13px;color:#6b7190">localStorage使用中</div>'; }
+
+// ============================================================
+// KEYBOARD SHORTCUTS
+// ============================================================
+document.onkeydown = function(e) {
+  if ((e.ctrlKey||e.metaKey) && e.keyCode === 13) {
+    var sc = document.querySelector('.screen.active');
+    if (sc && sc.id === 'screen-editor') { e.preventDefault(); saveRecord(); }
+  }
+  if (e.keyCode === 27) { var m = document.querySelectorAll('.modal-overlay.open'); for (var i = 0; i < m.length; i++) m[i].className = 'modal-overlay'; }
+};
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  updateHdr();
+  setTimeout(function() { toast('COCKPIT v9.0 起動 | 5秒ごとに自動保存'); document.getElementById('editor-area').focus(); }, 500);
+}
+window.onload = init;
+</script>
+</body>
+</html>
