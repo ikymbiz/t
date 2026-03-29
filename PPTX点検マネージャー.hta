@@ -24,9 +24,9 @@ body { font-family: "Meiryo","MS Gothic",sans-serif; background: #eef2f7; font-s
 .tab:hover { color: #fff; }
 #toolbar { background: #fff; border-bottom: 2px solid #dde4f0; padding: 8px 20px; }
 .btn { display: inline-block; padding: 6px 14px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; border-radius: 4px; margin-right: 5px; font-family: inherit; }
-.btn-blue   { background: #4f86f7; color: #fff; }
-.btn-green  { background: #27ae60; color: #fff; }
-.btn-gray   { background: #e8edf5; color: #333; border: 1px solid #bcc; }
+.btn-blue { background: #4f86f7; color: #fff; }
+.btn-green { background: #27ae60; color: #fff; }
+.btn-gray { background: #e8edf5; color: #333; border: 1px solid #bcc; }
 .btn-orange { background: #e67e22; color: #fff; }
 .sep { display: inline-block; width: 1px; height: 22px; background: #dde; margin: 0 6px; vertical-align: middle; }
 #fileLabel { font-size: 11px; color: #888; vertical-align: middle; }
@@ -44,7 +44,7 @@ body { font-family: "Meiryo","MS Gothic",sans-serif; background: #eef2f7; font-s
 .tbl tr:last-child td { border-bottom: none; }
 input[type=text], select, textarea { border: 1px solid #c0cce0; border-radius: 4px; padding: 5px 8px; font-size: 12px; font-family: inherit; width: 100%; }
 input[type=text]:focus, select:focus, textarea:focus { border-color: #4f86f7; outline: none; }
-textarea { resize: vertical; font-family: "Courier New", monospace; }
+textarea { resize: vertical; }
 .del-btn { background: #fde; color: #c00; border: 1px solid #fbb; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 11px; font-family: inherit; }
 .add-btn { background: #4f86f7; color: #fff; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 12px; font-family: inherit; }
 .sbtn { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 3px 3px 0 0; border: 2px solid; font-family: inherit; }
@@ -71,11 +71,12 @@ textarea { resize: vertical; font-family: "Courier New", monospace; }
 .sync-bar { font-size: 11px; padding: 6px 10px; border: 1px solid #c0d0f0; border-radius: 4px; margin-bottom: 10px; background: #f0f5ff; }
 .sync-bar.ok { background: #f0fdf4; border-color: #86efac; }
 #statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: #8899bb; font-size: 11px; padding: 5px 18px; }
-#promptOut { width: 100%; font-size: 11px; font-family: "Courier New", monospace; line-height: 1.6; border: 1px solid #c0cce0; border-radius: 4px; padding: 10px; background: #f8faff; resize: vertical; }
+#promptOut { width: 100%; font-size: 11px; line-height: 1.6; border: 1px solid #c0cce0; border-radius: 4px; padding: 10px; background: #f8faff; resize: vertical; }
 .chk-item { padding: 9px 0; border-bottom: 1px solid #f0f2f8; }
 .chk-item:last-child { border-bottom: none; }
-.note { font-size: 11px; color: #666; margin-bottom: 8px; line-height: 1.7; }
+.note { font-size: 11px; color: #555; margin-bottom: 10px; line-height: 1.8; }
 code { background: #f0f2f8; padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+.info-box { background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 12px; color: #78350f; }
 </style>
 </head>
 <body>
@@ -95,56 +96,60 @@ code { background: #f0f2f8; padding: 1px 5px; border-radius: 3px; font-size: 11p
 </div>
 
 <div id="toolbar">
-  <input type="button" class="btn btn-blue"   value="設定を保存"     onclick="doSave()">
-  <input type="button" class="btn btn-gray"   value="設定を読込"     onclick="doLoad()">
+  <input type="button" class="btn btn-blue"   value="設定を保存"   onclick="jsSave()">
+  <input type="button" class="btn btn-gray"   value="設定を読込"   onclick="jsLoad()">
   <span class="sep"></span>
-  <input type="button" class="btn btn-green"  value="レポート出力"   onclick="doExport()">
-  <input type="button" class="btn btn-orange" value="点検リセット"   onclick="doReset()">
+  <input type="button" class="btn btn-green"  value="レポート出力" onclick="jsExport()">
+  <input type="button" class="btn btn-orange" value="点検リセット" onclick="doReset()">
   <span class="sep"></span>
   <span id="fileLabel">（未保存）</span>
 </div>
 
 <div id="main">
 
-<!-- ===== TAB 0: CSV設定 ===== -->
+<!-- TAB 0: CSV設定 -->
 <div class="panel on" id="p0">
+  <div class="info-box">
+    <b>設計方針：</b>
+    A-1（表記揺れ）とA-2（禁止キーワード）は <b>CSVファイルが唯一のデータ源</b> です。JSONはCSVのファイル名・A-3・点検結果のみ保存します。CSVとJSONは競合しません。
+  </div>
   <div class="card">
     <div class="card-hdr">CSV連動設定</div>
     <div class="card-body">
       <p class="note">
-        ファイル名のみ（相対パス）を入力してください。HTAファイルと同じフォルダに置いたCSVと自動連動します。<br>
-        データを追加・編集・削除するたびに即座にCSVへ書き出されます。ExcelでCSVを編集後は「再読込」ボタンで反映できます。
+        HTAファイルと同じフォルダにCSVを置き、ファイル名のみ入力してください。<br>
+        データを追加・編集・削除するたびにCSVへ即座に書き出します。Excelで編集後は「再読込」で反映できます。
       </p>
       <table class="tbl" style="margin-bottom:12px">
         <tr>
-          <td style="width:220px;font-weight:bold;font-size:12px">A-1 表記揺れ CSV</td>
-          <td><input type="text" id="wFile" value="A1_表記揺れ.csv" onchange="onPathChange()"></td>
-          <td style="width:70px;text-align:center"><input type="button" class="btn btn-gray" value="再読込" onclick="reloadW()"></td>
+          <td style="width:200px;font-weight:bold;font-size:12px">A-1 表記揺れ CSV</td>
+          <td><input type="text" id="wFile" value="A1_表記揺れ.csv"></td>
+          <td style="width:80px;text-align:center">
+            <input type="button" class="btn btn-gray" value="再読込" onclick="jsReloadW()">
+          </td>
         </tr>
         <tr>
           <td style="font-weight:bold;font-size:12px">A-2 禁止キーワード CSV</td>
-          <td><input type="text" id="bFile" value="A2_禁止キーワード.csv" onchange="onPathChange()"></td>
-          <td style="text-align:center"><input type="button" class="btn btn-gray" value="再読込" onclick="reloadB()"></td>
+          <td><input type="text" id="bFile" value="A2_禁止キーワード.csv"></td>
+          <td style="text-align:center">
+            <input type="button" class="btn btn-gray" value="再読込" onclick="jsReloadB()">
+          </td>
         </tr>
       </table>
-      <input type="button" class="btn btn-blue" value="今すぐ両方を再読込" onclick="reloadAll()">
+      <input type="button" class="btn btn-blue" value="両方を今すぐ再読込" onclick="jsReloadAll()">
       <span id="csvMsg" style="font-size:11px;color:#27ae60;font-weight:bold;margin-left:10px"></span>
       <hr style="margin:14px 0;border-color:#eef">
       <p class="note">
-        <b>HTAファイルの場所：</b> <span id="htaDir" style="color:#1a1a2e;font-weight:bold"></span><br><br>
-        <b>CSV形式（A-1 表記揺れ）</b><br>
-        1列目：正式表記 &nbsp;／&nbsp; 2列目：使用禁止の表記<br>
-        先頭行はヘッダー行 例） <code>正式表記,使用禁止の表記</code><br><br>
-        <b>CSV形式（A-2 禁止キーワード）</b><br>
-        1列目：カテゴリ &nbsp;／&nbsp; 2列目：キーワード<br>
-        カテゴリ名：<code>社外秘・機密</code> <code>不適切・品位を損なう表現</code> <code>過度な断言表現</code> <code>作業中痕跡</code><br>
-        先頭行はヘッダー行 例） <code>カテゴリ,キーワード</code>
+        <b>HTAファイルの場所：</b><span id="htaDir" style="font-weight:bold;color:#1a1a2e"></span><br><br>
+        <b>A-1 CSV形式：</b> 1列目=正式表記　2列目=使用禁止の表記　例）<code>正式表記,使用禁止の表記</code><br>
+        <b>A-2 CSV形式：</b> 1列目=カテゴリ　2列目=キーワード　例）<code>カテゴリ,キーワード</code><br>
+        カテゴリ名：<code>社外秘・機密</code>　<code>不適切・品位を損なう表現</code>　<code>過度な断言表現</code>　<code>作業中痕跡</code>
       </p>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 1: A-1 ===== -->
+<!-- TAB 1: A-1 -->
 <div class="panel" id="p1">
   <div class="card">
     <div class="card-hdr">A-1 表記揺れ注意ワードリスト</div>
@@ -153,16 +158,22 @@ code { background: #f0f2f8; padding: 1px 5px; border-radius: 3px; font-size: 11p
       <div id="wDiv"></div>
       <table class="tbl" style="margin-top:10px">
         <tr>
-          <td style="width:35%;padding:0 6px 0 0"><input type="text" id="nWC" placeholder="正式表記（例：顧客）"></td>
-          <td style="padding:0 6px 0 0"><input type="text" id="nWW" placeholder="使用禁止（例：お客様 / クライアント）"></td>
-          <td style="width:60px;padding:0"><input type="button" class="add-btn" value="+ 追加" onclick="addW()"></td>
+          <td style="width:35%;padding:3px 6px 3px 0">
+            <input type="text" id="nWC" placeholder="正式表記（例：顧客）">
+          </td>
+          <td style="padding:3px 6px 3px 0">
+            <input type="text" id="nWW" placeholder="使用禁止（例：お客様 / クライアント）">
+          </td>
+          <td style="width:60px;padding:3px 0">
+            <input type="button" class="add-btn" value="追加" onclick="addW()">
+          </td>
         </tr>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 2: A-2 ===== -->
+<!-- TAB 2: A-2 -->
 <div class="panel" id="p2">
   <div class="card">
     <div class="card-hdr">A-2 使用禁止キーワード・表現リスト</div>
@@ -171,7 +182,7 @@ code { background: #f0f2f8; padding: 1px 5px; border-radius: 3px; font-size: 11p
       <div id="bDiv"></div>
       <table class="tbl" style="margin-top:10px">
         <tr>
-          <td style="width:200px;padding:0 6px 0 0">
+          <td style="width:210px;padding:3px 6px 3px 0">
             <select id="nBCat">
               <option>社外秘・機密</option>
               <option>不適切・品位を損なう表現</option>
@@ -179,15 +190,19 @@ code { background: #f0f2f8; padding: 1px 5px; border-radius: 3px; font-size: 11p
               <option>作業中痕跡</option>
             </select>
           </td>
-          <td style="padding:0 6px 0 0"><input type="text" id="nBKw" placeholder="キーワード・表現を追加"></td>
-          <td style="width:60px;padding:0"><input type="button" class="add-btn" value="+ 追加" onclick="addB()"></td>
+          <td style="padding:3px 6px 3px 0">
+            <input type="text" id="nBKw" placeholder="キーワード・表現を追加">
+          </td>
+          <td style="width:60px;padding:3px 0">
+            <input type="button" class="add-btn" value="追加" onclick="addB()">
+          </td>
         </tr>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 3: A-3 ===== -->
+<!-- TAB 3: A-3 -->
 <div class="panel" id="p3">
   <div class="card">
     <div class="card-hdr">A-3 使用禁止オブジェクト・デザイン要素リスト</div>
@@ -195,74 +210,84 @@ code { background: #f0f2f8; padding: 1px 5px; border-radius: 3px; font-size: 11p
       <div id="oDiv"></div>
       <table class="tbl" style="margin-top:10px">
         <tr>
-          <td style="width:200px;padding:0 6px 0 0">
-            <select id="nOCat"><option>禁止オブジェクト</option><option>禁止デザイン</option></select>
+          <td style="width:180px;padding:3px 6px 3px 0">
+            <select id="nOCat">
+              <option>禁止オブジェクト</option>
+              <option>禁止デザイン</option>
+            </select>
           </td>
-          <td style="padding:0 6px 0 0"><input type="text" id="nOItem" placeholder="要素を追加"></td>
-          <td style="width:60px;padding:0"><input type="button" class="add-btn" value="+ 追加" onclick="addO()"></td>
+          <td style="padding:3px 6px 3px 0">
+            <input type="text" id="nOItem" placeholder="要素を追加">
+          </td>
+          <td style="width:60px;padding:3px 0">
+            <input type="button" class="add-btn" value="追加" onclick="addO()">
+          </td>
         </tr>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 4: 点検リスト ===== -->
+<!-- TAB 4: 点検リスト -->
 <div class="panel" id="p4">
   <div id="sumBar" style="margin-bottom:12px"></div>
   <div id="chkDiv"></div>
 </div>
 
-<!-- ===== TAB 5: レポート ===== -->
+<!-- TAB 5: レポート -->
 <div class="panel" id="p5">
   <div id="repDiv"></div>
 </div>
 
-<!-- ===== TAB 6: AIプロンプト ===== -->
+<!-- TAB 6: AIプロンプト -->
 <div class="panel" id="p6">
   <div class="card" style="margin-bottom:10px">
     <div class="card-hdr">生成オプション</div>
     <div class="card-body">
       <b style="font-size:12px">モード：</b><br>
-      <label style="margin:5px 14px 0 0;display:inline-block"><input type="radio" name="mode" value="full" checked onclick="genPrompt()"> 全項目点検（完全版）</label>
-      <label style="margin:5px 14px 0 0;display:inline-block"><input type="radio" name="mode" value="fmt" onclick="genPrompt()"> 表記・書式のみ</label>
-      <label style="margin:5px 14px 0 0;display:inline-block"><input type="radio" name="mode" value="cnt" onclick="genPrompt()"> コンテンツ品質のみ</label>
+      <label style="margin:5px 12px 0 0;display:inline-block"><input type="radio" name="mode" value="full" checked onclick="genPrompt()"> 全項目点検</label>
+      <label style="margin:5px 12px 0 0;display:inline-block"><input type="radio" name="mode" value="fmt" onclick="genPrompt()"> 表記・書式のみ</label>
+      <label style="margin:5px 12px 0 0;display:inline-block"><input type="radio" name="mode" value="cnt" onclick="genPrompt()"> コンテンツ品質のみ</label>
       <label style="margin:5px 0 0 0;display:inline-block"><input type="radio" name="mode" value="ng" onclick="genPrompt()"> NG・要確認の再点検</label>
       <br><br>
       <b style="font-size:12px">対象スライド：</b>
-      <input type="text" id="scope" value="全スライド" onchange="genPrompt()" style="width:300px;margin-left:8px">
+      <input type="text" id="scope" value="全スライド" onchange="genPrompt()" style="width:280px;margin-left:8px">
     </div>
   </div>
-  <div style="margin-bottom:10px">
+  <div style="margin-bottom:8px">
     <input type="button" class="btn btn-green" value="クリップボードにコピー" onclick="cpPrompt()">
     <span id="cpMsg" style="font-size:12px;color:#27ae60;font-weight:bold;display:none;margin-left:8px">コピーしました！</span>
-    <span style="font-size:11px;color:#888;margin-left:10px" id="charCnt"></span>
+    <span id="charCnt" style="font-size:11px;color:#888;margin-left:8px"></span>
   </div>
-  <textarea id="promptOut" rows="32"></textarea>
+  <textarea id="promptOut" rows="30"></textarea>
 </div>
 
-</div><!-- /main -->
+</div>
 
-<input type="hidden" id="_buf" value="">
-<div id="statusbar"><span id="stMsg">準備完了</span></div>
+<!-- VBS→JS の橋渡し用バッファ -->
+<input type="hidden" id="_wbuf" value="">
+<input type="hidden" id="_md0" value="">
+<input type="hidden" id="_md1" value="">
+<input type="hidden" id="_md2" value="">
+<input type="hidden" id="_md3" value="">
+<input type="hidden" id="_bbuf" value="">
+<input type="hidden" id="_obuf" value="">
+
+<div id="statusbar"><span id="stMsg">起動中...</span></div>
 
 <!-- ===== VBScript ===== -->
 <script language="VBScript">
-Dim gSavePath
 Dim gBaseDir
+Dim gSavePath
 
-Sub initBaseDir()
-  Dim path
+' ── 起動時：HTAのフォルダを取得 ──
+Sub vbsInit()
+  Dim path, i, pos
   path = document.location.pathname
-  ' URLデコード（スペースなど）
   path = Replace(path, "%20", " ")
-  ' 先頭の / を除去
   If Left(path,1) = "/" Then path = Mid(path,2)
-  ' バックスラッシュに変換
   path = Replace(path, "/", "\")
-  ' ファイル名を除いたフォルダ部分
-  Dim pos
   pos = 0
-  Dim i
   For i = Len(path) To 1 Step -1
     If Mid(path,i,1) = "\" Then pos = i : Exit For
   Next
@@ -274,165 +299,153 @@ Sub initBaseDir()
   document.getElementById("htaDir").innerText = gBaseDir
 End Sub
 
-Function absPath(fname)
-  If fname = "" Then absPath = "" : Exit Function
-  absPath = gBaseDir & fname
+' ── フルパス生成 ──
+Function fullPath(fname)
+  fullPath = gBaseDir & Trim(fname)
 End Function
 
-' ── CSV書き込み（BOM付きUTF-8） ──
-Sub writeCSV(fname, content)
-  If fname = "" Then Exit Sub
-  Dim p, fso, s
-  p = absPath(fname)
-  On Error Resume Next
+' ── UTF-8でファイル読み込み（ADODB.Stream使用） ──
+Function readUTF8(fname)
+  readUTF8 = ""
+  If Trim(fname) = "" Then Exit Function
+  Dim p, fso, st
+  p = fullPath(fname)
   Set fso = CreateObject("Scripting.FileSystemObject")
-  Set s = fso.OpenTextFile(p, 2, True, -1)
+  If Not fso.FileExists(p) Then Exit Function
+  On Error Resume Next
+  Set st = CreateObject("ADODB.Stream")
+  st.Open
+  st.Type = 2
+  st.Charset = "UTF-8"
+  st.LoadFromFile p
+  readUTF8 = st.ReadText
+  st.Close
+  On Error GoTo 0
+End Function
+
+' ── UTF-8でファイル書き込み（ADODB.Stream使用） ──
+Sub writeUTF8(fname, content)
+  If Trim(fname) = "" Then Exit Sub
+  Dim p, st
+  p = fullPath(fname)
+  On Error Resume Next
+  Set st = CreateObject("ADODB.Stream")
+  st.Open
+  st.Type = 2
+  st.Charset = "UTF-8"
+  st.WriteText content
+  st.SaveToFile p, 2
+  st.Close
   If Err.Number <> 0 Then
-    MsgBox "CSVの書き込みに失敗しました。" & Chr(13) & p & Chr(13) & Err.Description, 16, "エラー"
-    On Error GoTo 0
-    Exit Sub
-  End If
-  s.Write content
-  s.Close
-  On Error GoTo 0
-End Sub
-
-' ── CSV読み込み ──
-Function readCSV(fname)
-  readCSV = ""
-  If fname = "" Then Exit Function
-  Dim p, fso, s
-  p = absPath(fname)
-  On Error Resume Next
-  Set fso = CreateObject("Scripting.FileSystemObject")
-  If Not fso.FileExists(p) Then
-    On Error GoTo 0
-    Exit Function
-  End If
-  Set s = fso.OpenTextFile(p, 1, False, -1)
-  readCSV = s.ReadAll
-  s.Close
-  On Error GoTo 0
-End Function
-
-' ── 新規CSV作成 ──
-Sub createCSV(fname, header)
-  Dim p, fso, s
-  p = absPath(fname)
-  On Error Resume Next
-  Set fso = CreateObject("Scripting.FileSystemObject")
-  If Not fso.FileExists(p) Then
-    Set s = fso.OpenTextFile(p, 2, True, -1)
-    s.Write Chr(239) & Chr(187) & Chr(191) & header & Chr(13) & Chr(10)
-    s.Close
+    MsgBox "書き込みエラー: " & p & Chr(13) & Err.Description, 16, "エラー"
   End If
   On Error GoTo 0
 End Sub
 
-' ── A-1 自動保存 ──
-Sub autoSaveW()
-  Dim fname
-  fname = document.getElementById("wFile").value
-  If Trim(fname) = "" Then Exit Sub
-  window.execScript "document.getElementById('_buf').value = getWordingCSV()", "JavaScript"
-  writeCSV fname, document.getElementById("_buf").value
+' ── A-1 CSV保存（JSの_wbufを読んで書き込む） ──
+Sub vbsSaveW()
+  writeUTF8 document.getElementById("wFile").value, document.getElementById("_wbuf").value
 End Sub
 
-' ── A-2 自動保存 ──
-Sub autoSaveB()
-  Dim fname
-  fname = document.getElementById("bFile").value
-  If Trim(fname) = "" Then Exit Sub
-  window.execScript "document.getElementById('_buf').value = getBannedCSV()", "JavaScript"
-  writeCSV fname, document.getElementById("_buf").value
+' ── A-2 CSV保存（JSの_bbufを読んで書き込む） ──
+Sub vbsSaveB()
+  writeUTF8 document.getElementById("bFile").value, document.getElementById("_bbuf").value
 End Sub
 
-' ── A-1 再読込 ──
-Sub vbsReloadW()
+' ── A-1 CSV読み込み（ファイルを読んで_wbufに入れる） ──
+Sub vbsLoadW()
   Dim fname, csv
   fname = document.getElementById("wFile").value
   If Trim(fname) = "" Then
-    MsgBox "A-1のファイル名を設定してください。", 64, "情報"
-    Exit Sub
+    MsgBox "A-1のファイル名を設定してください。", 64, "情報" : Exit Sub
   End If
-  createCSV fname, "正式表記,使用禁止の表記"
-  csv = readCSV(fname)
-  document.getElementById("_buf").value = csv
-  window.execScript "loadWordingFromBuf()", "JavaScript"
-  setSt "A-1 再読込: " & absPath(fname)
+  ' ファイルが無ければ新規作成
+  Dim p, fso
+  p = fullPath(fname)
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FileExists(p) Then
+    writeUTF8 fname, "正式表記,使用禁止の表記" & Chr(13) & Chr(10)
+  End If
+  csv = readUTF8(fname)
+  document.getElementById("_wbuf").value = csv
 End Sub
 
-' ── A-2 再読込 ──
-Sub vbsReloadB()
+' ── A-2 CSV読み込み（ファイルを読んで_bbufに入れる） ──
+Sub vbsLoadB()
   Dim fname, csv
   fname = document.getElementById("bFile").value
   If Trim(fname) = "" Then
-    MsgBox "A-2のファイル名を設定してください。", 64, "情報"
-    Exit Sub
+    MsgBox "A-2のファイル名を設定してください。", 64, "情報" : Exit Sub
   End If
-  createCSV fname, "カテゴリ,キーワード"
-  csv = readCSV(fname)
-  document.getElementById("_buf").value = csv
-  window.execScript "loadBannedFromBuf()", "JavaScript"
-  setSt "A-2 再読込: " & absPath(fname)
+  Dim p, fso
+  p = fullPath(fname)
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FileExists(p) Then
+    writeUTF8 fname, "カテゴリ,キーワード" & Chr(13) & Chr(10)
+  End If
+  csv = readUTF8(fname)
+  document.getElementById("_bbuf").value = csv
 End Sub
 
-' ── 設定保存 ──
-Sub doSave()
-  Dim p, fso, f, d
-  Set fso = CreateObject("Scripting.FileSystemObject")
+
+' ── 4種類のプロンプトMDを自動保存 ──
+Sub vbsSaveMD()
+  Dim fnames(3), i
+  fnames(0) = "prompt_01_全項目点検.md"
+  fnames(1) = "prompt_02_表記書式のみ.md"
+  fnames(2) = "prompt_03_コンテンツ品質のみ.md"
+  fnames(3) = "prompt_04_NG再点検.md"
+  For i = 0 To 3
+    Dim buf
+    buf = document.getElementById("_md" & i).value
+    If Trim(buf) <> "" Then writeUTF8 fnames(i), buf
+  Next
+  setSt "AIプロンプト MD 4ファイルを自動保存しました"
+End Sub
+
+' ── 設定JSON保存 ──
+Sub vbsSaveJSON()
+  Dim p
   If gSavePath = "" Then
-    p = InputBox("設定ファイルの保存先ファイル名（例: 設定.json）", "保存", "設定.json")
+    p = InputBox("設定ファイル名（HTAと同じフォルダ）", "保存", "設定.json")
   Else
-    p = InputBox("設定ファイルの保存先ファイル名", "保存", gSavePath)
+    p = InputBox("設定ファイル名", "保存", gSavePath)
   End If
   If Trim(p) = "" Then Exit Sub
   If Right(p,5) <> ".json" Then p = p & ".json"
-  window.execScript "document.getElementById('_buf').value = getJSON()", "JavaScript"
-  d = document.getElementById("_buf").value
-  Set f = fso.OpenTextFile(absPath(p), 2, True, -1)
-  f.Write d
-  f.Close
+  writeUTF8 p, document.getElementById("_obuf").value
   gSavePath = p
   document.getElementById("fileLabel").innerText = p
   setSt "保存しました: " & p
 End Sub
 
-' ── 設定読込 ──
-Sub doLoad()
-  Dim p, fso, f, d
-  Set fso = CreateObject("Scripting.FileSystemObject")
-  p = InputBox("設定ファイルのファイル名（例: 設定.json）", "読込", "設定.json")
+' ── 設定JSON読込 ──
+Sub vbsLoadJSON()
+  Dim p, d
+  p = InputBox("設定ファイル名（HTAと同じフォルダ）", "読込", "設定.json")
   If Trim(p) = "" Then Exit Sub
-  If Not fso.FileExists(absPath(p)) Then
-    MsgBox "ファイルが見つかりません: " & absPath(p), 16, "エラー"
-    Exit Sub
+  Dim fso
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FileExists(fullPath(p)) Then
+    MsgBox "ファイルが見つかりません: " & fullPath(p), 16, "エラー" : Exit Sub
   End If
-  Set f = fso.OpenTextFile(absPath(p), 1, False, -1)
-  d = f.ReadAll
-  f.Close
-  document.getElementById("_buf").value = d
-  window.execScript "setJSON(document.getElementById('_buf').value)", "JavaScript"
+  d = readUTF8(p)
+  document.getElementById("_obuf").value = d
   gSavePath = p
   document.getElementById("fileLabel").innerText = p
   setSt "読込しました: " & p
 End Sub
 
-' ── レポート出力 ──
-Sub doExport()
-  Dim p, fso, f, h
-  Set fso = CreateObject("Scripting.FileSystemObject")
-  p = InputBox("レポートのファイル名（例: 点検レポート.html）", "レポート出力", "点検レポート.html")
+' ── レポートHTML保存 ──
+Sub vbsSaveHTML()
+  Dim p
+  p = InputBox("レポートファイル名", "レポート出力", "点検レポート.html")
   If Trim(p) = "" Then Exit Sub
-  If InStr(p, ".htm") = 0 Then p = p & ".html"
-  window.execScript "document.getElementById('_buf').value = getRepHTML()", "JavaScript"
-  h = document.getElementById("_buf").value
-  Set f = fso.OpenTextFile(absPath(p), 2, True, -1)
-  f.Write h
-  f.Close
+  If InStr(p,".htm") = 0 Then p = p & ".html"
+  writeUTF8 p, document.getElementById("_obuf").value
   setSt "レポート出力: " & p
   If MsgBox("ブラウザで開きますか？", 4, "確認") = 6 Then
-    CreateObject("WScript.Shell").Run absPath(p)
+    CreateObject("WScript.Shell").Run fullPath(p)
   End If
 End Sub
 
@@ -444,19 +457,10 @@ End Sub
 <!-- ===== JavaScript ===== -->
 <script language="JavaScript">
 
-/* ===== データ ===== */
+/* ── データ（A-1/A-2はCSVから、A-3はJSON/デフォルト） ── */
 var D = {
-  wording: [
-    {id:1, c:"顧客",   w:"お客様 / クライアント / Client"},
-    {id:2, c:"売上高", w:"売上 / Revenue / 売上金額"},
-    {id:3, c:"DX",    w:"D.X. / デジタルトランスフォーメーション"}
-  ],
-  banned: [
-    {id:1, cat:"社外秘・機密",   kw:"プロジェクトコードネーム"},
-    {id:2, cat:"作業中痕跡",     kw:"TBD / TODO / 要確認 / ○○を入れる"},
-    {id:3, cat:"作業中痕跡",     kw:"Lorem ipsum / サンプル / ダミー"},
-    {id:4, cat:"過度な断言表現", kw:"必ず～できる / 絶対に～ / 簡単に"}
-  ],
+  wording: [],  /* CSVから読み込む */
+  banned:  [],  /* CSVから読み込む */
   objects: [
     {id:1, cat:"禁止オブジェクト", item:"アニメーション・スライドトランジション"},
     {id:2, cat:"禁止オブジェクト", item:"承認されていないロゴ・商標"},
@@ -466,404 +470,367 @@ var D = {
   st:{}, bef:{}, aft:{}, loc:{}
 };
 
-var CL = [
-  {id:1, t:"顧客名・部署名の正確性", items:[
-    "顧客の会社名が全スライドで正式名称と一致している（略称・旧社名の混在がない）",
-    "法人格表記（株式会社・（株）等）が必要な箇所で統一されている",
-    "顧客の部署名・組織名が現在の正式名称と一致している（旧組織名が残っていない）",
-    "顧客の担当者名・役職名が最新情報と一致している",
-    "自社の部署名・チーム名・役職名が正式名称と一致している",
-    "自社の担当者名に異動・退職者の名前が残っていない",
-    "他社（競合・パートナー等）の社名が現在の正式名称と一致している"
-  ]},
-  {id:2, t:"キーワード・用語の表記揺れ", items:[
-    "A-1の表記揺れ注意ワードがすべて正式表記で統一されている",
-    "同じ指標・KPIの名称が統一されている",
-    "カタカナ語の表記揺れがない（例：マネージャー／マネジャー）",
-    "英語表記の揺れがない（例：DX / D.X. / Digital Transformation）",
-    "略語と正式名称が混在していない、または初出時に説明がある"
-  ]},
-  {id:3, t:"スライド間の記載揺れ・不整合", items:[
-    "目次・アジェンダのタイトルと本編の各スライドタイトルが一致している",
-    "同じフェーズ・ステップの名称がスライドをまたいで統一されている",
-    "同じ数値がスライドを横断して出てくる場合、すべて一致している",
-    "施策・アクションの名称が複数スライドにわたって一貫している",
-    "前提条件・仮定の記述がスライドをまたいで矛盾していない"
-  ]},
-  {id:4, t:"不適切・要注意な記載内容", items:[
-    "A-2の使用禁止キーワード・表現が含まれていない",
-    "A-3の使用禁止オブジェクト・デザイン要素が含まれていない",
-    "休日・祝日・曜日の記載が提示日時点で正確か（来週月曜・GW明け等）",
-    "日付が古くなっていない",
-    "TBD・TODO・要確認など作業中の痕跡が残っていない",
-    "テンプレートのサンプルテキスト・ダミーデータが残っていない",
-    "コピー元資料の社名・案件名が残っていない"
-  ]},
-  {id:5, t:"句読点・文末表記", items:[
-    "箇条書きの文末「。」あり・なしが全体で統一されている",
-    "「です・ます調」と「だ・である調」が混在していない",
-    "箇条書きの語尾の形が同一スライド内で統一されている",
-    "メッセージライン（タイトル行）の文体が全スライドで統一されている"
-  ]},
-  {id:6, t:"数字・単位・日付", items:[
-    "数字が全角・半角で混在していない（原則：半角統一）",
-    "桁区切りカンマの有無が統一されている",
-    "単位表記が統一されている（百万円・M円が混在しない）",
-    "パーセント表記が統一されている（%か％かで統一）",
-    "日付・年度の表記形式が統一されている"
-  ]},
-  {id:7, t:"表・グラフ内の数値整合性", items:[
-    "表の合計行・合計列が各セルの合計と一致している",
-    "構成比（%）の合計が100%になっている",
-    "前年比・増減率の計算値が元の数値から正しく導出されている",
-    "グラフのデータラベルの数値が凡例・軸の値と整合している",
-    "「うち○○」「内訳」の合計が上位の集計値と一致している"
-  ]},
-  {id:8, t:"前後スライドとの整合性", items:[
-    "エグゼクティブサマリーの数値・結論が本編と矛盾していない",
-    "「前スライドで述べたとおり」などの参照表現が実際の内容と対応している",
-    "前スライドで「3つの課題」と述べた場合、後続で過不足なく展開されている",
-    "アペンディックスの参照先が実際に存在し、内容が対応している"
-  ]},
-  {id:9, t:"Citation（出典）の記載揺れ", items:[
-    "出典の記載形式が全スライドで統一されている（出典：/Source:/※○○よりが混在しない）",
-    "出典の記載位置・フォントサイズ・色が統一されている",
-    "調査会社・レポート名の表記が統一されている",
-    "Citationが必要な図・グラフ・数値で出典が抜けていない"
-  ]},
-  {id:10, t:"キーメッセージの記載揺れ", items:[
-    "エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している",
-    "目次・アジェンダでの章タイトルと各章の扉スライドのタイトルが完全に一致している",
-    "結論・提言で示されたアクション数・施策数が本編の展開数と一致している",
-    "メッセージラインの数値・割合が本文・図表の数値と一致している"
-  ]},
-  {id:11, t:"カラー（色）の使用揺れ", items:[
-    "同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている",
-    "強調色（アクセントカラー）が全スライドで統一されている",
-    "同一の系列・セグメントが異なるスライドで異なる色になっていない",
-    "ブランドカラーパレット外の色が使用されていない"
-  ]},
-  {id:12, t:"1スライド1メッセージの原則", items:[
-    "各スライドにSo What（主張・結論）が1文で書かれているか",
-    "メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）",
-    "1枚のスライドに複数の独立したメッセージが混在していないか",
-    "ボディがメッセージラインを証明・補足する構成になっているか"
-  ]},
-  {id:13, t:"デッキ全体のストーリー性", items:[
-    "全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか",
-    "デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか",
-    "各章・セクションの役割が明確で、章の順序が自然か",
-    "論点が脱線・散漫になっているスライドがないか"
-  ]},
-  {id:14, t:"各スライドの結論明確性", items:[
-    "スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）",
-    "データや図が示唆（So What）まで落とし込まれているか",
-    "図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか"
-  ]}
-];
-
-var openSec = {1:true};
 var BCATS = ["社外秘・機密","不適切・品位を損なう表現","過度な断言表現","作業中痕跡"];
 var OCATS = ["禁止オブジェクト","禁止デザイン"];
+var openSec = {1:true};
+
+var CL = [
+  {id:1,  t:"顧客名・部署名の正確性", items:["顧客の会社名が全スライドで正式名称と一致している（略称・旧社名の混在がない）","法人格表記（株式会社・（株）等）が必要な箇所で統一されている","顧客の部署名・組織名が現在の正式名称と一致している（旧組織名が残っていない）","顧客の担当者名・役職名が最新情報と一致している","自社の部署名・チーム名・役職名が正式名称と一致している","自社の担当者名に異動・退職者の名前が残っていない","他社（競合・パートナー等）の社名が現在の正式名称と一致している"]},
+  {id:2,  t:"キーワード・用語の表記揺れ", items:["A-1の表記揺れ注意ワードがすべて正式表記で統一されている","同じ指標・KPIの名称が統一されている","カタカナ語の表記揺れがない（例：マネージャー／マネジャー）","英語表記の揺れがない（例：DX / D.X. / Digital Transformation）","略語と正式名称が混在していない、または初出時に説明がある"]},
+  {id:3,  t:"スライド間の記載揺れ・不整合", items:["目次・アジェンダのタイトルと本編の各スライドタイトルが一致している","同じフェーズ・ステップの名称がスライドをまたいで統一されている","同じ数値がスライドを横断して出てくる場合、すべて一致している","施策・アクションの名称が複数スライドにわたって一貫している","前提条件・仮定の記述がスライドをまたいで矛盾していない"]},
+  {id:4,  t:"不適切・要注意な記載内容", items:["A-2の使用禁止キーワード・表現が含まれていない","A-3の使用禁止オブジェクト・デザイン要素が含まれていない","休日・祝日・曜日の記載が提示日時点で正確か（来週月曜・GW明け等）","日付が古くなっていない","TBD・TODO・要確認など作業中の痕跡が残っていない","テンプレートのサンプルテキスト・ダミーデータが残っていない","コピー元資料の社名・案件名が残っていない"]},
+  {id:5,  t:"句読点・文末表記", items:["箇条書きの文末「。」あり・なしが全体で統一されている","「です・ます調」と「だ・である調」が混在していない","箇条書きの語尾の形が同一スライド内で統一されている","メッセージライン（タイトル行）の文体が全スライドで統一されている"]},
+  {id:6,  t:"数字・単位・日付", items:["数字が全角・半角で混在していない（原則：半角統一）","桁区切りカンマの有無が統一されている","単位表記が統一されている（百万円・M円が混在しない）","パーセント表記が統一されている（%か％かで統一）","日付・年度の表記形式が統一されている"]},
+  {id:7,  t:"表・グラフ内の数値整合性", items:["表の合計行・合計列が各セルの合計と一致している","構成比（%）の合計が100%になっている","前年比・増減率の計算値が元の数値から正しく導出されている","グラフのデータラベルの数値が凡例・軸の値と整合している","「うち○○」「内訳」の合計が上位の集計値と一致している"]},
+  {id:8,  t:"前後スライドとの整合性", items:["エグゼクティブサマリーの数値・結論が本編と矛盾していない","「前スライドで述べたとおり」などの参照表現が実際の内容と対応している","前スライドで「3つの課題」と述べた場合、後続で過不足なく展開されている","アペンディックスの参照先が実際に存在し、内容が対応している"]},
+  {id:9,  t:"Citation（出典）の記載揺れ", items:["出典の記載形式が全スライドで統一されている（出典：/Source:/※○○よりが混在しない）","出典の記載位置・フォントサイズ・色が統一されている","調査会社・レポート名の表記が統一されている","Citationが必要な図・グラフ・数値で出典が抜けていない"]},
+  {id:10, t:"キーメッセージの記載揺れ", items:["エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している","目次・アジェンダでの章タイトルと各章の扉スライドのタイトルが完全に一致している","結論・提言で示されたアクション数・施策数が本編の展開数と一致している","メッセージラインの数値・割合が本文・図表の数値と一致している"]},
+  {id:11, t:"カラー（色）の使用揺れ", items:["同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている","強調色（アクセントカラー）が全スライドで統一されている","同一の系列・セグメントが異なるスライドで異なる色になっていない","ブランドカラーパレット外の色が使用されていない"]},
+  {id:12, t:"1スライド1メッセージの原則", items:["各スライドにSo What（主張・結論）が1文で書かれているか","メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）","1枚のスライドに複数の独立したメッセージが混在していないか","ボディがメッセージラインを証明・補足する構成になっているか"]},
+  {id:13, t:"デッキ全体のストーリー性", items:["全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか","デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか","各章・セクションの役割が明確で、章の順序が自然か","論点が脱線・散漫になっているスライドがないか"]},
+  {id:14, t:"各スライドの結論明確性", items:["スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）","データや図が示唆（So What）まで落とし込まれているか","図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか"]}
+];
 
 /* ===== タブ切替 ===== */
 function sw(n) {
   var i;
-  for (i=0; i<=6; i++) {
-    var p = document.getElementById('p'+i);
-    if (p) p.className = (i===n) ? 'panel on' : 'panel';
+  for (i=0;i<=6;i++){
+    var p=document.getElementById('p'+i);
+    if(p) p.className=(i===n)?'panel on':'panel';
   }
-  var ts = document.getElementById('tabs').getElementsByTagName('span');
-  for (i=0; i<ts.length; i++) {
-    ts[i].className = (i===n) ? 'tab on' : 'tab';
-  }
-  if (n===4) { renderSum(); renderChk(); }
-  if (n===5) renderRep();
-  if (n===6) genPrompt();
+  var ts=document.getElementById('tabs').getElementsByTagName('span');
+  for (i=0;i<ts.length;i++) ts[i].className=(i===n)?'tab on':'tab';
+  if(n===4){renderSum();renderChk();}
+  if(n===5) renderRep();
+  if(n===6) genPrompt();
 }
 
 /* ===== ユーティリティ ===== */
-function xe(s) {
-  s = (s===null||s===undefined) ? '' : String(s);
-  s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  return s;
+function xe(s){
+  s=(s===null||s===undefined)?'':String(s);
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function xe2(s) {
-  s = (s===null||s===undefined) ? '' : String(s);
+function xe2(s){
+  s=(s===null||s===undefined)?'':String(s);
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-function tr(s) { return (s===null||s===undefined) ? '' : String(s).replace(/^\s+|\s+$/g,''); }
-function uid() { return new Date().getTime(); }
-function setSt(msg) { document.getElementById('stMsg').innerText = msg; }
+function tr2(s){return (s===null||s===undefined)?'':String(s).replace(/^\s+|\s+$/g,'');}
+function uid(){return new Date().getTime()+''+Math.floor(Math.random()*1000);}
+function setSt(msg){document.getElementById('stMsg').innerText=msg;}
 
 /* ===== CSV パース ===== */
-function splitCSVLine(line) {
-  var fields=[], buf='', inQ=false, i, c;
-  for (i=0; i<line.length; i++) {
-    c = line.charAt(i);
-    if (inQ) {
-      if (c==='"' && line.charAt(i+1)==='"') { buf+='"'; i++; }
-      else if (c==='"') { inQ=false; }
-      else { buf+=c; }
+function splitCSVLine(line){
+  var fields=[],buf='',inQ=false,i,c;
+  for(i=0;i<line.length;i++){
+    c=line.charAt(i);
+    if(inQ){
+      if(c==='"'&&line.charAt(i+1)==='"'){buf+='"';i++;}
+      else if(c==='"'){inQ=false;}
+      else{buf+=c;}
     } else {
-      if (c==='"') { inQ=true; }
-      else if (c===',') { fields.push(buf); buf=''; }
-      else { buf+=c; }
+      if(c==='"'){inQ=true;}
+      else if(c===','){fields.push(buf);buf='';}
+      else{buf+=c;}
     }
   }
   fields.push(buf);
   return fields;
 }
-function parseCSV(text) {
-  // BOMを除去
-  if (text.charCodeAt(0)===0xFEFF) text=text.slice(1);
-  var lines=text.split('\n'), res=[], i, f;
-  for (i=1; i<lines.length; i++) {
-    var ln=lines[i].replace(/\r$/,'');
-    if (!ln) continue;
+function parseCSV(text){
+  if(!text) return [];
+  // BOM除去
+  if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  var lines=text.split('\n'),res=[],i,f,ln;
+  for(i=1;i<lines.length;i++){
+    ln=lines[i].replace(/\r$/,'');
+    if(!ln) continue;
     f=splitCSVLine(ln);
-    if (f.length>=2) res.push({col0:f[0], col1:f[1]});
+    if(f.length>=2) res.push({c0:f[0],c1:f[1]});
   }
   return res;
 }
-function csvQ(s) {
+function csvQ(s){
   s=(s===null||s===undefined)?'':String(s);
-  if (s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0) {
+  if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)
     return '"'+s.replace(/"/g,'""')+'"';
-  }
   return s;
 }
 
-/* ===== CSV ⇔ データ変換 ===== */
-function getWordingCSV() {
-  var lines='\uFEFF正式表記,使用禁止の表記\r\n', i;
-  for (i=0; i<D.wording.length; i++) {
-    lines+=csvQ(D.wording[i].c)+','+csvQ(D.wording[i].w)+'\r\n';
-  }
-  return lines;
+/* ===== CSV → データ変換 ===== */
+function getWordingCSV(){
+  var s='正式表記,使用禁止の表記\r\n',i;
+  for(i=0;i<D.wording.length;i++)
+    s+=csvQ(D.wording[i].c)+','+csvQ(D.wording[i].w)+'\r\n';
+  return s;
 }
-function getBannedCSV() {
-  var lines='\uFEFFカテゴリ,キーワード\r\n', i;
-  for (i=0; i<D.banned.length; i++) {
-    lines+=csvQ(D.banned[i].cat)+','+csvQ(D.banned[i].kw)+'\r\n';
-  }
-  return lines;
+function getBannedCSV(){
+  var s='カテゴリ,キーワード\r\n',i;
+  for(i=0;i<D.banned.length;i++)
+    s+=csvQ(D.banned[i].cat)+','+csvQ(D.banned[i].kw)+'\r\n';
+  return s;
 }
-function loadWordingFromBuf() {
-  var text=document.getElementById('_buf').value;
-  if (!text) return;
-  var rows=parseCSV(text), i;
+
+/* ===== CSV自動保存（JS→_buf→VBS） ===== */
+function saveW(){
+  var f=tr2(document.getElementById('wFile').value);
+  if(!f) return;
+  document.getElementById('_wbuf').value=getWordingCSV();
+  window.execScript('vbsSaveW()','VBScript');
+  updateSyncBars();
+  genPrompt();
+}
+function saveB(){
+  var f=tr2(document.getElementById('bFile').value);
+  if(!f) return;
+  document.getElementById('_bbuf').value=getBannedCSV();
+  window.execScript('vbsSaveB()','VBScript');
+  updateSyncBars();
+  genPrompt();
+}
+
+/* ===== CSV再読込（VBS→_buf→JS） ===== */
+function jsReloadW(){
+  window.execScript('vbsLoadW()','VBScript');
+  var csv=document.getElementById('_wbuf').value;
+  var rows=parseCSV(csv),i;
   D.wording=[];
-  for (i=0; i<rows.length; i++) {
-    D.wording.push({id:uid()+i, c:rows[i].col0, w:rows[i].col1});
-  }
+  for(i=0;i<rows.length;i++)
+    D.wording.push({id:uid(),c:rows[i].c0,w:rows[i].c1});
   renderW();
   updateSyncBars();
   genPrompt();
+  setSt('A-1 再読込完了（'+D.wording.length+'件）');
 }
-function loadBannedFromBuf() {
-  var text=document.getElementById('_buf').value;
-  if (!text) return;
-  var rows=parseCSV(text), i;
+function jsReloadB(){
+  window.execScript('vbsLoadB()','VBScript');
+  var csv=document.getElementById('_bbuf').value;
+  var rows=parseCSV(csv),i;
   D.banned=[];
-  for (i=0; i<rows.length; i++) {
-    D.banned.push({id:uid()+i, cat:rows[i].col0, kw:rows[i].col1});
-  }
+  for(i=0;i<rows.length;i++)
+    D.banned.push({id:uid(),cat:rows[i].c0,kw:rows[i].c1});
   renderB();
   updateSyncBars();
   genPrompt();
+  setSt('A-2 再読込完了（'+D.banned.length+'件）');
+}
+function jsReloadAll(){
+  jsReloadW();
+  jsReloadB();
+  var m=document.getElementById('csvMsg');
+  m.innerHTML='再読込しました';
+  setTimeout(function(){m.innerHTML='';},3000);
 }
 
-/* ===== 同期バー更新 ===== */
-function updateSyncBars() {
-  var wf=tr(document.getElementById('wFile').value);
-  var bf=tr(document.getElementById('bFile').value);
+/* ===== 同期バー ===== */
+function updateSyncBars(){
+  var wf=tr2(document.getElementById('wFile').value);
+  var bf=tr2(document.getElementById('bFile').value);
   var wb=document.getElementById('wSyncBar');
   var bb=document.getElementById('bSyncBar');
-  if (wf) { wb.innerHTML='連動中: '+xe(wf); wb.className='sync-bar ok'; }
-  else    { wb.innerHTML='CSV未設定'; wb.className='sync-bar'; }
-  if (bf) { bb.innerHTML='連動中: '+xe(bf); bb.className='sync-bar ok'; }
-  else    { bb.innerHTML='CSV未設定'; bb.className='sync-bar'; }
+  if(wf){wb.innerHTML='連動中: '+xe(wf)+' （'+D.wording.length+'件）';wb.className='sync-bar ok';}
+  else  {wb.innerHTML='CSV未設定';wb.className='sync-bar';}
+  if(bf){bb.innerHTML='連動中: '+xe(bf)+' （'+D.banned.length+'件）';bb.className='sync-bar ok';}
+  else  {bb.innerHTML='CSV未設定';bb.className='sync-bar';}
 }
-function onPathChange() { updateSyncBars(); }
 
-/* ===== VBS呼び出しラッパー ===== */
-function autoSaveW() {
-  if (!tr(document.getElementById('wFile').value)) return;
-  window.execScript('autoSaveW()','VBScript');
-  genPrompt();
+/* ===== 設定JSON（A-3・点検データ・ファイル名のみ） ===== */
+function jsSave(){
+  var obj={
+    wFile:document.getElementById('wFile').value,
+    bFile:document.getElementById('bFile').value,
+    objects:D.objects,
+    st:D.st, bef:D.bef, aft:D.aft, loc:D.loc
+  };
+  document.getElementById('_obuf').value=JSON.stringify(obj);
+  window.execScript('vbsSaveJSON()','VBScript');
 }
-function autoSaveB() {
-  if (!tr(document.getElementById('bFile').value)) return;
-  window.execScript('autoSaveB()','VBScript');
-  genPrompt();
+function jsLoad(){
+  window.execScript('vbsLoadJSON()','VBScript');
+  var s=document.getElementById('_obuf').value;
+  if(!s) return;
+  try{
+    var d=eval('('+s+')');
+    /* A-3とチェックデータのみ復元。A-1/A-2はCSVから読む */
+    if(d.objects) D.objects=d.objects;
+    D.st=d.st||{}; D.bef=d.bef||{}; D.aft=d.aft||{}; D.loc=d.loc||{};
+    if(d.wFile) document.getElementById('wFile').value=d.wFile;
+    if(d.bFile) document.getElementById('bFile').value=d.bFile;
+    renderO();
+    renderSum();
+    renderChk();
+    /* JSONに保存されたファイル名でCSVを再読込 */
+    jsReloadW();
+    jsReloadB();
+    genPrompt();
+  } catch(e){alert('読込エラー: '+e.message);}
 }
-function reloadW() { window.execScript('vbsReloadW()','VBScript'); genPrompt(); }
-function reloadB() { window.execScript('vbsReloadB()','VBScript'); genPrompt(); }
-function reloadAll() {
-  reloadW();
-  reloadB();
-  document.getElementById('csvMsg').innerHTML='再読込しました';
-  setTimeout(function(){ document.getElementById('csvMsg').innerHTML=''; },3000);
+function jsExport(){
+  document.getElementById('_obuf').value=getRepHTML();
+  window.execScript('vbsSaveHTML()','VBScript');
 }
-function doSave()   { window.execScript('doSave()','VBScript'); }
-function doLoad()   { window.execScript('doLoad()','VBScript'); genPrompt(); }
-function doExport() { window.execScript('doExport()','VBScript'); }
 
 /* ===== A-1 表記揺れ ===== */
-function renderW() {
-  var h='<table class="tbl"><thead><tr><th style="width:35%">正式表記（統一後）</th><th>使用禁止の表記</th><th style="width:50px"></th></tr></thead><tbody>';
+function renderW(){
+  var h='<table class="tbl"><thead><tr><th style="width:36%">正式表記（統一後）</th><th>使用禁止の表記</th><th style="width:50px"></th></tr></thead><tbody>';
   var i,r;
-  for (i=0; i<D.wording.length; i++) {
+  for(i=0;i<D.wording.length;i++){
     r=D.wording[i];
-    h+='<tr><td><input type="text" value="'+xe(r.c)+'" onchange="updW('+r.id+',\'c\',this.value)"></td>';
-    h+='<td><input type="text" value="'+xe(r.w)+'" onchange="updW('+r.id+',\'w\',this.value)"></td>';
-    h+='<td style="text-align:center"><input type="button" class="del-btn" value="削除" onclick="delW('+r.id+')"></td></tr>';
+    h+='<tr>';
+    h+='<td><input type="text" value="'+xe(r.c)+'" onchange="updW(\''+r.id+'\',\'c\',this.value)"></td>';
+    h+='<td><input type="text" value="'+xe(r.w)+'" onchange="updW(\''+r.id+'\',\'w\',this.value)"></td>';
+    h+='<td style="text-align:center"><input type="button" class="del-btn" value="削除" onclick="delW(\''+r.id+'\')"></td>';
+    h+='</tr>';
   }
   h+='</tbody></table>';
   document.getElementById('wDiv').innerHTML=h;
 }
-function addW() {
-  var c=tr(document.getElementById('nWC').value);
-  var w=tr(document.getElementById('nWW').value);
-  if (!c) { alert('正式表記を入力してください'); return; }
-  D.wording.push({id:uid(), c:c, w:w});
+function addW(){
+  var c=tr2(document.getElementById('nWC').value);
+  var w=tr2(document.getElementById('nWW').value);
+  if(!c){alert('正式表記を入力してください');return;}
+  D.wording.push({id:uid(),c:c,w:w});
   document.getElementById('nWC').value='';
   document.getElementById('nWW').value='';
-  renderW(); autoSaveW();
+  renderW();
+  saveW();
 }
-function delW(id) {
+function delW(id){
   var a=[],i;
-  for (i=0;i<D.wording.length;i++){if(D.wording[i].id!==id)a.push(D.wording[i]);}
-  D.wording=a; renderW(); autoSaveW();
+  for(i=0;i<D.wording.length;i++){if(D.wording[i].id!==id)a.push(D.wording[i]);}
+  D.wording=a;
+  renderW();
+  saveW();
 }
-function updW(id,f,v) {
+function updW(id,f,v){
   var i;
   for(i=0;i<D.wording.length;i++){if(D.wording[i].id===id)D.wording[i][f]=v;}
-  autoSaveW();
+  saveW();
 }
 
 /* ===== A-2 禁止キーワード ===== */
-function renderB() {
+function renderB(){
   var h='',ci,i,items,r;
-  for (ci=0;ci<BCATS.length;ci++) {
+  for(ci=0;ci<BCATS.length;ci++){
     var cat=BCATS[ci];
     items=[];
     for(i=0;i<D.banned.length;i++){if(D.banned[i].cat===cat)items.push(D.banned[i]);}
-    h+='<div class="card" style="margin-bottom:10px"><div class="card-body">';
+    h+='<div style="margin-bottom:10px">';
     h+='<div class="cat-badge">'+cat+'</div>';
     h+='<table class="tbl"><tbody>';
     if(items.length===0){
-      h+='<tr><td style="color:#aaa;font-size:12px">（未登録）</td><td style="width:50px"></td></tr>';
+      h+='<tr><td style="color:#aaa;font-size:12px;padding:6px 10px">（未登録）</td><td style="width:50px"></td></tr>';
     } else {
       for(i=0;i<items.length;i++){
         r=items[i];
-        h+='<tr><td><input type="text" value="'+xe(r.kw)+'" onchange="updB('+r.id+',this.value)"></td>';
-        h+='<td style="width:50px;text-align:center"><input type="button" class="del-btn" value="削除" onclick="delB('+r.id+')"></td></tr>';
+        h+='<tr>';
+        h+='<td><input type="text" value="'+xe(r.kw)+'" onchange="updB(\''+r.id+'\',this.value)"></td>';
+        h+='<td style="width:50px;text-align:center"><input type="button" class="del-btn" value="削除" onclick="delB(\''+r.id+'\')"></td>';
+        h+='</tr>';
       }
     }
-    h+='</tbody></table></div></div>';
+    h+='</tbody></table></div>';
   }
   document.getElementById('bDiv').innerHTML=h;
 }
-function addB() {
+function addB(){
   var cat=document.getElementById('nBCat').value;
-  var kw=tr(document.getElementById('nBKw').value);
+  var kw=tr2(document.getElementById('nBKw').value);
   if(!kw){alert('キーワードを入力してください');return;}
   D.banned.push({id:uid(),cat:cat,kw:kw});
   document.getElementById('nBKw').value='';
-  renderB(); autoSaveB();
+  renderB();
+  saveB();
 }
-function delB(id) {
+function delB(id){
   var a=[],i;
   for(i=0;i<D.banned.length;i++){if(D.banned[i].id!==id)a.push(D.banned[i]);}
-  D.banned=a; renderB(); autoSaveB();
+  D.banned=a;
+  renderB();
+  saveB();
 }
-function updB(id,v) {
+function updB(id,v){
   var i;
   for(i=0;i<D.banned.length;i++){if(D.banned[i].id===id)D.banned[i].kw=v;}
-  autoSaveB();
+  saveB();
 }
 
 /* ===== A-3 禁止オブジェクト ===== */
-function renderO() {
+function renderO(){
   var h='',ci,i,items,r;
   for(ci=0;ci<OCATS.length;ci++){
     var cat=OCATS[ci];
     items=[];
     for(i=0;i<D.objects.length;i++){if(D.objects[i].cat===cat)items.push(D.objects[i]);}
-    h+='<div class="card" style="margin-bottom:10px"><div class="card-body">';
+    h+='<div style="margin-bottom:10px">';
     h+='<div class="cat-badge">'+cat+'</div>';
     h+='<table class="tbl"><tbody>';
     if(items.length===0){
-      h+='<tr><td style="color:#aaa;font-size:12px">（未登録）</td><td style="width:50px"></td></tr>';
+      h+='<tr><td style="color:#aaa;font-size:12px;padding:6px 10px">（未登録）</td><td style="width:50px"></td></tr>';
     } else {
       for(i=0;i<items.length;i++){
         r=items[i];
-        h+='<tr><td><input type="text" value="'+xe(r.item)+'" onchange="updO('+r.id+',this.value)"></td>';
-        h+='<td style="width:50px;text-align:center"><input type="button" class="del-btn" value="削除" onclick="delO('+r.id+')"></td></tr>';
+        h+='<tr>';
+        h+='<td><input type="text" value="'+xe(r.item)+'" onchange="updO(\''+r.id+'\',this.value)"></td>';
+        h+='<td style="width:50px;text-align:center"><input type="button" class="del-btn" value="削除" onclick="delO(\''+r.id+'\')"></td>';
+        h+='</tr>';
       }
     }
-    h+='</tbody></table></div></div>';
+    h+='</tbody></table></div>';
   }
   document.getElementById('oDiv').innerHTML=h;
 }
-function addO() {
+function addO(){
   var cat=document.getElementById('nOCat').value;
-  var item=tr(document.getElementById('nOItem').value);
+  var item=tr2(document.getElementById('nOItem').value);
   if(!item){alert('要素を入力してください');return;}
   D.objects.push({id:uid(),cat:cat,item:item});
   document.getElementById('nOItem').value='';
-  renderO(); genPrompt();
+  renderO();
+  genPrompt();
 }
-function delO(id) {
+function delO(id){
   var a=[],i;
   for(i=0;i<D.objects.length;i++){if(D.objects[i].id!==id)a.push(D.objects[i]);}
-  D.objects=a; renderO(); genPrompt();
+  D.objects=a;
+  renderO();
+  genPrompt();
 }
-function updO(id,v) {
+function updO(id,v){
   var i;
   for(i=0;i<D.objects.length;i++){if(D.objects[i].id===id)D.objects[i].item=v;}
   genPrompt();
 }
 
 /* ===== 点検リスト ===== */
-function renderSum() {
+function renderSum(){
   var c={ok:0,warn:0,ng:0,none:0},si,ii,k;
-  for(si=0;si<CL.length;si++){
-    for(ii=0;ii<CL[si].items.length;ii++){
-      k=CL[si].id+'-'+ii; c[D.st[k]||'none']++;
-    }
-  }
+  for(si=0;si<CL.length;si++)
+    for(ii=0;ii<CL[si].items.length;ii++){k=CL[si].id+'-'+ii;c[D.st[k]||'none']++;}
   document.getElementById('sumBar').innerHTML=
     '<div class="sum-box t-ok"><div class="sum-num">'+c.ok+'</div><div class="sum-lbl">OK</div></div>'+
     '<div class="sum-box t-warn"><div class="sum-num">'+c.warn+'</div><div class="sum-lbl">要確認</div></div>'+
     '<div class="sum-box t-ng"><div class="sum-num">'+c.ng+'</div><div class="sum-lbl">NG</div></div>'+
     '<div class="sum-box t-none"><div class="sum-num">'+c.none+'</div><div class="sum-lbl">未評価</div></div>';
 }
-function renderChk() {
-  var h='',si,ii,k,sec,st,ngc,wc,isO,badge,ih,showD;
+function renderChk(){
+  var h='',si,ii,k,sec,st,ngc,wc,isO,badge,ih,sd;
   for(si=0;si<CL.length;si++){
-    sec=CL[si]; ngc=0; wc=0;
-    for(ii=0;ii<sec.items.length;ii++){
-      k=sec.id+'-'+ii;
-      if(D.st[k]==='ng') ngc++;
-      if(D.st[k]==='warn') wc++;
-    }
+    sec=CL[si];ngc=0;wc=0;
+    for(ii=0;ii<sec.items.length;ii++){k=sec.id+'-'+ii;if(D.st[k]==='ng')ngc++;if(D.st[k]==='warn')wc++;}
     badge='';
     if(ngc) badge+=' <span style="color:#e74c3c;font-weight:bold;font-size:11px">NG:'+ngc+'</span>';
     if(wc)  badge+=' <span style="color:#e67e22;font-weight:bold;font-size:11px">要確認:'+wc+'</span>';
     isO=openSec[sec.id]?true:false;
     ih='';
     for(ii=0;ii<sec.items.length;ii++){
-      k=sec.id+'-'+ii; st=D.st[k]||'none';
-      showD=(st==='warn'||st==='ng')?'diff-box on':'diff-box';
+      k=sec.id+'-'+ii;st=D.st[k]||'none';
+      sd=(st==='warn'||st==='ng')?'diff-box on':'diff-box';
       ih+='<div class="chk-item">';
       ih+='<span style="font-size:11px;color:#aaa;font-weight:bold">'+sec.id+'-'+(ii+1)+'</span> ';
-      ih+='<span style="font-size:13px">'+xe2(sec.items[ii])+'</span><br>';
+      ih+='<span>'+xe2(sec.items[ii])+'</span><br>';
       ih+='<div style="padding-left:36px;margin-top:4px">';
       ih+=mkSB(k,'ok',st)+mkSB(k,'warn',st)+mkSB(k,'ng',st);
-      ih+='<div class="'+showD+'" id="df_'+k+'">';
+      ih+='<div class="'+sd+'" id="df_'+k+'">';
       ih+='<table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>';
       ih+='<td style="width:50%;padding-right:6px;vertical-align:top">';
       ih+='<div class="dlbl lb">原文</div>';
@@ -872,15 +839,14 @@ function renderChk() {
       ih+='<div class="dlbl la">修正案</div>';
       ih+='<textarea rows="2" style="border-color:#9c9" onchange="D.aft[\''+k+'\']=this.value;genPrompt()">'+xe(D.aft[k]||'')+'</textarea>';
       ih+='</td></tr></table>';
-      ih+='<div class="dlbl ll">該当箇所</div>';
+      ih+='<div class="dlbl ll">該当箇所</div> ';
       ih+='<input type="text" value="'+xe(D.loc[k]||'')+'" placeholder="例）スライド8｜メッセージライン" onchange="D.loc[\''+k+'\']=this.value;genPrompt()">';
       ih+='</div></div></div>';
     }
     h+='<div class="card">';
     h+='<div class="card-hdr tog" onclick="togSec('+sec.id+')">';
     h+='<span id="arr'+sec.id+'">'+(isO?'&#9660; ':'&#9654; ')+'</span>';
-    h+='【'+sec.id+'】'+sec.t+badge;
-    h+='</div>';
+    h+='【'+sec.id+'】'+sec.t+badge+'</div>';
     h+='<div id="sb'+sec.id+'" style="display:'+(isO?'block':'none')+'">';
     h+='<div class="card-body">'+ih+'</div></div></div>';
   }
@@ -889,11 +855,11 @@ function renderChk() {
 function mkSB(k,s,cur){
   var lbl={ok:'OK',warn:'要確認',ng:'NG'};
   var on=(cur===s)?' on':'';
-  return '<input type="button" class="sbtn s-'+s+on+'" value="'+lbl[s]+'" onclick="setSt(\''+k+'\',\''+s+'\')">';
+  return '<input type="button" class="sbtn s-'+s+on+'" value="'+lbl[s]+'" onclick="setSt2(\''+k+'\',\''+s+'\')">';
 }
-function setSt(k,s){
+function setSt2(k,s){
   D.st[k]=(D.st[k]===s)?'none':s;
-  renderSum(); renderChk(); genPrompt();
+  renderSum();renderChk();genPrompt();
 }
 function togSec(id){
   openSec[id]=!openSec[id];
@@ -904,32 +870,26 @@ function togSec(id){
 /* ===== レポート ===== */
 function getIssues(){
   var res=[],si,ii,k,st;
-  for(si=0;si<CL.length;si++){
+  for(si=0;si<CL.length;si++)
     for(ii=0;ii<CL[si].items.length;ii++){
-      k=CL[si].id+'-'+ii; st=D.st[k];
-      if(st==='ng'||st==='warn'){
-        res.push({st:st,secId:CL[si].id,item:CL[si].items[ii],
-                  bef:D.bef[k]||'',aft:D.aft[k]||'',loc:D.loc[k]||''});
-      }
+      k=CL[si].id+'-'+ii;st=D.st[k];
+      if(st==='ng'||st==='warn')
+        res.push({st:st,secId:CL[si].id,item:CL[si].items[ii],bef:D.bef[k]||'',aft:D.aft[k]||'',loc:D.loc[k]||''});
     }
-  }
   return res;
 }
 function renderRep(){
   var issues=getIssues();
-  if(issues.length===0){
+  if(!issues.length){
     document.getElementById('repDiv').innerHTML='<div class="card"><div class="card-body" style="color:#27ae60;font-weight:bold;padding:20px">NG・要確認の項目はありません。</div></div>';
     return;
   }
   var h='<p style="font-weight:bold;margin-bottom:12px">指摘件数：'+issues.length+' 件</p>';
   var i,iss,sc,sl;
   for(i=0;i<issues.length;i++){
-    iss=issues[i];
-    sc=iss.st==='ng'?'#e74c3c':'#e67e22';
-    sl=iss.st==='ng'?'NG':'要確認';
-    h+='<div class="card" style="border-left:5px solid '+sc+';margin-bottom:12px">';
-    h+='<div class="card-body">';
-    h+='<p style="margin-bottom:8px"><b style="color:'+sc+'">[No.'+(i+1<10?'0'+(i+1):(i+1))+'] '+sl+'</b>';
+    iss=issues[i];sc=iss.st==='ng'?'#e74c3c':'#e67e22';sl=iss.st==='ng'?'NG':'要確認';
+    h+='<div class="card" style="border-left:5px solid '+sc+';margin-bottom:12px"><div class="card-body">';
+    h+='<p style="margin-bottom:8px"><b style="color:'+sc+'">[No.'+(i<9?'0'+(i+1):(i+1))+'] '+sl+'</b>';
     h+=' <span style="font-size:11px;color:#888;margin-left:8px">項目 '+iss.secId+'</span></p>';
     h+='<p style="font-weight:bold;margin-bottom:8px">'+xe2(iss.item)+'</p>';
     if(iss.loc) h+='<p style="margin-bottom:8px"><span class="dlbl ll">該当箇所</span> '+xe2(iss.loc)+'</p>';
@@ -945,31 +905,28 @@ function renderRep(){
 }
 function getRepHTML(){
   var issues=getIssues();
-  var now=new Date();
-  var ds=now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
+  var now=new Date(),ds=now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
   var rows='',i,iss;
   for(i=0;i<issues.length;i++){
     iss=issues[i];
-    rows+='<tr>';
-    rows+='<td style="color:'+(iss.st==='ng'?'#c00':'#e67e22')+';font-weight:bold;padding:7px 10px;border:1px solid #dde">'+(iss.st==='ng'?'NG':'要確認')+'</td>';
-    rows+='<td style="padding:7px 10px;border:1px solid #dde">'+iss.secId+'</td>';
-    rows+='<td style="padding:7px 10px;border:1px solid #dde">'+xe2(iss.item)+'</td>';
-    rows+='<td style="padding:7px 10px;border:1px solid #dde">'+xe2(iss.loc)+'</td>';
-    rows+='<td style="padding:7px 10px;border:1px solid #dde;background:#fff5f5">'+xe2(iss.bef)+'</td>';
-    rows+='<td style="padding:7px 10px;border:1px solid #dde;background:#f5fff5">'+xe2(iss.aft)+'</td>';
-    rows+='</tr>';
+    rows+='<tr><td style="color:'+(iss.st==='ng'?'#c00':'#e67e22')+';font-weight:bold;padding:7px;border:1px solid #dde">'+(iss.st==='ng'?'NG':'要確認')+'</td>';
+    rows+='<td style="padding:7px;border:1px solid #dde">'+iss.secId+'</td>';
+    rows+='<td style="padding:7px;border:1px solid #dde">'+xe2(iss.item)+'</td>';
+    rows+='<td style="padding:7px;border:1px solid #dde">'+xe2(iss.loc)+'</td>';
+    rows+='<td style="padding:7px;border:1px solid #dde;background:#fff5f5">'+xe2(iss.bef)+'</td>';
+    rows+='<td style="padding:7px;border:1px solid #dde;background:#f5fff5">'+xe2(iss.aft)+'</td></tr>';
   }
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PPTX点検レポート</title>'+
     '<style>body{font-family:Meiryo,sans-serif;padding:20px}h1{font-size:16px;margin-bottom:4px}'+
-    'table{border-collapse:collapse;width:100%}th{background:#2c3e6b;color:#fff;padding:8px 10px;font-size:12px;text-align:left;border:1px solid #2c3e6b}'+
-    'td{font-size:12px}tr:nth-child(even)td{background:#f8f9ff}</style></head><body>'+
+    'table{border-collapse:collapse;width:100%}th{background:#2c3e6b;color:#fff;padding:8px;font-size:12px;text-align:left}'+
+    'td{font-size:12px}</style></head><body>'+
     '<h1>PPTX 点検レポート</h1><p style="color:#888;margin-bottom:16px">作成日：'+ds+' / 指摘件数：'+issues.length+'件</p>'+
     '<table><thead><tr><th style="width:70px">評価</th><th style="width:44px">項目</th><th style="width:260px">点検項目</th>'+
     '<th style="width:160px">該当箇所</th><th style="width:180px">原文</th><th style="width:180px">修正案</th></tr></thead>'+
     '<tbody>'+rows+'</tbody></table></body></html>';
 }
 
-/* ===== AIプロンプト生成（リスト変更のたびに自動更新） ===== */
+/* ===== AIプロンプト自動生成 ===== */
 function getMode(){
   var rs=document.getElementsByName('mode'),i;
   for(i=0;i<rs.length;i++){if(rs[i].checked)return rs[i].value;}
@@ -977,17 +934,14 @@ function getMode(){
 }
 function genPrompt(){
   var mode=getMode();
-  var scope=tr(document.getElementById('scope').value)||'全スライド';
+  var scope=tr2(document.getElementById('scope').value)||'全スライド';
   var i,ci,items;
 
-  // A-1リストをプロンプトへ
   var wList='';
-  for(i=0;i<D.wording.length;i++){
+  for(i=0;i<D.wording.length;i++)
     wList+='  - 正式表記「'+D.wording[i].c+'」← 使用禁止：'+D.wording[i].w+'\n';
-  }
   if(!wList) wList='  （未登録）\n';
 
-  // A-2リストをプロンプトへ
   var bList='';
   for(ci=0;ci<BCATS.length;ci++){
     items=[];
@@ -999,7 +953,6 @@ function genPrompt(){
   }
   if(!bList) bList='  （未登録）\n';
 
-  // A-3リストをプロンプトへ
   var oList='';
   for(ci=0;ci<OCATS.length;ci++){
     items=[];
@@ -1012,31 +965,21 @@ function genPrompt(){
   if(!oList) oList='  （未登録）\n';
 
   var p='';
-  p+='# PowerPoint スライド 形式点検依頼\n\n';
-  p+='添付のPowerPointスライドを以下の基準に従って点検してください。\n';
-  p+='対象範囲：'+scope+'\n\n';
-  p+='================================================================\n';
-  p+='【カスタマイズ基準（必ず遵守してください）】\n';
-  p+='================================================================\n\n';
-  p+='▼ A-1 表記揺れ注意ワード（以下の正式表記に統一してください）\n';
-  p+=wList+'\n';
-  p+='▼ A-2 使用禁止キーワード・表現（含まれていればNGとして報告してください）\n';
-  p+=bList+'\n';
-  p+='▼ A-3 使用禁止オブジェクト・デザイン要素（含まれていればNGとして報告してください）\n';
-  p+=oList+'\n';
-  p+='================================================================\n';
-  p+='【点検内容】\n';
-  p+='================================================================\n\n';
+  p+='# PowerPoint スライド 形式点検依頼\n\n添付のPowerPointスライドを以下の基準に従って点検してください。\n対象範囲：'+scope+'\n\n';
+  p+='================================================================\n【カスタマイズ基準】\n================================================================\n\n';
+  p+='▼ A-1 表記揺れ注意ワード（以下の正式表記に統一してください）\n'+wList+'\n';
+  p+='▼ A-2 使用禁止キーワード・表現（含まれていればNGとして報告してください）\n'+bList+'\n';
+  p+='▼ A-3 使用禁止オブジェクト・デザイン要素（含まれていればNGとして報告してください）\n'+oList+'\n';
+  p+='================================================================\n【点検内容】\n================================================================\n\n';
 
   if(mode==='ng'){
     p+='以下は前回点検でNG・要確認と判定された項目です。修正後のスライドが正しく修正されているか確認してください。\n\n';
     var issues=getIssues();
-    if(issues.length===0){
-      p+='  （前回の点検結果なし。まず全項目点検を実行してください）\n';
-    } else {
+    if(!issues.length){ p+='  （前回の点検結果なし。まず全項目点検を実行してください）\n'; }
+    else {
       for(i=0;i<issues.length;i++){
         var iss=issues[i];
-        p+='  No.'+(i+1<10?'0'+(i+1):(i+1))+' ['+(iss.st==='ng'?'NG':'要確認')+'] '+iss.item+'\n';
+        p+='  No.'+(i<9?'0'+(i+1):(i+1))+' ['+(iss.st==='ng'?'NG':'要確認')+'] '+iss.item+'\n';
         if(iss.loc) p+='    該当箇所：'+iss.loc+'\n';
         if(iss.bef) p+='    原文：「'+iss.bef+'」\n';
         if(iss.aft) p+='    修正案：「'+iss.aft+'」\n';
@@ -1046,49 +989,150 @@ function genPrompt(){
     p+='各項目を OK / 要確認 / NG の3段階で評価してください。\n\n';
     if(mode==='full'||mode==='fmt'){
       p+='--- SECTION 1：表記・書式チェック ---\n\n';
-      p+='【1】顧客名・部署名の正確性\n  1-1. 顧客の会社名が正式名称と一致している（略称・旧社名の混在がない）\n  1-2. 法人格表記が必要な箇所で統一されている\n  1-3. 顧客の部署名・組織名が現在の正式名称と一致している\n  1-4. 顧客の担当者名・役職名が最新情報と一致している\n  1-5. 他社の社名が現在の正式名称と一致している\n\n';
+      p+='【1】顧客名・部署名\n  1-1. 顧客の会社名が正式名称と一致している\n  1-2. 法人格表記が統一されている\n  1-3. 顧客の部署名・組織名が現在の正式名称と一致している\n  1-4. 顧客の担当者名・役職名が最新情報と一致している\n  1-5. 他社の社名が現在の正式名称と一致している\n\n';
       p+='【2】キーワード・用語の表記揺れ\n  2-1. A-1の表記揺れ注意ワードがすべて正式表記で統一されている\n  2-2. 同じ指標・KPIの名称が統一されている\n  2-3. カタカナ語の表記揺れがない\n  2-4. 英語表記の揺れがない\n  2-5. 略語と正式名称が混在していない\n\n';
-      p+='【3】スライド間の記載揺れ・不整合\n  3-1. 目次・アジェンダのタイトルと本編の各スライドタイトルが一致している\n  3-2. 同じフェーズ・ステップの名称がスライドをまたいで統一されている\n  3-3. 同じ数値がスライドを横断して出てくる場合、すべて一致している\n  3-4. 施策・アクションの名称が複数スライドにわたって一貫している\n\n';
-      p+='【4】不適切・要注意な記載内容\n  4-1. A-2の使用禁止キーワード・表現が含まれていない\n  4-2. A-3の使用禁止オブジェクト・デザイン要素が含まれていない\n  4-3. 休日・祝日・曜日の記載が提示日時点で正確か\n  4-4. TBD・TODO・要確認など作業中の痕跡が残っていない\n  4-5. コピー元資料の社名・案件名が残っていない\n\n';
+      p+='【3】スライド間の記載揺れ\n  3-1. 目次・アジェンダのタイトルと本編のスライドタイトルが一致している\n  3-2. 同じフェーズ・ステップの名称がスライドをまたいで統一されている\n  3-3. 同じ数値がスライドを横断して出てくる場合、すべて一致している\n  3-4. 施策・アクションの名称が複数スライドにわたって一貫している\n\n';
+      p+='【4】不適切・要注意な記載\n  4-1. A-2の使用禁止キーワード・表現が含まれていない\n  4-2. A-3の使用禁止オブジェクト・デザイン要素が含まれていない\n  4-3. 休日・祝日・曜日の記載が提示日時点で正確か\n  4-4. TBD・TODO・要確認など作業中の痕跡が残っていない\n  4-5. コピー元資料の社名・案件名が残っていない\n\n';
       p+='【5】句読点・文末表記\n  5-1. 箇条書きの文末「。」あり・なしが全体で統一されている\n  5-2. 「です・ます調」と「だ・である調」が混在していない\n  5-3. 箇条書きの語尾の形が同一スライド内で統一されている\n\n';
-      p+='【6】数字・単位・日付\n  6-1. 数字が全角・半角で混在していない（原則：半角統一）\n  6-2. 桁区切りカンマの有無が統一されている\n  6-3. 単位表記が統一されている（百万円・M円が混在しない）\n  6-4. パーセント表記が統一されている（%か％かで統一）\n  6-5. 日付・年度の表記形式が統一されている\n\n';
-      p+='【7】表・グラフ内の数値整合性\n  7-1. 表の合計行・合計列が各セルの合計と一致している\n  7-2. 構成比（%）の合計が100%になっている\n  7-3. 前年比・増減率の計算値が元の数値から正しく導出されている\n  7-4. グラフのデータラベルの数値が凡例・軸の値と整合している\n\n';
+      p+='【6】数字・単位・日付\n  6-1. 数字が全角・半角で混在していない\n  6-2. 桁区切りカンマの有無が統一されている\n  6-3. 単位表記が統一されている\n  6-4. パーセント表記が統一されている\n  6-5. 日付・年度の表記形式が統一されている\n\n';
+      p+='【7】数値整合性\n  7-1. 表の合計行・合計列が各セルの合計と一致している\n  7-2. 構成比（%）の合計が100%になっている\n  7-3. 前年比・増減率の計算値が元の数値から正しく導出されている\n  7-4. グラフのデータラベルの数値が凡例・軸の値と整合している\n\n';
       p+='【8】前後スライドとの整合性\n  8-1. エグゼクティブサマリーの数値・結論が本編と矛盾していない\n  8-2. 参照表現が実際の内容と対応している\n  8-3. 「3つの課題」と述べた場合、後続で過不足なく展開されている\n\n';
-      p+='【9】Citation（出典）の記載揺れ\n  9-1. 出典の記載形式が全スライドで統一されている\n  9-2. 出典の記載位置・フォントサイズ・色が統一されている\n  9-3. Citationが必要な箇所で出典が抜けていない\n\n';
+      p+='【9】Citation（出典）\n  9-1. 出典の記載形式が全スライドで統一されている\n  9-2. 出典の記載位置・フォントサイズ・色が統一されている\n  9-3. Citationが必要な箇所で出典が抜けていない\n\n';
       p+='【10】キーメッセージの記載揺れ\n  10-1. エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している\n  10-2. 目次・アジェンダでの章タイトルと扉スライドのタイトルが完全に一致している\n  10-3. メッセージラインの数値・割合が本文・図表の数値と一致している\n\n';
-      p+='【11】カラー（色）の使用揺れ\n  11-1. 同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている\n  11-2. 強調色（アクセントカラー）が全スライドで統一されている\n  11-3. 同一の系列・セグメントが異なるスライドで異なる色になっていない\n\n';
+      p+='【11】カラーの使用揺れ\n  11-1. 同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている\n  11-2. 強調色（アクセントカラー）が全スライドで統一されている\n  11-3. 同一の系列・セグメントが異なるスライドで異なる色になっていない\n\n';
     }
     if(mode==='full'||mode==='cnt'){
       p+='--- SECTION 2：コンテンツ品質チェック ---\n\n';
-      p+='【12】1スライド1メッセージの原則\n  12-1. 各スライドにSo What（主張・結論）が1文で書かれているか\n  12-2. メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）\n  12-3. 1枚のスライドに複数の独立したメッセージが混在していないか\n  12-4. ボディがメッセージラインを証明・補足する構成になっているか\n\n';
-      p+='【13】デッキ全体のストーリー性\n  13-1. 全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか\n  13-2. デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか\n  13-3. 各章・セクションの役割が明確で、章の順序が自然か\n  13-4. 論点が脱線・散漫になっているスライドがないか\n\n';
-      p+='【14】各スライドの結論明確性\n  14-1. スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）\n  14-2. データや図が示唆（So What）まで落とし込まれているか\n  14-3. 図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか\n\n';
+      p+='【12】1スライド1メッセージ\n  12-1. 各スライドにSo What（主張・結論）が1文で書かれているか\n  12-2. メッセージラインが動詞を含む完全文になっているか\n  12-3. 1枚のスライドに複数の独立したメッセージが混在していないか\n  12-4. ボディがメッセージラインを証明・補足する構成になっているか\n\n';
+      p+='【13】ストーリー性\n  13-1. 全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか\n  13-2. デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか\n  13-3. 各章・セクションの役割が明確で、章の順序が自然か\n\n';
+      p+='【14】結論明確性\n  14-1. スライドの結論が何かが一目で明確か\n  14-2. データや図が示唆（So What）まで落とし込まれているか\n  14-3. 図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか\n\n';
     }
   }
 
-  p+='================================================================\n';
-  p+='【出力形式】\n';
-  p+='================================================================\n\n';
-  p+='NG・要確認の指摘は以下のブロック形式で出力してください。\n';
-  p+='スライド番号だけでなく「スライド内のどこか」まで必ず明記し、問題の文字列・数値は「」で引用してください。\n\n';
-  p+='位置の表記形式：\n';
-  p+='  スライドN｜メッセージライン\n';
-  p+='  スライドN｜本文 箇条書きX行目\n';
-  p+='  スライドN｜図表「○○」タイトル\n';
-  p+='  スライドN｜表「○○」X行Y列目\n';
-  p+='  スライドN｜注釈・Citation欄\n\n';
+  p+='================================================================\n【出力形式】\n================================================================\n\n';
+  p+='NG・要確認の指摘は以下のブロック形式で出力してください。\nスライド番号だけでなく「スライド内のどこか」まで必ず明記し、問題の文字列・数値は「」で引用してください。\n\n';
+  p+='位置の表記形式：\n  スライドN｜メッセージライン\n  スライドN｜本文 箇条書きX行目\n  スライドN｜図表「○○」タイトル\n  スライドN｜表「○○」X行Y列目\n  スライドN｜注釈・Citation欄\n\n';
   p+='--- 指摘ブロック形式 ---\n\n';
   p+='### [No.XX] NG または 要確認｜項目番号：XX-X\n\n';
-  p+='**箇所** スライドN｜位置\n';
-  p+='| | テキスト・数値 |\n|---|---|\n';
-  p+='| 原文  | 「問題のある文章・数値」 |\n';
-  p+='| 修正案 | 「修正後の文章・数値」 |\n\n';
+  p+='**箇所** スライドN｜位置\n| | テキスト・数値 |\n|---|---|\n| 原文  | 「問題のある文章・数値」 |\n| 修正案 | 「修正後の文章・数値」 |\n\n';
   p+='**問題の説明：** 問題の内容と修正理由\n\n---\n\n';
   p+='最後に「総合コメント」として、全体の完成度・特に注意すべき傾向・最優先の改善アクションを記載してください。\n';
 
   var out=document.getElementById('promptOut');
   out.value=p;
   document.getElementById('charCnt').innerText='（'+p.length+'文字）';
+  saveAllMD();
+}
+
+/* ===== 4モードのMDを生成してVBSで保存 ===== */
+function buildPrompt(mode) {
+  var scope = tr2(document.getElementById('scope').value) || '全スライド';
+  var i, ci, items;
+
+  var wList = '';
+  for (i = 0; i < D.wording.length; i++)
+    wList += '  - 正式表記「' + D.wording[i].c + '」← 使用禁止：' + D.wording[i].w + '\n';
+  if (!wList) wList = '  （未登録）\n';
+
+  var bList = '';
+  for (ci = 0; ci < BCATS.length; ci++) {
+    items = [];
+    for (i = 0; i < D.banned.length; i++) { if (D.banned[i].cat === BCATS[ci]) items.push(D.banned[i]); }
+    if (items.length) {
+      bList += '  【' + BCATS[ci] + '】\n';
+      for (i = 0; i < items.length; i++) bList += '    - ' + items[i].kw + '\n';
+    }
+  }
+  if (!bList) bList = '  （未登録）\n';
+
+  var oList = '';
+  for (ci = 0; ci < OCATS.length; ci++) {
+    items = [];
+    for (i = 0; i < D.objects.length; i++) { if (D.objects[i].cat === OCATS[ci]) items.push(D.objects[i]); }
+    if (items.length) {
+      oList += '  【' + OCATS[ci] + '】\n';
+      for (i = 0; i < items.length; i++) oList += '    - ' + items[i].item + '\n';
+    }
+  }
+  if (!oList) oList = '  （未登録）\n';
+
+  var modeLabel = {full:'全項目点検', fmt:'表記・書式のみ', cnt:'コンテンツ品質のみ', ng:'NG・要確認の再点検'};
+  var now = new Date();
+  var ds = now.getFullYear() + '/' + (now.getMonth()+1) + '/' + now.getDate()
+         + ' ' + now.getHours() + ':' + (now.getMinutes()<10?'0':'')+now.getMinutes();
+
+  var p = '';
+  p += '# PowerPoint スライド 形式点検プロンプト\n';
+  p += '> モード：' + modeLabel[mode] + '　　対象：' + scope + '　　更新：' + ds + '\n\n';
+  p += '---\n\n';
+  p += '添付のPowerPointスライドを以下の基準に従って点検してください。\n対象範囲：' + scope + '\n\n';
+  p += '## カスタマイズ基準\n\n';
+  p += '### A-1 表記揺れ注意ワード\n以下の正式表記に統一してください。\n\n' + wList + '\n';
+  p += '### A-2 使用禁止キーワード・表現\n含まれていればNGとして報告してください。\n\n' + bList + '\n';
+  p += '### A-3 使用禁止オブジェクト・デザイン要素\n含まれていればNGとして報告してください。\n\n' + oList + '\n';
+  p += '---\n\n## 点検内容\n\n';
+
+  if (mode === 'ng') {
+    p += '以下は前回点検でNG・要確認と判定された項目です。修正後のスライドが正しく修正されているか確認してください。\n\n';
+    var issues = getIssues();
+    if (!issues.length) {
+      p += '（前回の点検結果なし。まず全項目点検を実行してください）\n';
+    } else {
+      for (i = 0; i < issues.length; i++) {
+        var iss = issues[i];
+        p += '### [No.' + (i<9?'0'+(i+1):(i+1)) + '] ' + (iss.st==='ng'?'❌ NG':'⚠️ 要確認') + '\n\n';
+        p += '**点検項目：** ' + iss.item + '\n\n';
+        if (iss.loc) p += '**該当箇所：** ' + iss.loc + '\n\n';
+        p += '| | テキスト・数値 |\n|---|---|\n';
+        p += '| 🔴 原文 | ' + (iss.bef || '（未記入）') + ' |\n';
+        p += '| ✅ 修正案 | ' + (iss.aft || '（未記入）') + ' |\n\n---\n\n';
+      }
+    }
+  } else {
+    p += '各項目を **✅ OK** / **⚠️ 要確認** / **❌ NG** の3段階で評価してください。\n\n';
+    if (mode === 'full' || mode === 'fmt') {
+      p += '### SECTION 1：表記・書式チェック\n\n';
+      p += '#### 【1】顧客名・部署名の正確性\n- 1-1. 顧客の会社名が正式名称と一致している（略称・旧社名の混在がない）\n- 1-2. 法人格表記が必要な箇所で統一されている\n- 1-3. 顧客の部署名・組織名が現在の正式名称と一致している\n- 1-4. 顧客の担当者名・役職名が最新情報と一致している\n- 1-5. 他社の社名が現在の正式名称と一致している\n\n';
+      p += '#### 【2】キーワード・用語の表記揺れ\n- 2-1. A-1の表記揺れ注意ワードがすべて正式表記で統一されている\n- 2-2. 同じ指標・KPIの名称が統一されている\n- 2-3. カタカナ語の表記揺れがない\n- 2-4. 英語表記の揺れがない\n- 2-5. 略語と正式名称が混在していない\n\n';
+      p += '#### 【3】スライド間の記載揺れ・不整合\n- 3-1. 目次・アジェンダのタイトルと本編のスライドタイトルが一致している\n- 3-2. 同じフェーズ・ステップの名称がスライドをまたいで統一されている\n- 3-3. 同じ数値がスライドを横断して出てくる場合、すべて一致している\n- 3-4. 施策・アクションの名称が複数スライドにわたって一貫している\n\n';
+      p += '#### 【4】不適切・要注意な記載\n- 4-1. A-2の使用禁止キーワード・表現が含まれていない\n- 4-2. A-3の使用禁止オブジェクト・デザイン要素が含まれていない\n- 4-3. 休日・祝日・曜日の記載が提示日時点で正確か\n- 4-4. TBD・TODO・要確認など作業中の痕跡が残っていない\n- 4-5. コピー元資料の社名・案件名が残っていない\n\n';
+      p += '#### 【5】句読点・文末表記\n- 5-1. 箇条書きの文末「。」あり・なしが全体で統一されている\n- 5-2. 「です・ます調」と「だ・である調」が混在していない\n- 5-3. 箇条書きの語尾の形が同一スライド内で統一されている\n\n';
+      p += '#### 【6】数字・単位・日付\n- 6-1. 数字が全角・半角で混在していない（原則：半角統一）\n- 6-2. 桁区切りカンマの有無が統一されている\n- 6-3. 単位表記が統一されている（百万円・M円が混在しない）\n- 6-4. パーセント表記が統一されている（%か％かで統一）\n- 6-5. 日付・年度の表記形式が統一されている\n\n';
+      p += '#### 【7】表・グラフ内の数値整合性\n- 7-1. 表の合計行・合計列が各セルの合計と一致している\n- 7-2. 構成比（%）の合計が100%になっている\n- 7-3. 前年比・増減率の計算値が元の数値から正しく導出されている\n- 7-4. グラフのデータラベルの数値が凡例・軸の値と整合している\n\n';
+      p += '#### 【8】前後スライドとの整合性\n- 8-1. エグゼクティブサマリーの数値・結論が本編と矛盾していない\n- 8-2. 参照表現が実際の内容と対応している\n- 8-3. 「3つの課題」と述べた場合、後続で過不足なく展開されている\n\n';
+      p += '#### 【9】Citation（出典）の記載揺れ\n- 9-1. 出典の記載形式が全スライドで統一されている\n- 9-2. 出典の記載位置・フォントサイズ・色が統一されている\n- 9-3. Citationが必要な箇所で出典が抜けていない\n\n';
+      p += '#### 【10】キーメッセージの記載揺れ\n- 10-1. エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している\n- 10-2. 目次・アジェンダでの章タイトルと扉スライドのタイトルが完全に一致している\n- 10-3. メッセージラインの数値・割合が本文・図表の数値と一致している\n\n';
+      p += '#### 【11】カラーの使用揺れ\n- 11-1. 同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている\n- 11-2. 強調色（アクセントカラー）が全スライドで統一されている\n- 11-3. 同一の系列・セグメントが異なるスライドで異なる色になっていない\n\n';
+    }
+    if (mode === 'full' || mode === 'cnt') {
+      p += '### SECTION 2：コンテンツ品質チェック\n\n';
+      p += '#### 【12】1スライド1メッセージの原則\n- 12-1. 各スライドにSo What（主張・結論）が1文で書かれているか\n- 12-2. メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）\n- 12-3. 1枚のスライドに複数の独立したメッセージが混在していないか\n- 12-4. ボディがメッセージラインを証明・補足する構成になっているか\n\n';
+      p += '#### 【13】デッキ全体のストーリー性\n- 13-1. 全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか\n- 13-2. デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか\n- 13-3. 各章・セクションの役割が明確で、章の順序が自然か\n- 13-4. 論点が脱線・散漫になっているスライドがないか\n\n';
+      p += '#### 【14】各スライドの結論明確性\n- 14-1. スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）\n- 14-2. データや図が示唆（So What）まで落とし込まれているか\n- 14-3. 図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか\n\n';
+    }
+  }
+
+  p += '---\n\n## 出力形式\n\n';
+  p += 'NG・要確認の指摘は以下のブロック形式で出力してください。\n';
+  p += 'スライド番号だけでなく「スライド内のどこか」まで必ず明記し、問題の文字列・数値は「」で引用してください。\n\n';
+  p += '**位置の表記形式：**\n';
+  p += '- スライドN｜メッセージライン\n- スライドN｜本文 箇条書きX行目\n- スライドN｜図表「○○」タイトル\n- スライドN｜表「○○」X行Y列目\n- スライドN｜注釈・Citation欄\n\n';
+  p += '**指摘ブロック形式：**\n\n';
+  p += '```\n### [No.XX] ❌NG または ⚠️要確認｜項目番号：XX-X\n\n';
+  p += '**箇所** スライドN｜位置\n| | テキスト・数値 |\n|---|---|\n| 🔴 原文 | 「問題のある文章・数値」 |\n| ✅ 修正案 | 「修正後の文章・数値」 |\n\n';
+  p += '**問題の説明：** 問題の内容と修正理由\n```\n\n';
+  p += '最後に **総合コメント** として、全体の完成度・特に注意すべき傾向・最優先の改善アクションを記載してください。\n';
+
+  return p;
+}
+
+function saveAllMD() {
+  var modes = ['full', 'fmt', 'cnt', 'ng'];
+  var i;
+  for (i = 0; i < modes.length; i++) {
+    document.getElementById('_md' + i).value = buildPrompt(modes[i]);
+  }
+  window.execScript('vbsSaveMD()', 'VBScript');
 }
 
 function cpPrompt(){
@@ -1099,46 +1143,26 @@ function cpPrompt(){
   setTimeout(function(){document.getElementById('cpMsg').style.display='none';},3000);
 }
 
-/* ===== JSON保存・読込 ===== */
-function getJSON(){
-  var obj={
-    wording:D.wording, banned:D.banned, objects:D.objects,
-    st:D.st, bef:D.bef, aft:D.aft, loc:D.loc,
-    wFile:document.getElementById('wFile').value,
-    bFile:document.getElementById('bFile').value
-  };
-  return JSON.stringify(obj);
-}
-function setJSON(s){
-  try {
-    var d=eval('('+s+')');
-    if(d.wording) D.wording=d.wording;
-    if(d.banned)  D.banned=d.banned;
-    if(d.objects) D.objects=d.objects;
-    D.st=d.st||{}; D.bef=d.bef||{}; D.aft=d.aft||{}; D.loc=d.loc||{};
-    if(d.wFile) document.getElementById('wFile').value=d.wFile;
-    if(d.bFile) document.getElementById('bFile').value=d.bFile;
-    renderAll();
-  } catch(e){ alert('読込エラー: '+e.message); }
-}
-
+/* ===== リセット ===== */
 function doReset(){
   if(!confirm('点検リストの評価・原文・修正案をすべてリセットしますか？\nA-1〜A-3のリストは保持されます。')) return;
-  D.st={}; D.bef={}; D.aft={}; D.loc={};
-  renderSum(); renderChk(); genPrompt();
+  D.st={};D.bef={};D.aft={};D.loc={};
+  renderSum();renderChk();genPrompt();
   setSt('点検リストをリセットしました');
 }
 
-function renderAll(){
-  renderW(); renderB(); renderO();
-  renderSum(); renderChk();
-  updateSyncBars();
-  genPrompt();
-}
-
 /* ===== 初期化 ===== */
-window.execScript('initBaseDir()','VBScript');
-renderAll();
+window.execScript('vbsInit()','VBScript');
+renderW();
+renderB();
+renderO();
+renderSum();
+renderChk();
+updateSyncBars();
+genPrompt();
+/* 起動時にCSVを自動読込 */
+jsReloadW();
+jsReloadB();
 setSt('準備完了');
 </script>
 </body>
