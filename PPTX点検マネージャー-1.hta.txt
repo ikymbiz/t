@@ -1,0 +1,1312 @@
+<HTA:APPLICATION
+  ID="PPTXChecker"
+  APPLICATIONNAME="PPTX 形式点検マネージャー"
+  SCROLL="yes"
+  SINGLEINSTANCE="yes"
+  WINDOWSTATE="maximize"
+  BORDER="normal"
+  CAPTION="yes"
+/>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PPTX 形式点検マネージャー｜戦略コンサルタント向け</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "メイリオ", Meiryo, "Yu Gothic", "游ゴシック", sans-serif;
+  background: #f0f4f8;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+/* ─── ヘッダー ─── */
+#header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+  color: white;
+  padding: 14px 24px 0;
+  position: sticky; top: 0; z-index: 100;
+}
+#header h1 { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+#header .subtitle { font-size: 11px; opacity: 0.7; margin-bottom: 6px; }
+
+/* ─── タブ ─── */
+.tabs { display: flex; gap: 0; }
+.tab {
+  padding: 9px 18px; cursor: pointer; font-size: 13px; font-weight: 600;
+  background: transparent; color: rgba(255,255,255,0.7);
+  border: none; border-radius: 8px 8px 0 0;
+  transition: all 0.15s;
+}
+.tab.active { background: white; color: #1e3a5f; }
+.tab:hover:not(.active) { background: rgba(255,255,255,0.15); color: white; }
+
+/* ─── ツールバー ─── */
+#toolbar {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 24px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.btn {
+  padding: 6px 14px; font-size: 12px; font-weight: 700;
+  border-radius: 6px; cursor: pointer; border: none;
+}
+.btn-primary { background: #1d4ed8; color: white; }
+.btn-primary:hover { background: #1e40af; }
+.btn-success { background: #16a34a; color: white; }
+.btn-success:hover { background: #15803d; }
+.btn-warning { background: #d97706; color: white; }
+.btn-warning:hover { background: #b45309; }
+.btn-danger  { background: #dc2626; color: white; }
+.btn-danger:hover  { background: #b91c1c; }
+.btn-gray { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+.btn-gray:hover { background: #e5e7eb; }
+#toolbar .sep { border-left: 1px solid #e5e7eb; height: 24px; margin: 0 4px; }
+#toolbar .file-label { font-size: 11px; color: #6b7280; }
+
+/* ─── メインエリア ─── */
+#main { padding: 20px 24px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ─── セクションヘッダー ─── */
+.section-header { margin-bottom: 18px; }
+.section-header h2 { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+.section-header p { font-size: 12px; color: #6b7280; }
+
+/* ─── カード ─── */
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.card-header {
+  background: #f8fafc;
+  padding: 11px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  user-select: none;
+}
+.card-header:hover { background: #f1f5f9; }
+.card-body { padding: 16px; }
+
+/* ─── テーブル ─── */
+table { width: 100%; border-collapse: collapse; }
+th {
+  background: #f3f4f6;
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+td { padding: 7px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafafa; }
+
+/* ─── フォーム ─── */
+input[type=text], select, textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  outline: none;
+}
+input[type=text]:focus, select:focus, textarea:focus {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 2px #1d4ed820;
+}
+textarea { resize: vertical; }
+
+/* ─── バッジ ─── */
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-ok   { background: #dcfce7; color: #16a34a; }
+.badge-warn { background: #fef9c3; color: #d97706; }
+.badge-ng   { background: #fee2e2; color: #dc2626; }
+.badge-none { background: #f3f4f6; color: #9ca3af; }
+
+/* ─── 点検リスト ─── */
+.checklist-item {
+  padding: 11px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.checklist-item:last-child { border-bottom: none; }
+.item-top { display: flex; align-items: flex-start; gap: 10px; }
+.item-no { font-size: 11px; color: #9ca3af; min-width: 34px; padding-top: 2px; font-weight: 700; }
+.item-text { flex: 1; font-size: 13px; line-height: 1.5; }
+.item-buttons { display: flex; gap: 5px; margin-top: 7px; flex-wrap: wrap; }
+.status-btn {
+  padding: 3px 11px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.status-btn.ok   { border: 1.5px solid #16a34a; background: white; color: #16a34a; }
+.status-btn.warn { border: 1.5px solid #d97706; background: white; color: #d97706; }
+.status-btn.ng   { border: 1.5px solid #dc2626; background: white; color: #dc2626; }
+.status-btn.ok.active   { background: #16a34a; color: white; }
+.status-btn.warn.active { background: #d97706; color: white; }
+.status-btn.ng.active   { background: #dc2626; color: white; }
+
+/* ─── 原文／修正案ボックス ─── */
+.diff-box { margin-top: 10px; display: none; }
+.diff-box.show { display: block; }
+.diff-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.diff-col { flex: 1; }
+.diff-label {
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.diff-label.before { background: #fee2e2; color: #dc2626; }
+.diff-label.after  { background: #dcfce7; color: #16a34a; }
+.diff-label.loc    { background: #eff6ff; color: #1d4ed8; }
+.loc-row { margin-bottom: 0; }
+
+/* ─── サマリーカウンター ─── */
+.summary-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.summary-tile {
+  padding: 10px 20px;
+  border-radius: 10px;
+  text-align: center;
+  min-width: 80px;
+  flex: 1;
+}
+.summary-tile .num { font-size: 26px; font-weight: 900; }
+.summary-tile .lbl { font-size: 11px; margin-top: 2px; }
+.tile-ok   { background: #dcfce7; color: #16a34a; }
+.tile-warn { background: #fef9c3; color: #d97706; }
+.tile-ng   { background: #fee2e2; color: #dc2626; }
+.tile-none { background: #f3f4f6; color: #9ca3af; }
+
+/* ─── アコーディオン矢印 ─── */
+.arrow { transition: transform 0.2s; display: inline-block; }
+.arrow.open { transform: rotate(90deg); }
+
+/* ─── カテゴリラベル ─── */
+.cat-label {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  margin-bottom: 8px;
+}
+
+/* ─── 削除・追加ボタン ─── */
+.del-btn {
+  background: #fee2e2; color: #dc2626;
+  border: none; border-radius: 5px;
+  padding: 3px 8px; cursor: pointer;
+  font-weight: 700; font-size: 12px;
+  white-space: nowrap;
+}
+.add-btn {
+  background: #dbeafe; color: #1d4ed8;
+  border: none; border-radius: 6px;
+  padding: 5px 14px; cursor: pointer;
+  font-weight: 700; font-size: 13px;
+}
+.add-row { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+
+/* ─── ステータスバー ─── */
+#statusbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: #1e3a5f;
+  color: rgba(255,255,255,0.8);
+  font-size: 11px;
+  padding: 5px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div id="header">
+  <div class="subtitle">戦略コンサルタント向け</div>
+  <h1>📋 PPTX 形式点検 管理ツール</h1>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab(0)">A-1 表記揺れ</div>
+    <div class="tab" onclick="switchTab(1)">A-2 禁止キーワード</div>
+    <div class="tab" onclick="switchTab(2)">A-3 禁止オブジェクト</div>
+    <div class="tab" onclick="switchTab(3)">✅ 点検リスト</div>
+    <div class="tab" onclick="switchTab(4)">📊 レポート</div>
+    <div class="tab" onclick="switchTab(5)">🤖 AIプロンプト生成</div>
+  </div>
+</div>
+
+<!-- ツールバー -->
+<div id="toolbar">
+  <button class="btn btn-primary" onclick="saveData()">💾 保存</button>
+  <button class="btn btn-gray"    onclick="loadData()">📂 読み込み</button>
+  <div class="sep"></div>
+  <button class="btn btn-success" onclick="exportReport()">📄 レポート出力</button>
+  <button class="btn btn-warning" onclick="resetChecklist()">🔄 点検リストをリセット</button>
+  <div class="sep"></div>
+  <span class="file-label" id="currentFile">（未保存）</span>
+</div>
+
+<!-- メインエリア -->
+<div id="main">
+
+  <!-- ══════════ TAB 0: A-1 表記揺れ ══════════ -->
+  <div class="panel active" id="panel0">
+    <div class="section-header">
+      <h2>🔄 A-1 表記揺れ注意ワードリスト</h2>
+      <p>同じ意味だが複数の表現が混在しやすいワードを登録してください。AIは登録されたワードを重点的に検出します。</p>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <table id="tblWording">
+          <thead>
+            <tr>
+              <th style="width:35%">正式表記（統一後）</th>
+              <th>使用してはいけない表記（「/」区切りで複数入力可）</th>
+              <th style="width:50px"></th>
+            </tr>
+          </thead>
+          <tbody id="tbodyWording"></tbody>
+        </table>
+        <div class="add-row">
+          <input type="text" id="newWordCorrect" placeholder="例）顧客" style="width:200px">
+          <input type="text" id="newWordWrong"   placeholder="例）お客様 / クライアント / Client" style="flex:1">
+          <button class="add-btn" onclick="addWording()">＋ 追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 1: A-2 禁止キーワード ══════════ -->
+  <div class="panel" id="panel1">
+    <div class="section-header">
+      <h2>🚫 A-2 使用禁止キーワード・表現リスト</h2>
+      <p>資料に含まれていてはいけない言葉・表現を登録してください。</p>
+    </div>
+    <div id="bannedContainer"></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="add-row">
+          <select id="newBannedCat" style="width:180px">
+            <option>社外秘・機密</option>
+            <option>不適切・品位を損なう表現</option>
+            <option>過度な断言表現</option>
+            <option>作業中痕跡</option>
+          </select>
+          <input type="text" id="newBannedKw" placeholder="キーワード・表現を追加" style="flex:1">
+          <button class="add-btn" onclick="addBanned()">＋ 追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 2: A-3 禁止オブジェクト ══════════ -->
+  <div class="panel" id="panel2">
+    <div class="section-header">
+      <h2>🎨 A-3 使用禁止オブジェクト・デザイン要素リスト</h2>
+      <p>スライド内に含まれていてはいけないデザイン要素を登録してください。</p>
+    </div>
+    <div id="objectContainer"></div>
+    <div class="card">
+      <div class="card-body">
+        <div class="add-row">
+          <select id="newObjCat" style="width:180px">
+            <option>禁止オブジェクト</option>
+            <option>禁止デザイン</option>
+          </select>
+          <input type="text" id="newObjItem" placeholder="要素を追加" style="flex:1">
+          <button class="add-btn" onclick="addObject()">＋ 追加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB 3: 点検リスト ══════════ -->
+  <div class="panel" id="panel3">
+    <div class="section-header">
+      <h2>✅ 点検リスト</h2>
+      <p>各項目を評価し、NG・要確認の場合は原文と修正案を記録してください。</p>
+    </div>
+    <div class="summary-bar" id="summaryBar"></div>
+    <div id="checklistContainer"></div>
+  </div>
+
+  <!-- ══════════ TAB 4: レポート ══════════ -->
+  <div class="panel" id="panel4">
+    <div class="section-header">
+      <h2>📊 点検結果レポート</h2>
+      <p>NG・要確認の項目を一覧で確認できます。</p>
+    </div>
+    <div id="reportContainer"></div>
+  </div>
+
+  <!-- ══════════ TAB 5: AIプロンプト生成 ══════════ -->
+  <div class="panel" id="panel5">
+    <div class="section-header">
+      <h2>🤖 AIプロンプト生成</h2>
+      <p>A-1〜A-3のリストを反映したプロンプトを自動生成します。コピーしてClaudeにPPTXと一緒に貼り付けてください。</p>
+    </div>
+
+    <!-- 使い方ガイド -->
+    <div class="card" style="border-left:4px solid #1d4ed8;margin-bottom:16px">
+      <div class="card-body" style="padding:14px 16px">
+        <div style="font-weight:800;font-size:13px;margin-bottom:10px">📌 使い方（3ステップ）</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px;padding:10px 14px;background:#eff6ff;border-radius:8px;text-align:center">
+            <div style="font-size:22px;margin-bottom:4px">①</div>
+            <div style="font-size:12px;font-weight:700;color:#1d4ed8">プロンプト生成</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:3px">下の「生成」ボタンを押す</div>
+          </div>
+          <div style="flex:1;min-width:160px;padding:10px 14px;background:#f0fdf4;border-radius:8px;text-align:center">
+            <div style="font-size:22px;margin-bottom:4px">②</div>
+            <div style="font-size:12px;font-weight:700;color:#16a34a">Claudeに貼り付け</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:3px">「コピー」してClaudeのチャットに貼り付け</div>
+          </div>
+          <div style="flex:1;min-width:160px;padding:10px 14px;background:#fef9c3;border-radius:8px;text-align:center">
+            <div style="font-size:22px;margin-bottom:4px">③</div>
+            <div style="font-size:12px;font-weight:700;color:#d97706">PPTXを添付して送信</div>
+            <div style="font-size:11px;color:#6b7280;margin-top:3px">スライドのスクショかPPTXを一緒に添付</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- モード選択 -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-body" style="padding:14px 16px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px">⚙️ 生成モード</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid #1d4ed8;border-radius:8px;font-size:12px;font-weight:700;color:#1d4ed8;background:#eff6ff">
+            <input type="radio" name="promptMode" value="full" checked> 📋 全項目点検（完全版）
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:700;color:#374151">
+            <input type="radio" name="promptMode" value="format"> 🔤 表記・書式のみ
+          </label>
+          <label style="display:flex;align-items:center;gap=6px;cursor:pointer;padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:700;color:#374151">
+            <input type="radio" name="promptMode" value="content"> 💡 コンテンツ品質のみ
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:700;color:#374151">
+            <input type="radio" name="promptMode" value="ng"> ❌ NG・要確認の再点検
+          </label>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <span style="font-size:12px;color:#6b7280">対象スライド（任意）：</span>
+          <input type="text" id="slideScope" placeholder="例）全スライド　または　スライド3〜15のみ" style="flex:1;max-width:340px">
+        </div>
+      </div>
+    </div>
+
+    <!-- 生成ボタン -->
+    <div style="margin-bottom:14px;display:flex;gap:8px;align-items:center">
+      <button class="btn btn-primary" onclick="generatePrompt()" style="font-size:14px;padding:9px 24px">
+        ⚡ プロンプトを生成
+      </button>
+      <button class="btn btn-success" id="copyBtn" onclick="copyPrompt()" style="display:none">
+        📋 クリップボードにコピー
+      </button>
+      <span id="copyMsg" style="font-size:12px;color:#16a34a;font-weight:700;display:none">✅ コピーしました！</span>
+    </div>
+
+    <!-- 生成結果 -->
+    <div class="card" id="promptOutputCard" style="display:none">
+      <div class="card-header" style="cursor:default;justify-content:space-between">
+        <span>生成されたプロンプト</span>
+        <span style="font-size:11px;color:#6b7280" id="promptCharCount"></span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <textarea id="promptOutput" rows="30"
+          style="width:100%;border:none;border-radius:0 0 10px 10px;padding:16px;font-size:12px;font-family:'Consolas','メイリオ',monospace;line-height:1.6;resize:vertical;outline:none;background:#fafafa">
+        </textarea>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ステータスバー -->
+<div id="statusbar">
+  <span id="statusMsg">準備完了</span>
+  <span id="statusTime"></span>
+</div>
+
+<script language="VBScript">
+' ── ファイル保存 ──────────────────────────
+Sub saveData()
+  Dim fso, f, path, data
+  Set fso = CreateObject("Scripting.FileSystemObject")
+
+  path = InputBox("保存先のファイルパスを入力してください（例: C:\Users\user\PPTX点検.json）", "保存", document.getElementById("currentFile").innerText)
+  If path = "" Then Exit Sub
+  If Right(path,5) <> ".json" Then path = path & ".json"
+
+  data = window.external.getData()  ' JSから取得
+  Set f = fso.OpenTextFile(path, 2, True, -1)
+  f.Write data
+  f.Close
+
+  document.getElementById("currentFile").innerText = path
+  setStatus "保存しました: " & path
+End Sub
+
+' ── ファイル読み込み ──────────────────────────
+Sub loadData()
+  Dim fso, f, path, data
+  Set fso = CreateObject("Scripting.FileSystemObject")
+
+  path = InputBox("読み込むファイルのパスを入力してください", "読み込み", "")
+  If path = "" Then Exit Sub
+  If Not fso.FileExists(path) Then
+    MsgBox "ファイルが見つかりません: " & path, 16, "エラー"
+    Exit Sub
+  End If
+
+  Set f = fso.OpenTextFile(path, 1, False, -1)
+  data = f.ReadAll
+  f.Close
+
+  Call window.external.setData(data)  ' JSへ渡す
+  document.getElementById("currentFile").innerText = path
+  setStatus "読み込みました: " & path
+End Sub
+
+' ── レポートをHTMLで保存 ──────────────────────────
+Sub exportReportFile(html)
+  Dim fso, f, path
+  Set fso = CreateObject("Scripting.FileSystemObject")
+
+  path = InputBox("レポートの保存先を入力してください（例: C:\Users\user\点検レポート.html）", "レポート出力", "")
+  If path = "" Then Exit Sub
+  If InStr(path, ".htm") = 0 Then path = path & ".html"
+
+  Set f = fso.OpenTextFile(path, 2, True, -1)
+  f.Write html
+  f.Close
+
+  setStatus "レポートを出力しました: " & path
+  If MsgBox("レポートを開きますか？", 4, "確認") = 6 Then
+    CreateObject("WScript.Shell").Run path
+  End If
+End Sub
+
+Sub setStatus(msg)
+  document.getElementById("statusMsg").innerText = msg
+End Sub
+</script>
+
+<script language="JavaScript">
+// ══════════════════════════════════════
+// データモデル
+// ══════════════════════════════════════
+var DATA = {
+  wording: [
+    { id:1, correct:"顧客", wrong:"お客様 / クライアント / Client" },
+    { id:2, correct:"売上高", wrong:"売上 / Revenue / 売上金額" },
+    { id:3, correct:"DX", wrong:"D.X. / デジタルトランスフォーメーション" },
+  ],
+  banned: [
+    { id:1, cat:"社外秘・機密", kw:"プロジェクトコードネーム" },
+    { id:2, cat:"作業中痕跡",   kw:"TBD / TODO / 要確認 / ○○を入れる" },
+    { id:3, cat:"作業中痕跡",   kw:"Lorem ipsum / サンプル / ダミー" },
+    { id:4, cat:"過度な断言表現", kw:"必ず〜できる / 絶対に〜 / 簡単に" },
+  ],
+  objects: [
+    { id:1, cat:"禁止オブジェクト", item:"アニメーション・スライドトランジション" },
+    { id:2, cat:"禁止オブジェクト", item:"承認されていないロゴ・商標" },
+    { id:3, cat:"禁止デザイン",     item:"影・グラデーション・3D効果" },
+    { id:4, cat:"禁止デザイン",     item:"WordArt・テキスト装飾エフェクト" },
+  ],
+  statuses: {},   // key: "sec-item" -> "ok"|"warn"|"ng"
+  befores:  {},   // 原文
+  afters:   {},   // 修正案
+  locs:     {},   // 該当箇所
+};
+
+var CHECKLIST = [
+  { id:1, title:"顧客名・部署名の正確性", items:[
+    "顧客の会社名が全スライドで正式名称と一致している（略称・通称・旧社名の混在がない）",
+    "法人格表記（株式会社・（株）等）が必要な箇所で統一されている",
+    "顧客の部署名・組織名が現在の正式名称と一致しており、旧組織名が残っていない",
+    "顧客の担当者名・役職名が最新情報と一致しており、異動・昇格後の変更が反映されている",
+    "自社の部署名・チーム名・役職名が現在の正式名称と一致している",
+    "自社の担当者名に異動・退職者の名前が残っていない",
+    "他社（競合・パートナー等）の社名が現在の正式名称と一致している",
+  ]},
+  { id:2, title:"キーワード・用語の表記揺れ", items:[
+    "A-1の表記揺れ注意ワードがすべて正式表記で統一されている",
+    "同じ指標・KPIの名称が統一されている",
+    "同じ製品・サービス名の表記が統一されている",
+    "カタカナ語の表記揺れがない（例：マネージャー/マネジャー）",
+    "英語表記の揺れがない（例：DX / D.X. / Digital Transformation）",
+    "略語と正式名称が混在していない、または初出時に説明がある",
+  ]},
+  { id:3, title:"スライド間の記載揺れ・不整合", items:[
+    "目次・アジェンダのタイトルと本編の各スライドタイトルが一致している",
+    "同じ項目・フェーズ・ステップの名称がスライドをまたいで統一されている",
+    "同じ数値がスライドを横断して出てくる場合、すべて一致している",
+    "同じ図・表が複数スライドに出てくる場合、内容・表記が完全に一致している",
+    "施策・アクションの名称が複数スライドにわたって一貫している",
+    "前提条件・仮定の記述がスライドをまたいで矛盾していない",
+  ]},
+  { id:4, title:"不適切・要注意な記載内容", items:[
+    "A-2の使用禁止キーワード・表現が含まれていない",
+    "A-3の使用禁止オブジェクト・デザイン要素が含まれていない",
+    "休日・祝日・曜日の記載が提示日時点で正確か（「来週月曜」「GW明け」等）",
+    "日付が古くなっていない",
+    "「現在」「最新」「直近」などの相対的な時間表現が実態と合っている",
+    "TBD・TODO・要確認など作業中の痕跡が残っていない",
+    "テンプレートのサンプルテキスト・ダミーデータが残っていない",
+    "コピー元資料の社名・案件名が残っていない（使い回しの確認）",
+    "ファイル名・パス・URLなど内部情報が写り込んでいない",
+  ]},
+  { id:5, title:"句読点・文末表記", items:[
+    "箇条書きの文末「。」あり・なしが全体で統一されている",
+    "「です・ます調」と「だ・である調」が混在していない",
+    "箇条書きの語尾の形が同一スライド内で統一されている（体言止め・〜すること・〜する）",
+    "メッセージライン（タイトル行）の文体が全スライドで統一されている",
+    "「，」「.」など全角・半角の句読点が混在していない",
+  ]},
+  { id:6, title:"数字・単位・日付", items:[
+    "数字が全角・半角で混在していない（原則：半角統一）",
+    "桁区切りカンマの有無が統一されている（「1,000」か「1000」かで統一）",
+    "単位表記が統一されている（「百万円」「M円」「百万」が混在しない）",
+    "パーセント表記が統一されている（「%」か「％」かで統一）",
+    "小数点の桁数が同一グラフ・表内で統一されている",
+    "日付の表記形式が統一されている",
+    "年度・年の表記が統一されている（「FY2024」「2024年度」「'24」が混在しない）",
+  ]},
+  { id:7, title:"スペース・空白・記号", items:[
+    "日本語と英数字の間のスペースの有無が全体で統一されている",
+    "数字と単位の間のスペースが統一されている（「10%」か「10 %」かで統一）",
+    "括弧の種類が統一されている（「（）」全角か「()」半角かで統一）",
+    "ハイフン「-」とダッシュ「—」「–」の使い分けが一貫している",
+    "「※」「＊」などの注釈記号の使い方が統一されている",
+    "文中に不要な全角スペースが混入していない",
+  ]},
+  { id:8, title:"表・グラフ内の数値整合性", items:[
+    "表の合計行・合計列の数値が各セルの合計と一致している",
+    "構成比（%）の合計が100%になっている（端数処理の場合は注記あり）",
+    "前年比・増減率の計算値が元の数値から正しく導出されている",
+    "グラフのデータラベルの数値が凡例・軸の値と整合している",
+    "積み上げグラフの各要素の合計が全体の合計値と一致している",
+    "「うち〇〇」「内訳」の合計が上位の集計値と一致している",
+    "CAGRや平均値などの二次計算値が正しく算出されている",
+    "単位換算が必要な箇所（億→万、$/¥など）で換算ミスがない",
+  ]},
+  { id:9, title:"前後スライドとの整合性", items:[
+    "エグゼクティブサマリーの数値・結論が本編の詳細スライドと矛盾していない",
+    "「前スライドで述べたとおり」などの参照表現が実際の内容と対応している",
+    "時系列でスライドが進む場合、年度・期間の順序が矛盾していない",
+    "前スライドで「3つの課題」と述べた場合、後続スライドでも過不足なく展開されている",
+    "アペンディックスの参照先が実際に存在し、内容が対応している",
+    "ロードマップのマイルストーンが他スライドのスケジュールと一致している",
+  ]},
+  { id:10, title:"Citation（出典・引用）の記載揺れ", items:[
+    "出典の記載形式が全スライドで統一されている（「出典：」「Source:」「※〇〇より」が混在しない）",
+    "出典の記載位置が統一されている",
+    "出典のフォントサイズ・色が全スライドで統一されている",
+    "調査会社・レポート名の表記が統一されている",
+    "同じ出典が複数スライドに出てくる場合、表記がすべて一致している",
+    "Citationが必要な図・グラフ・数値で出典が抜けていない",
+  ]},
+  { id:11, title:"キーメッセージの記載揺れ", items:[
+    "エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している",
+    "目次・アジェンダでの章タイトルと各章の扉スライドのタイトルが完全に一致している",
+    "同一の提言・施策名が複数スライドに登場する場合、表現が統一されている",
+    "強調（太字・赤字・ハイライト）が全体を通じて一貫した基準で使われている",
+    "結論・提言で示されたアクション数・施策数が本編の展開数と一致している",
+    "メッセージラインの数値・割合が本文・図表の数値と一致している",
+  ]},
+  { id:12, title:"カラー（色）の使用揺れ", items:[
+    "同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている",
+    "強調色（アクセントカラー）が全スライドで統一されている",
+    "同一の系列・セグメントが異なるスライドで異なる色になっていない",
+    "ポジティブ／ネガティブの色対応が全体で一貫している",
+    "ブランドカラーパレット外の色が使用されていない",
+    "色だけで情報を区別していない（形・ラベルも併用）",
+  ]},
+  { id:13, title:"1スライド1メッセージの原則", items:[
+    "各スライドにSo What（主張・結論）が1文で書かれているか",
+    "メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）",
+    "1枚のスライドに複数の独立したメッセージが混在していないか",
+    "ボディがメッセージラインを「証明・補足」する構成になっているか",
+    "メッセージラインを読むだけで結論が理解できるか",
+  ]},
+  { id:14, title:"デッキ全体のストーリー性", items:[
+    "全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか",
+    "デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか",
+    "各章・セクションの役割が明確で、章の順序が自然か",
+    "「なぜそう言えるか」という根拠の流れが一貫して積み上がっているか",
+    "論点が脱線・散漫になっているスライドがないか",
+    "エグゼクティブサマリーだけで全体の主張・提言が自己完結して理解できるか",
+  ]},
+];
+
+// ══════════════════════════════════════
+// タブ切替
+// ══════════════════════════════════════
+var currentTab = 0;
+function switchTab(n) {
+  document.querySelectorAll('.panel').forEach(function(p,i){
+    p.className = 'panel' + (i===n?' active':'');
+  });
+  document.querySelectorAll('.tab').forEach(function(t,i){
+    t.className = 'tab' + (i===n?' active':'');
+  });
+  currentTab = n;
+  if(n===3) renderSummary();
+  if(n===4) renderReport();
+  if(n===5) { document.getElementById('promptOutputCard').style.display='none'; document.getElementById('copyBtn').style.display='none'; }
+}
+
+// ══════════════════════════════════════
+// AIプロンプト生成
+// ══════════════════════════════════════
+function getCheckedMode() {
+  var radios = document.getElementsByName('promptMode');
+  for(var i=0;i<radios.length;i++) if(radios[i].checked) return radios[i].value;
+  return 'full';
+}
+
+function generatePrompt() {
+  var mode  = getCheckedMode();
+  var scope = document.getElementById('slideScope').value.trim() || '全スライド';
+
+  // ── A-1 表記揺れリスト ──
+  var wordingRows = DATA.wording.map(function(r){
+    return '  - 正式表記「' + r.correct + '」← 禁止：' + r.wrong;
+  }).join('\n') || '  （未登録）';
+
+  // ── A-2 禁止キーワード ──
+  var bannedRows = '';
+  var bannedCats = ["社外秘・機密","不適切・品位を損なう表現","過度な断言表現","作業中痕跡"];
+  bannedCats.forEach(function(cat){
+    var items = DATA.banned.filter(function(r){return r.cat===cat;});
+    if(items.length){
+      bannedRows += '  【'+cat+'】\n';
+      items.forEach(function(r){ bannedRows += '    - '+r.kw+'\n'; });
+    }
+  });
+  if(!bannedRows) bannedRows = '  （未登録）\n';
+
+  // ── A-3 禁止オブジェクト ──
+  var objRows = '';
+  var objCats = ["禁止オブジェクト","禁止デザイン"];
+  objCats.forEach(function(cat){
+    var items = DATA.objects.filter(function(r){return r.cat===cat;});
+    if(items.length){
+      objRows += '  【'+cat+'】\n';
+      items.forEach(function(r){ objRows += '    - '+r.item+'\n'; });
+    }
+  });
+  if(!objRows) objRows = '  （未登録）\n';
+
+  // ── NG・要確認リスト（再点検モード用） ──
+  var ngList = '';
+  var ngCount = 0;
+  CHECKLIST.forEach(function(sec){
+    sec.items.forEach(function(item,i){
+      var k=sec.id+'-'+i;
+      var st=DATA.statuses[k];
+      if(st==='ng'||st==='warn'){
+        ngCount++;
+        var loc = DATA.locs[k] ? '【'+DATA.locs[k]+'】' : '';
+        var before = DATA.befores[k] ? '\n    原文：「'+DATA.befores[k]+'」' : '';
+        var after  = DATA.afters[k]  ? '\n    修正案：「'+DATA.afters[k]+'」' : '';
+        ngList += '  No.'+ngCount+' ['+sec.id+'-'+(i+1)+'] '+(st==='ng'?'❌':'⚠️')+' '+item+'\n';
+        if(loc||before||after) ngList += '    '+loc+before+after+'\n';
+      }
+    });
+  });
+
+  // ── プロンプト本文組み立て ──
+  var p = '';
+
+  // 共通ヘッダー
+  p += '# PowerPoint スライド 形式点検依頼\n\n';
+  p += '添付のPowerPointスライドを、以下の基準に従って点検してください。\n';
+  p += '対象範囲：' + scope + '\n\n';
+
+  // カスタマイズリスト（常に含める）
+  p += '════════════════════════════════════\n';
+  p += '【カスタマイズ基準（必ず遵守してください）】\n';
+  p += '════════════════════════════════════\n\n';
+
+  p += '▼ A-1 表記揺れ注意ワード（以下の正式表記に統一してください）\n';
+  p += wordingRows + '\n\n';
+
+  p += '▼ A-2 使用禁止キーワード・表現（これらが含まれていればNGとして報告してください）\n';
+  p += bannedRows + '\n';
+
+  p += '▼ A-3 使用禁止オブジェクト・デザイン要素（これらが含まれていればNGとして報告してください）\n';
+  p += objRows + '\n';
+
+  // モード別点検指示
+  p += '════════════════════════════════════\n';
+  p += '【点検内容】\n';
+  p += '════════════════════════════════════\n\n';
+
+  if(mode === 'ng') {
+    // 再点検モード
+    p += '以下は前回の点検でNG・要確認と判定された項目です。\n';
+    p += '修正後のスライドが正しく修正されているか確認してください。\n\n';
+    if(ngList){
+      p += ngList;
+    } else {
+      p += '（前回の点検結果なし。まず全項目点検を実行してください）\n';
+    }
+  } else {
+    // 評価基準の説明
+    p += '各項目を以下の3段階で評価してください。\n';
+    p += '  ✅ OK：問題なし\n';
+    p += '  ⚠️ 要確認：統一が必要または確認が必要\n';
+    p += '  ❌ NG：修正必須\n\n';
+
+    if(mode === 'full' || mode === 'format') {
+      p += '─── SECTION 1：表記・書式チェック ───\n\n';
+      p += '【1】顧客名・部署名の正確性\n';
+      p += '  1-1. 顧客の会社名が全スライドで正式名称と一致している（略称・旧社名の混在がない）\n';
+      p += '  1-2. 法人格表記（株式会社・（株）等）が必要な箇所で統一されている\n';
+      p += '  1-3. 顧客の部署名・組織名が現在の正式名称と一致している（旧組織名が残っていない）\n';
+      p += '  1-4. 顧客の担当者名・役職名が最新情報と一致している\n';
+      p += '  1-5. 自社の部署名・チーム名・役職名が現在の正式名称と一致している\n';
+      p += '  1-6. 自社の担当者名に異動・退職者の名前が残っていない\n';
+      p += '  1-7. 他社（競合・パートナー等）の社名が現在の正式名称と一致している\n\n';
+
+      p += '【2】キーワード・用語の表記揺れ\n';
+      p += '  2-1. A-1の表記揺れ注意ワードがすべて正式表記で統一されている\n';
+      p += '  2-2. 同じ指標・KPIの名称が統一されている\n';
+      p += '  2-3. カタカナ語の表記揺れがない\n';
+      p += '  2-4. 英語表記の揺れがない（例：DX / D.X. / Digital Transformation）\n';
+      p += '  2-5. 略語と正式名称が混在していない、または初出時に説明がある\n\n';
+
+      p += '【3】スライド間の記載揺れ・不整合\n';
+      p += '  3-1. 目次・アジェンダのタイトルと本編の各スライドタイトルが一致している\n';
+      p += '  3-2. 同じフェーズ・ステップの名称がスライドをまたいで統一されている\n';
+      p += '  3-3. 同じ数値がスライドを横断して出てくる場合、すべて一致している\n';
+      p += '  3-4. 施策・アクションの名称が複数スライドにわたって一貫している\n';
+      p += '  3-5. 前提条件・仮定の記述がスライドをまたいで矛盾していない\n\n';
+
+      p += '【4】不適切・要注意な記載内容\n';
+      p += '  4-1. A-2の使用禁止キーワード・表現が含まれていない\n';
+      p += '  4-2. A-3の使用禁止オブジェクト・デザイン要素が含まれていない\n';
+      p += '  4-3. 休日・祝日・曜日の記載が提示日時点で正確か（「来週月曜」「GW明け」等）\n';
+      p += '  4-4. 日付が古くなっていない\n';
+      p += '  4-5. TBD・TODO・要確認など作業中の痕跡が残っていない\n';
+      p += '  4-6. テンプレートのサンプルテキスト・ダミーデータが残っていない\n';
+      p += '  4-7. コピー元資料の社名・案件名が残っていない（使い回しの確認）\n\n';
+
+      p += '【5】句読点・文末表記\n';
+      p += '  5-1. 箇条書きの文末「。」あり・なしが全体で統一されている\n';
+      p += '  5-2. 「です・ます調」と「だ・である調」が混在していない\n';
+      p += '  5-3. 箇条書きの語尾の形が同一スライド内で統一されている\n';
+      p += '  5-4. メッセージライン（タイトル行）の文体が全スライドで統一されている\n\n';
+
+      p += '【6】数字・単位・日付\n';
+      p += '  6-1. 数字が全角・半角で混在していない（原則：半角統一）\n';
+      p += '  6-2. 桁区切りカンマの有無が統一されている\n';
+      p += '  6-3. 単位表記が統一されている（「百万円」「M円」が混在しない）\n';
+      p += '  6-4. パーセント表記が統一されている（「%」か「％」かで統一）\n';
+      p += '  6-5. 日付・年度の表記形式が統一されている\n\n';
+
+      p += '【7】表・グラフ内の数値整合性\n';
+      p += '  7-1. 表の合計行・合計列が各セルの合計と一致している\n';
+      p += '  7-2. 構成比（%）の合計が100%になっている\n';
+      p += '  7-3. 前年比・増減率の計算値が元の数値から正しく導出されている\n';
+      p += '  7-4. グラフのデータラベルの数値が凡例・軸の値と整合している\n';
+      p += '  7-5. 「うち〇〇」「内訳」の合計が上位の集計値と一致している\n\n';
+
+      p += '【8】前後スライドとの整合性\n';
+      p += '  8-1. エグゼクティブサマリーの数値・結論が本編の詳細スライドと矛盾していない\n';
+      p += '  8-2. 「前スライドで述べたとおり」などの参照表現が実際の内容と対応している\n';
+      p += '  8-3. 前のスライドで「3つの課題」と述べた場合、後続で過不足なく展開されている\n';
+      p += '  8-4. ロードマップのマイルストーンが他スライドのスケジュールと一致している\n\n';
+
+      p += '【9】Citation（出典・引用）の記載揺れ\n';
+      p += '  9-1. 出典の記載形式が全スライドで統一されている（「出典：」「Source:」が混在しない）\n';
+      p += '  9-2. 出典の記載位置・フォントサイズ・色が統一されている\n';
+      p += '  9-3. 調査会社・レポート名の表記が統一されている\n';
+      p += '  9-4. Citationが必要な図・グラフ・数値で出典が抜けていない\n\n';
+
+      p += '【10】キーメッセージの記載揺れ\n';
+      p += '  10-1. エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している\n';
+      p += '  10-2. 目次・アジェンダでの章タイトルと各章の扉スライドのタイトルが完全に一致している\n';
+      p += '  10-3. 同一の提言・施策名が複数スライドに登場する場合、表現が統一されている\n';
+      p += '  10-4. 結論・提言で示されたアクション数・施策数が本編の展開数と一致している\n';
+      p += '  10-5. メッセージラインの数値・割合が本文・図表の数値と一致している\n\n';
+
+      p += '【11】カラー（色）の使用揺れ\n';
+      p += '  11-1. 同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている\n';
+      p += '  11-2. 強調色（アクセントカラー）が全スライドで統一されている\n';
+      p += '  11-3. 同一の系列・セグメントが異なるスライドで異なる色になっていない\n';
+      p += '  11-4. ブランドカラーパレット外の色が使用されていない\n\n';
+    }
+
+    if(mode === 'full' || mode === 'content') {
+      p += '─── SECTION 2：コンテンツ品質チェック ───\n\n';
+      p += '【12】1スライド1メッセージの原則\n';
+      p += '  12-1. 各スライドにSo What（主張・結論）が1文で書かれているか\n';
+      p += '  12-2. メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）\n';
+      p += '  12-3. 1枚のスライドに複数の独立したメッセージが混在していないか\n';
+      p += '  12-4. ボディがメッセージラインを「証明・補足」する構成になっているか\n\n';
+
+      p += '【13】デッキ全体のストーリー性\n';
+      p += '  13-1. 全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか\n';
+      p += '  13-2. デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか\n';
+      p += '  13-3. 各章・セクションの役割が明確で、章の順序が自然か\n';
+      p += '  13-4. 論点が脱線・散漫になっているスライドがないか\n';
+      p += '  13-5. エグゼクティブサマリーだけで全体の主張・提言が自己完結して理解できるか\n\n';
+
+      p += '【14】各スライドの結論明確性\n';
+      p += '  14-1. スライドの「結論」が何かが一目で明確か（事実の羅列に終わっていないか）\n';
+      p += '  14-2. データや図が「示唆（So What）」まで落とし込まれているか\n';
+      p += '  14-3. 図・グラフのタイトルが「データの説明」でなく「示唆・メッセージ」になっているか\n\n';
+    }
+  }
+
+  // 出力形式（共通）
+  p += '════════════════════════════════════\n';
+  p += '【出力形式】\n';
+  p += '════════════════════════════════════\n\n';
+  p += 'NG・要確認の指摘は以下のブロック形式で出力してください。\n';
+  p += 'スライド番号だけでなく「スライド内のどこか」まで必ず明記し、問題テキスト・数値は「」で引用してください。\n\n';
+  p += '位置の表記形式：\n';
+  p += '  スライドN｜メッセージライン\n';
+  p += '  スライドN｜本文 箇条書きX行目\n';
+  p += '  スライドN｜図表「〇〇」タイトル\n';
+  p += '  スライドN｜表「〇〇」X行Y列目\n';
+  p += '  スライドN｜注釈・Citation欄\n\n';
+  p += '─── 指摘ブロック形式 ───\n\n';
+  p += '### [No.XX] ❌NG または ⚠️要確認｜項目番号：XX-X\n\n';
+  p += '**箇所①** スライドN｜位置\n';
+  p += '| | テキスト・数値 |\n';
+  p += '|---|---|\n';
+  p += '| 🔴 原文 | 「問題のある文章・数値」 |\n';
+  p += '| ✅ 修正案 | 「修正後の文章・数値」 |\n\n';
+  p += '**問題の説明：** 問題の内容と修正理由を簡潔に記載\n\n';
+  p += '─────────────────────────\n\n';
+
+  if(mode === 'full' || mode === 'content') {
+    p += '最後に全スライドのメッセージラインを以下の表形式で一覧出力してください：\n\n';
+    p += '| スライド | メッセージライン | 評価 |\n';
+    p += '|---|---|---|\n';
+    p += '| 1 | 〇〇 | ✅ |\n';
+    p += '| 2 | 〇〇 | ⚠️ 体言止め |\n';
+    p += '（以降同様）\n\n';
+  }
+
+  p += '最後に「総合コメント」として、全体の完成度・特に注意すべき傾向・最優先の改善アクションを記載してください。\n';
+
+  // 出力
+  var out = document.getElementById('promptOutput');
+  out.value = p;
+  document.getElementById('promptOutputCard').style.display = 'block';
+  document.getElementById('copyBtn').style.display = 'inline-block';
+  document.getElementById('copyMsg').style.display = 'none';
+  document.getElementById('promptCharCount').innerText = p.length.toLocaleString() + ' 文字';
+  setStatus2('プロンプトを生成しました（' + p.length.toLocaleString() + '文字）');
+}
+
+function copyPrompt() {
+  var out = document.getElementById('promptOutput');
+  out.select();
+  document.execCommand('copy');
+  document.getElementById('copyMsg').style.display = 'inline';
+  setTimeout(function(){ document.getElementById('copyMsg').style.display='none'; }, 3000);
+  setStatus2('クリップボードにコピーしました');
+}
+
+// ══════════════════════════════════════
+// A-1 表記揺れ
+// ══════════════════════════════════════
+function renderWording() {
+  var tb = document.getElementById('tbodyWording');
+  tb.innerHTML = '';
+  DATA.wording.forEach(function(r) {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><input type="text" value="' + esc(r.correct) + '" onchange="updateWording(' + r.id + ',\'correct\',this.value)"></td>' +
+      '<td><input type="text" value="' + esc(r.wrong) + '" onchange="updateWording(' + r.id + ',\'wrong\',this.value)"></td>' +
+      '<td><button class="del-btn" onclick="removeWording(' + r.id + ')">✕</button></td>';
+    tb.appendChild(tr);
+  });
+}
+function addWording() {
+  var c = document.getElementById('newWordCorrect').value.trim();
+  var w = document.getElementById('newWordWrong').value.trim();
+  if (!c) { alert('正式表記を入力してください'); return; }
+  DATA.wording.push({ id: Date.now(), correct: c, wrong: w });
+  document.getElementById('newWordCorrect').value = '';
+  document.getElementById('newWordWrong').value = '';
+  renderWording();
+}
+function removeWording(id) {
+  DATA.wording = DATA.wording.filter(function(r){ return r.id !== id; });
+  renderWording();
+}
+function updateWording(id, field, val) {
+  DATA.wording.forEach(function(r){ if(r.id===id) r[field]=val; });
+}
+
+// ══════════════════════════════════════
+// A-2 禁止キーワード
+// ══════════════════════════════════════
+var BANNED_CATS = ["社外秘・機密","不適切・品位を損なう表現","過度な断言表現","作業中痕跡"];
+function renderBanned() {
+  var c = document.getElementById('bannedContainer');
+  c.innerHTML = '';
+  BANNED_CATS.forEach(function(cat) {
+    var items = DATA.banned.filter(function(r){ return r.cat===cat; });
+    var card = document.createElement('div');
+    card.className = 'card';
+    var rows = items.map(function(r){
+      return '<tr><td><input type="text" value="' + esc(r.kw) + '" onchange="updateBanned(' + r.id + ',this.value)"></td>' +
+             '<td style="width:50px"><button class="del-btn" onclick="removeBanned(' + r.id + ')">✕</button></td></tr>';
+    }).join('');
+    card.innerHTML = '<div class="card-header"><span class="cat-label">'+cat+'</span></div>' +
+      '<div class="card-body"><table><tbody>' + (rows||'<tr><td colspan="2" style="color:#9ca3af;font-size:12px">（未登録）</td></tr>') + '</tbody></table></div>';
+    c.appendChild(card);
+  });
+}
+function addBanned() {
+  var cat = document.getElementById('newBannedCat').value;
+  var kw  = document.getElementById('newBannedKw').value.trim();
+  if (!kw) { alert('キーワードを入力してください'); return; }
+  DATA.banned.push({ id: Date.now(), cat: cat, kw: kw });
+  document.getElementById('newBannedKw').value = '';
+  renderBanned();
+}
+function removeBanned(id) {
+  DATA.banned = DATA.banned.filter(function(r){ return r.id !== id; });
+  renderBanned();
+}
+function updateBanned(id, val) {
+  DATA.banned.forEach(function(r){ if(r.id===id) r.kw=val; });
+}
+
+// ══════════════════════════════════════
+// A-3 禁止オブジェクト
+// ══════════════════════════════════════
+var OBJ_CATS = ["禁止オブジェクト","禁止デザイン"];
+function renderObjects() {
+  var c = document.getElementById('objectContainer');
+  c.innerHTML = '';
+  OBJ_CATS.forEach(function(cat) {
+    var items = DATA.objects.filter(function(r){ return r.cat===cat; });
+    var card = document.createElement('div');
+    card.className = 'card';
+    var rows = items.map(function(r){
+      return '<tr><td><input type="text" value="' + esc(r.item) + '" onchange="updateObject(' + r.id + ',this.value)"></td>' +
+             '<td style="width:50px"><button class="del-btn" onclick="removeObject(' + r.id + ')">✕</button></td></tr>';
+    }).join('');
+    card.innerHTML = '<div class="card-header"><span class="cat-label">'+cat+'</span></div>' +
+      '<div class="card-body"><table><tbody>' + (rows||'<tr><td colspan="2" style="color:#9ca3af;font-size:12px">（未登録）</td></tr>') + '</tbody></table></div>';
+    c.appendChild(card);
+  });
+}
+function addObject() {
+  var cat  = document.getElementById('newObjCat').value;
+  var item = document.getElementById('newObjItem').value.trim();
+  if (!item) { alert('要素を入力してください'); return; }
+  DATA.objects.push({ id: Date.now(), cat: cat, item: item });
+  document.getElementById('newObjItem').value = '';
+  renderObjects();
+}
+function removeObject(id) {
+  DATA.objects = DATA.objects.filter(function(r){ return r.id !== id; });
+  renderObjects();
+}
+function updateObject(id, val) {
+  DATA.objects.forEach(function(r){ if(r.id===id) r.item=val; });
+}
+
+// ══════════════════════════════════════
+// 点検リスト
+// ══════════════════════════════════════
+var openSecs = {1:true};
+function renderChecklist() {
+  var c = document.getElementById('checklistContainer');
+  c.innerHTML = '';
+  CHECKLIST.forEach(function(sec) {
+    var ngCnt=0, warnCnt=0;
+    sec.items.forEach(function(_,i){
+      var k = sec.id+'-'+i;
+      if(DATA.statuses[k]==='ng')   ngCnt++;
+      if(DATA.statuses[k]==='warn') warnCnt++;
+    });
+    var badges = (ngCnt?'<span style="color:#dc2626;font-weight:700;font-size:11px;margin-left:6px">❌ '+ngCnt+'</span>':'') +
+                 (warnCnt?'<span style="color:#d97706;font-weight:700;font-size:11px;margin-left:4px">⚠️ '+warnCnt+'</span>':'');
+
+    var card = document.createElement('div');
+    card.className = 'card';
+    var isOpen = openSecs[sec.id];
+
+    var itemsHtml = sec.items.map(function(item, i) {
+      var k = sec.id+'-'+i;
+      var st = DATA.statuses[k] || 'none';
+      var showDiff = (st==='warn'||st==='ng') ? 'show' : '';
+      return '<div class="checklist-item">' +
+        '<div class="item-top">' +
+          '<div class="item-no">' + sec.id + '-' + (i+1) + '</div>' +
+          '<div style="flex:1">' +
+            '<div class="item-text">' + item + '</div>' +
+            '<div class="item-buttons">' +
+              makeStatusBtn(k,'ok',st) + makeStatusBtn(k,'warn',st) + makeStatusBtn(k,'ng',st) +
+            '</div>' +
+            '<div class="diff-box ' + showDiff + '" id="diff_'+k+'">' +
+              '<div class="diff-row">' +
+                '<div class="diff-col"><div class="diff-label before">🔴 原文</div>' +
+                  '<textarea rows="2" onchange="DATA.befores[\''+k+'\']=this.value" placeholder="問題のある原文を貼り付け" style="border-color:#fca5a5">'+esc(DATA.befores[k]||'')+'</textarea>' +
+                '</div>' +
+                '<div class="diff-col"><div class="diff-label after">✅ 修正案</div>' +
+                  '<textarea rows="2" onchange="DATA.afters[\''+k+'\']=this.value" placeholder="修正後の文章・数値" style="border-color:#86efac">'+esc(DATA.afters[k]||'')+'</textarea>' +
+                '</div>' +
+              '</div>' +
+              '<div class="diff-row loc-row">' +
+                '<div style="flex:1"><div class="diff-label loc">📍 該当箇所</div>' +
+                  '<input type="text" onchange="DATA.locs[\''+k+'\']=this.value" value="'+esc(DATA.locs[k]||'')+'" placeholder="例）スライド8｜メッセージライン">' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    card.innerHTML =
+      '<div class="card-header" onclick="toggleSec('+sec.id+')">' +
+        '<span class="arrow' + (isOpen?' open':'') + '" id="arrow'+sec.id+'">▶</span>' +
+        '<span style="flex:1">【'+sec.id+'】'+sec.title+'</span>' + badges +
+      '</div>' +
+      '<div id="secbody'+sec.id+'" style="display:'+(isOpen?'block':'none')+'">' +
+        '<div class="card-body">' + itemsHtml + '</div>' +
+      '</div>';
+    c.appendChild(card);
+  });
+}
+function makeStatusBtn(k, s, current) {
+  var labels = {ok:'✅ OK', warn:'⚠️ 要確認', ng:'❌ NG'};
+  var act = current===s ? ' active' : '';
+  return '<button class="status-btn '+s+act+'" onclick="setStatus(\''+k+'\',\''+s+'\')">' + labels[s] + '</button>';
+}
+function setStatus(k, s) {
+  DATA.statuses[k] = DATA.statuses[k]===s ? 'none' : s;
+  renderChecklist();
+  renderSummary();
+}
+function toggleSec(id) {
+  openSecs[id] = !openSecs[id];
+  document.getElementById('secbody'+id).style.display = openSecs[id] ? 'block' : 'none';
+  var a = document.getElementById('arrow'+id);
+  a.className = 'arrow' + (openSecs[id]?' open':'');
+}
+
+// ══════════════════════════════════════
+// サマリー
+// ══════════════════════════════════════
+function renderSummary() {
+  var cnt = {ok:0,warn:0,ng:0,none:0};
+  CHECKLIST.forEach(function(sec){
+    sec.items.forEach(function(_,i){
+      var k=sec.id+'-'+i;
+      cnt[DATA.statuses[k]||'none']++;
+    });
+  });
+  var bar = document.getElementById('summaryBar');
+  bar.innerHTML =
+    '<div class="summary-tile tile-ok"><div class="num">'+cnt.ok+'</div><div class="lbl">✅ OK</div></div>' +
+    '<div class="summary-tile tile-warn"><div class="num">'+cnt.warn+'</div><div class="lbl">⚠️ 要確認</div></div>' +
+    '<div class="summary-tile tile-ng"><div class="num">'+cnt.ng+'</div><div class="lbl">❌ NG</div></div>' +
+    '<div class="summary-tile tile-none"><div class="num">'+cnt.none+'</div><div class="lbl">未評価</div></div>';
+}
+
+// ══════════════════════════════════════
+// レポート
+// ══════════════════════════════════════
+function renderReport() {
+  var c = document.getElementById('reportContainer');
+  var issues = [];
+  CHECKLIST.forEach(function(sec){
+    sec.items.forEach(function(item,i){
+      var k = sec.id+'-'+i;
+      var st = DATA.statuses[k];
+      if(st==='ng'||st==='warn'){
+        issues.push({ no:'No.'+(issues.length+1<10?'0':'')+(issues.length+1), sec:sec.id, item:item, st:st,
+          before:DATA.befores[k]||'', after:DATA.afters[k]||'', loc:DATA.locs[k]||'' });
+      }
+    });
+  });
+
+  if(!issues.length){
+    c.innerHTML = '<div class="card"><div class="card-body" style="color:#16a34a;font-weight:700;padding:20px">🎉 NG・要確認の項目はありません。</div></div>';
+    return;
+  }
+
+  var html = issues.map(function(iss,idx) {
+    var stLabel = iss.st==='ng' ? '❌ NG' : '⚠️ 要確認';
+    var stColor = iss.st==='ng' ? '#dc2626' : '#d97706';
+    var stBg    = iss.st==='ng' ? '#fee2e2' : '#fef9c3';
+    return '<div class="card" style="border-left:4px solid '+stColor+'">' +
+      '<div class="card-body">' +
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">' +
+          '<span style="font-weight:900;font-size:13px;color:'+stColor+'">['+(idx+1<10?'0'+(idx+1):idx+1)+'] '+stLabel+'</span>' +
+          '<span style="font-size:12px;color:#6b7280">項目 ' + iss.sec + '</span>' +
+        '</div>' +
+        '<div style="font-weight:700;margin-bottom:10px;font-size:13px">'+iss.item+'</div>' +
+        (iss.loc ? '<div style="margin-bottom:8px"><span class="diff-label loc">📍 該当箇所</span> <span style="font-size:12px">'+esc2(iss.loc)+'</span></div>' : '') +
+        '<table style="width:100%;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;border-collapse:collapse">' +
+          '<tr><td style="width:90px;padding:10px 12px;background:#fee2e2;font-weight:700;font-size:12px;color:#dc2626;vertical-align:top">🔴 原文</td>' +
+               '<td style="padding:10px 12px;font-size:13px;white-space:pre-wrap;background:#fff">' + (esc2(iss.before)||'<span style="color:#9ca3af">（未記入）</span>') + '</td></tr>' +
+          '<tr style="border-top:1px solid #e5e7eb"><td style="padding:10px 12px;background:#dcfce7;font-weight:700;font-size:12px;color:#16a34a;vertical-align:top">✅ 修正案</td>' +
+               '<td style="padding:10px 12px;font-size:13px;white-space:pre-wrap;background:#fff">' + (esc2(iss.after)||'<span style="color:#9ca3af">（未記入）</span>') + '</td></tr>' +
+        '</table>' +
+      '</div></div>';
+  }).join('');
+
+  c.innerHTML = '<div style="margin-bottom:12px;font-weight:700;font-size:13px;color:#374151">指摘件数：' + issues.length + ' 件</div>' + html;
+}
+
+// ══════════════════════════════════════
+// リセット
+// ══════════════════════════════════════
+function resetChecklist() {
+  if(!confirm('点検リストの評価・原文・修正案をすべてリセットしますか？\n（A-1〜A-3のリストは保持されます）')) return;
+  DATA.statuses = {}; DATA.befores = {}; DATA.afters = {}; DATA.locs = {};
+  renderChecklist(); renderSummary();
+  setStatus2('点検リストをリセットしました');
+}
+
+// ══════════════════════════════════════
+// 保存・読み込み（JSから VBS へ橋渡し）
+// ══════════════════════════════════════
+function saveData() {
+  window.external.getData = function(){ return JSON.stringify(DATA); };
+  window.execScript('saveData()', 'VBScript');
+}
+function loadData() {
+  window.external.setData = function(json) {
+    try {
+      var d = JSON.parse(json);
+      DATA.wording  = d.wording  || DATA.wording;
+      DATA.banned   = d.banned   || DATA.banned;
+      DATA.objects  = d.objects  || DATA.objects;
+      DATA.statuses = d.statuses || {};
+      DATA.befores  = d.befores  || {};
+      DATA.afters   = d.afters   || {};
+      DATA.locs     = d.locs     || {};
+      renderAll();
+      setStatus2('読み込み完了');
+    } catch(e) { alert('読み込みエラー: ' + e.message); }
+  };
+  window.execScript('loadData()', 'VBScript');
+}
+function exportReport() {
+  var now = new Date();
+  var dateStr = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
+  var issues = [];
+  CHECKLIST.forEach(function(sec){
+    sec.items.forEach(function(item,i){
+      var k=sec.id+'-'+i;
+      var st=DATA.statuses[k];
+      if(st==='ng'||st==='warn') issues.push({no:issues.length+1,sec:sec.id,item:item,st:st,
+        before:DATA.befores[k]||'',after:DATA.afters[k]||'',loc:DATA.locs[k]||''});
+    });
+  });
+
+  var rows = issues.map(function(iss,idx){
+    var stLabel = iss.st==='ng'?'❌ NG':'⚠️ 要確認';
+    var stColor = iss.st==='ng'?'#dc2626':'#d97706';
+    return '<tr style="vertical-align:top">' +
+      '<td style="padding:8px;border:1px solid #e5e7eb;white-space:nowrap;font-weight:700;color:'+stColor+'">' + stLabel + '</td>' +
+      '<td style="padding:8px;border:1px solid #e5e7eb">'+iss.sec+'</td>' +
+      '<td style="padding:8px;border:1px solid #e5e7eb">'+esc2(iss.item)+'</td>' +
+      '<td style="padding:8px;border:1px solid #e5e7eb">'+esc2(iss.loc)+'</td>' +
+      '<td style="padding:8px;border:1px solid #e5e7eb;background:#fff5f5">'+esc2(iss.before)+'</td>' +
+      '<td style="padding:8px;border:1px solid #e5e7eb;background:#f0fdf4">'+esc2(iss.after)+'</td>' +
+    '</tr>';
+  }).join('');
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PPTX点検レポート</title>' +
+    '<style>body{font-family:"メイリオ",Meiryo,sans-serif;padding:24px;background:#f8fafc}h1{font-size:18px;margin-bottom:4px}' +
+    'table{width:100%;border-collapse:collapse}th{background:#1e3a5f;color:white;padding:10px;text-align:left;font-size:12px;border:1px solid #1e3a5f}' +
+    'td{font-size:12px}tr:nth-child(even) td{background:#f9fafb}</style></head><body>' +
+    '<h1>📋 PPTX 点検レポート</h1><p style="color:#6b7280;margin-bottom:20px">作成日：'+dateStr+' ／ 指摘件数：'+issues.length+'件</p>' +
+    '<table><thead><tr><th style="width:90px">評価</th><th style="width:50px">項目</th><th style="width:280px">点検項目</th>' +
+    '<th style="width:180px">該当箇所</th><th style="width:200px">🔴 原文</th><th style="width:200px">✅ 修正案</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody></table></body></html>';
+
+  window.external.exportReportFile = function(){ return html; };
+  window.execScript('exportReportFile(window.external.exportReportFile())', 'VBScript');
+}
+
+// ══════════════════════════════════════
+// ユーティリティ
+// ══════════════════════════════════════
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function esc2(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function setStatus2(msg) {
+  document.getElementById('statusMsg').innerText = msg;
+  var now = new Date();
+  document.getElementById('statusTime').innerText =
+    now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+}
+function renderAll() {
+  renderWording();
+  renderBanned();
+  renderObjects();
+  renderChecklist();
+  renderSummary();
+}
+
+// ── 時計 ──
+function updateClock() {
+  var now = new Date();
+  document.getElementById('statusTime').innerText =
+    now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes()+':'+
+    (now.getSeconds()<10?'0':'')+now.getSeconds();
+}
+setInterval(updateClock, 1000);
+
+// ── 初期描画 ──
+renderAll();
+setStatus2('準備完了');
+</script>
+</body>
+</html>
