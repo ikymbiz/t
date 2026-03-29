@@ -15,170 +15,127 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: "Meiryo","MS Gothic",sans-serif; background: #eef2f7; font-size: 13px; color: #1a1a2e; padding-bottom: 40px; }
-
-/* ヘッダー */
 #hdr { background: #1a1a2e; color: #fff; padding: 0 20px; }
-#hdr h1 { font-size: 16px; font-weight: bold; padding: 14px 0 0; letter-spacing: 1px; }
+#hdr h1 { font-size: 16px; font-weight: bold; padding: 14px 0 0; }
 #hdr .sub { font-size: 10px; color: #8899bb; padding: 2px 0 10px; }
-
-/* タブ */
 #tabs { background: #1a1a2e; padding: 0 20px; }
-.tab { display: inline-block; padding: 9px 16px; font-size: 12px; font-weight: bold;
-       cursor: pointer; color: #8899bb; border-top: 3px solid transparent;
-       border-left: 1px solid transparent; border-right: 1px solid transparent;
-       background: transparent; margin-right: 2px; }
-.tab.on { background: #eef2f7; color: #1a1a2e; border-top: 3px solid #4f86f7;
-           border-left: 1px solid #cdd; border-right: 1px solid #cdd; }
+.tab { display: inline-block; padding: 9px 16px; font-size: 12px; font-weight: bold; cursor: pointer; color: #8899bb; border-top: 3px solid transparent; }
+.tab.on { background: #eef2f7; color: #1a1a2e; border-top: 3px solid #4f86f7; }
 .tab:hover { color: #fff; }
-
-/* ツールバー */
 #toolbar { background: #fff; border-bottom: 2px solid #dde4f0; padding: 8px 20px; }
-.btn { display: inline-block; padding: 6px 14px; font-size: 12px; font-weight: bold;
-       border: none; cursor: pointer; border-radius: 4px; margin-right: 6px; font-family: inherit; }
+.btn { display: inline-block; padding: 6px 14px; font-size: 12px; font-weight: bold; border: none; cursor: pointer; border-radius: 4px; margin-right: 6px; font-family: inherit; }
 .btn-blue  { background: #4f86f7; color: #fff; }
 .btn-green { background: #27ae60; color: #fff; }
 .btn-gray  { background: #e8edf5; color: #333; border: 1px solid #bcc; }
-.btn-red   { background: #e74c3c; color: #fff; }
 .btn-orange{ background: #e67e22; color: #fff; }
 .sep { display: inline-block; width: 1px; height: 22px; background: #dde; margin: 0 8px; vertical-align: middle; }
 #fileLabel { font-size: 11px; color: #888; vertical-align: middle; }
-
-/* メイン */
 #main { padding: 18px 20px; }
 .panel { display: none; }
 .panel.on { display: block; }
-
-/* カード */
 .card { background: #fff; border: 1px solid #dde4f0; border-radius: 6px; margin-bottom: 14px; }
-.card-hdr { background: #f4f7fd; border-bottom: 1px solid #dde4f0; padding: 10px 14px;
-             font-weight: bold; font-size: 13px; border-radius: 6px 6px 0 0; cursor: pointer; }
+.card-hdr { background: #f4f7fd; border-bottom: 1px solid #dde4f0; padding: 10px 14px; font-weight: bold; font-size: 13px; border-radius: 6px 6px 0 0; cursor: pointer; }
 .card-hdr:hover { background: #e8eef8; }
 .card-body { padding: 14px; }
-
-/* テーブル */
-table { width: 100%; border-collapse: collapse; }
-th { background: #2c3e6b; color: #fff; padding: 8px 10px; font-size: 12px; text-align: left; }
-td { padding: 7px 10px; border-bottom: 1px solid #eef; vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr:hover td { background: #f8faff; }
-
-/* フォーム */
-input[type=text], select, textarea {
-  border: 1px solid #c0cce0; border-radius: 4px; padding: 5px 8px;
-  font-size: 12px; font-family: inherit; width: 100%;
-}
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { background: #2c3e6b; color: #fff; padding: 8px 10px; font-size: 12px; text-align: left; }
+.tbl td { padding: 7px 10px; border-bottom: 1px solid #eef; vertical-align: middle; }
+input[type=text], select, textarea { border: 1px solid #c0cce0; border-radius: 4px; padding: 5px 8px; font-size: 12px; font-family: inherit; width: 100%; }
 input[type=text]:focus, select:focus, textarea:focus { border-color: #4f86f7; outline: none; }
 textarea { resize: vertical; }
-
-/* ボタン小 */
 .del { background: #fde; color: #c00; border: 1px solid #fbb; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 11px; }
-.add { background: #4f86f7; color: #fff; border: none; border-radius: 4px; padding: 5px 14px; cursor: pointer; font-size: 12px; font-family: inherit; }
-
-/* 点検 */
+.add-btn { background: #4f86f7; color: #fff; border: none; border-radius: 4px; padding: 5px 14px; cursor: pointer; font-size: 12px; font-family: inherit; }
 .chk-item { padding: 10px 0; border-bottom: 1px solid #f0f2f8; }
 .chk-item:last-child { border-bottom: none; }
-.chk-no { font-size: 11px; color: #aaa; font-weight: bold; display: inline-block; width: 36px; }
-.chk-txt { font-size: 13px; }
-.sbtn { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;
-         cursor: pointer; margin: 4px 4px 0 0; border: 2px solid; font-family: inherit; }
+.chk-no { font-size: 11px; color: #aaa; font-weight: bold; }
+.sbtn { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; margin: 4px 4px 0 0; border: 2px solid; font-family: inherit; }
 .sbtn-ok   { border-color: #27ae60; color: #27ae60; background: #fff; }
 .sbtn-warn { border-color: #e67e22; color: #e67e22; background: #fff; }
 .sbtn-ng   { border-color: #e74c3c; color: #e74c3c; background: #fff; }
 .sbtn-ok.on   { background: #27ae60; color: #fff; }
 .sbtn-warn.on { background: #e67e22; color: #fff; }
 .sbtn-ng.on   { background: #e74c3c; color: #fff; }
-
-/* 原文修正案 */
 .diff-box { display: none; margin-top: 8px; background: #f8faff; border: 1px solid #dde4f0; border-radius: 4px; padding: 10px; }
 .diff-box.on { display: block; }
 .diff-lbl { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; display: inline-block; margin-bottom: 3px; }
 .lbl-b { background: #fde; color: #c00; }
 .lbl-a { background: #dfd; color: #060; }
 .lbl-l { background: #def; color: #006; }
-
-/* サマリー */
-.sum-box { display: inline-block; width: 100px; text-align: center; padding: 10px; border-radius: 6px; margin-right: 10px; margin-bottom: 10px; vertical-align: top; }
+.sum-box { display: inline-block; width: 100px; text-align: center; padding: 10px; border-radius: 6px; margin: 0 8px 10px 0; vertical-align: top; }
 .sum-num { font-size: 28px; font-weight: bold; }
 .sum-lbl { font-size: 11px; margin-top: 2px; }
 .s-ok   { background: #dff0e8; color: #27ae60; }
 .s-warn { background: #fef6e4; color: #e67e22; }
 .s-ng   { background: #fdecea; color: #e74c3c; }
 .s-none { background: #eef0f5; color: #888; }
-
-/* ステータスバー */
-#statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: #8899bb; font-size: 11px; padding: 5px 18px; }
-
-/* カテゴリバッジ */
 .cat-badge { display: inline-block; background: #e8eef8; color: #2c3e6b; font-size: 11px; font-weight: bold; padding: 2px 8px; border-radius: 3px; margin-bottom: 8px; }
-
-/* アコーディオン矢印 */
-.arr { font-size: 11px; margin-right: 6px; }
-
-/* ガイドボックス */
-.guide { background: #f0f5ff; border: 1px solid #c0d0f0; border-radius: 6px; padding: 12px 14px; margin-bottom: 14px; }
-.guide-step { display: inline-block; background: #4f86f7; color: #fff; border-radius: 50%; width: 22px; height: 22px; text-align: center; line-height: 22px; font-weight: bold; font-size: 12px; margin-right: 6px; }
-
-/* プロンプト出力 */
-#promptOut { width: 100%; font-size: 12px; font-family: "Courier New",monospace; line-height: 1.6;
-              border: 1px solid #c0cce0; border-radius: 4px; padding: 12px; background: #f8faff;
-              resize: vertical; }
+#statusbar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a2e; color: #8899bb; font-size: 11px; padding: 5px 18px; }
+.guide { background: #f0f5ff; border: 1px solid #c0d0f0; border-radius: 6px; padding: 12px 14px; margin-bottom: 14px; line-height: 2; }
+#promptOut { width: 100%; font-size: 12px; font-family: "Courier New",monospace; line-height: 1.6; border: 1px solid #c0cce0; border-radius: 4px; padding: 12px; background: #f8faff; resize: vertical; }
+.addrow td { padding: 0 6px 0 0; border: none; }
+.addrow td:last-child { padding: 0; }
 </style>
 </head>
 <body>
 
 <div id="hdr">
   <div class="sub">戦略コンサルタント向け</div>
-  <h1>&#128203; PPTX 形式点検マネージャー</h1>
+  <h1>PPTX 形式点検マネージャー</h1>
 </div>
 <div id="tabs">
+  <span class="tab"     onclick="sw(6)">CSV設定</span>
   <span class="tab on"  onclick="sw(0)">A-1 表記揺れ</span>
   <span class="tab"     onclick="sw(1)">A-2 禁止キーワード</span>
   <span class="tab"     onclick="sw(2)">A-3 禁止オブジェクト</span>
-  <span class="tab"     onclick="sw(3)">&#10003; 点検リスト</span>
-  <span class="tab"     onclick="sw(4)">&#128202; レポート</span>
-  <span class="tab"     onclick="sw(5)">&#129302; AIプロンプト生成</span>
+  <span class="tab"     onclick="sw(3)">点検リスト</span>
+  <span class="tab"     onclick="sw(4)">レポート</span>
+  <span class="tab"     onclick="sw(5)">AIプロンプト生成</span>
 </div>
 
 <div id="toolbar">
-  <input type="button" class="btn btn-blue"   value="&#128190; 保存"       onclick="doSave()">
-  <input type="button" class="btn btn-gray"   value="&#128194; 読込"       onclick="doLoad()">
+  <input type="button" class="btn btn-blue"   value="保存"         onclick="doSave()">
+  <input type="button" class="btn btn-gray"   value="読込"         onclick="doLoad()">
   <span class="sep"></span>
-  <input type="button" class="btn btn-green"  value="&#128196; レポート出力" onclick="doExport()">
-  <input type="button" class="btn btn-orange" value="&#128260; リセット"    onclick="doReset()">
+  <input type="button" class="btn btn-green"  value="レポート出力" onclick="doExport()">
+  <input type="button" class="btn btn-orange" value="リセット"     onclick="doReset()">
   <span class="sep"></span>
   <span id="fileLabel">（未保存）</span>
 </div>
 
 <div id="main">
 
-<!-- ===== TAB 0: A-1 表記揺れ ===== -->
+<!-- TAB 0 -->
 <div class="panel on" id="p0">
   <div class="card">
-    <div class="card-hdr">&#128260; A-1 &nbsp;表記揺れ注意ワードリスト</div>
+    <div class="card-hdr">A-1 表記揺れ注意ワードリスト</div>
     <div class="card-body">
-      <p style="font-size:11px;color:#666;margin-bottom:10px">同じ意味だが複数の表現が混在しやすいワードを登録してください。AIプロンプトに自動反映されます。</p>
-      <table>
-        <thead><tr><th style="width:35%">正式表記（統一後）</th><th>使用禁止の表記（/ 区切りで複数可）</th><th style="width:44px"></th></tr></thead>
-        <tbody id="tbW"></tbody>
-      </table>
-      <div style="margin-top:10px">
-        <table><tr>
-          <td style="width:35%;padding:0 6px 0 0"><input type="text" id="nWC" placeholder="例）顧客"></td>
-          <td style="padding:0 6px 0 0"><input type="text" id="nWW" placeholder="例）お客様 / クライアント / Client"></td>
-          <td style="width:60px;padding:0"><input type="button" class="add" value="+ 追加" onclick="addW()"></td>
-        </tr></table>
+      <div id="w_sync_bar" style="font-size:11px;margin-bottom:10px;padding:6px 10px;background:#f0f5ff;border:1px solid #c0d0f0;border-radius:4px">
+        <span id="w_sync_msg">CSV未設定 ― 「CSV設定」タブでファイルパスを指定してください</span>
       </div>
+      <div id="wDiv"></div>
+      <table class="tbl" style="margin-top:10px"><tr class="addrow">
+        <td style="width:35%"><input type="text" id="nWC" placeholder="例）顧客"></td>
+        <td><input type="text" id="nWW" placeholder="例）お客様 / クライアント / Client"></td>
+        <td style="width:60px"><input type="button" class="add-btn" value="+ 追加" onclick="addW()"></td>
+      </tr></table>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 1: A-2 禁止キーワード ===== -->
+<!-- TAB 1 -->
 <div class="panel" id="p1">
-  <div id="bannedWrap"></div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-body">
+      <div id="b_sync_bar" style="font-size:11px;padding:6px 10px;background:#f0f5ff;border:1px solid #c0d0f0;border-radius:4px">
+        <span id="b_sync_msg">CSV未設定 ― 「CSV設定」タブでファイルパスを指定してください</span>
+      </div>
+    </div>
+  </div>
+  <div id="bDiv"></div>
   <div class="card">
     <div class="card-body">
-      <table><tr>
-        <td style="width:200px;padding:0 6px 0 0">
+      <table class="tbl"><tr class="addrow">
+        <td style="width:200px">
           <select id="nBCat">
             <option>社外秘・機密</option>
             <option>不適切・品位を損なう表現</option>
@@ -186,67 +143,107 @@ textarea { resize: vertical; }
             <option>作業中痕跡</option>
           </select>
         </td>
-        <td style="padding:0 6px 0 0"><input type="text" id="nBKw" placeholder="追加するキーワード・表現"></td>
-        <td style="width:60px;padding:0"><input type="button" class="add" value="+ 追加" onclick="addB()"></td>
+        <td><input type="text" id="nBKw" placeholder="追加するキーワード・表現"></td>
+        <td style="width:60px"><input type="button" class="add-btn" value="+ 追加" onclick="addB()"></td>
       </tr></table>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 2: A-3 禁止オブジェクト ===== -->
+<!-- TAB 6: CSV設定 -->
+<div class="panel" id="p6">
+  <div class="card">
+    <div class="card-hdr" style="cursor:default">CSV連動設定</div>
+    <div class="card-body">
+      <p style="font-size:11px;color:#555;margin-bottom:14px">
+        ファイルパスを設定すると、データの追加・編集・削除のたびに自動でCSVに書き出し／読み込みます。<br>
+        ExcelでCSVを編集して保存したら「今すぐ再読み込み」で即時反映できます。
+      </p>
+      <table class="tbl" style="margin-bottom:16px">
+        <tr>
+          <td style="width:200px;font-weight:bold;font-size:12px">A-1 表記揺れCSV</td>
+          <td><input type="text" id="wCsvPath" placeholder="例）C:\work\表記揺れ.csv" onchange="onWPathChange()"></td>
+          <td style="width:110px">
+            <input type="button" class="add-btn" value="参照..." onclick="browseW()" style="margin-right:4px">
+          </td>
+        </tr>
+        <tr>
+          <td style="font-weight:bold;font-size:12px">A-2 禁止キーワードCSV</td>
+          <td><input type="text" id="bCsvPath" placeholder="例）C:\work\禁止キーワード.csv" onchange="onBPathChange()"></td>
+          <td>
+            <input type="button" class="add-btn" value="参照..." onclick="browseB()">
+          </td>
+        </tr>
+      </table>
+      <input type="button" class="btn btn-blue"  value="今すぐ再読み込み（A-1）" onclick="reloadW()" style="margin-right:8px">
+      <input type="button" class="btn btn-blue"  value="今すぐ再読み込み（A-2）" onclick="reloadB()">
+      <br><br>
+      <div id="csvSetMsg" style="font-size:11px;color:#27ae60;font-weight:bold"></div>
+      <hr style="margin:16px 0;border-color:#eef">
+      <p style="font-size:11px;color:#888;line-height:1.8">
+        <b>CSV形式（A-1 表記揺れ）</b><br>
+        1列目：正式表記 &nbsp;／&nbsp; 2列目：使用禁止の表記<br>
+        先頭行はヘッダー（例: <code>正式表記,使用禁止の表記</code>）<br><br>
+        <b>CSV形式（A-2 禁止キーワード）</b><br>
+        1列目：カテゴリ &nbsp;／&nbsp; 2列目：キーワード<br>
+        カテゴリ名：社外秘・機密 ／ 不適切・品位を損なう表現 ／ 過度な断言表現 ／ 作業中痕跡<br>
+        先頭行はヘッダー（例: <code>カテゴリ,キーワード</code>）
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 2 -->
 <div class="panel" id="p2">
-  <div id="objWrap"></div>
+  <div id="oDiv"></div>
   <div class="card">
     <div class="card-body">
-      <table><tr>
-        <td style="width:200px;padding:0 6px 0 0">
+      <table class="tbl"><tr class="addrow">
+        <td style="width:200px">
           <select id="nOCat"><option>禁止オブジェクト</option><option>禁止デザイン</option></select>
         </td>
-        <td style="padding:0 6px 0 0"><input type="text" id="nOItem" placeholder="追加する要素"></td>
-        <td style="width:60px;padding:0"><input type="button" class="add" value="+ 追加" onclick="addO()"></td>
+        <td><input type="text" id="nOItem" placeholder="追加する要素"></td>
+        <td style="width:60px"><input type="button" class="add-btn" value="+ 追加" onclick="addO()"></td>
       </tr></table>
     </div>
   </div>
 </div>
 
-<!-- ===== TAB 3: 点検リスト ===== -->
+<!-- TAB 3 -->
 <div class="panel" id="p3">
   <div id="sumBar" style="margin-bottom:14px"></div>
-  <div id="chkWrap"></div>
+  <div id="chkDiv"></div>
 </div>
 
-<!-- ===== TAB 4: レポート ===== -->
+<!-- TAB 4 -->
 <div class="panel" id="p4">
-  <div id="repWrap"></div>
+  <div id="repDiv"></div>
 </div>
 
-<!-- ===== TAB 5: AIプロンプト生成 ===== -->
+<!-- TAB 5 -->
 <div class="panel" id="p5">
   <div class="guide">
-    <b>&#128204; 使い方</b><br><br>
-    <span class="guide-step">1</span> A-1〜A-3タブでリストを登録<br>
-    <span class="guide-step" style="margin-top:6px;display:inline-block">2</span> 下の「プロンプト生成」ボタンを押す<br>
-    <span class="guide-step" style="margin-top:6px;display:inline-block">3</span> 「コピー」してClaudeに貼り付け＋PPTXを添付して送信
+    <b>使い方</b><br>
+    1. A-1〜A-3タブでリストを登録<br>
+    2. 「プロンプト生成」ボタンを押す<br>
+    3. 「コピー」してClaudeに貼り付け + PPTXを添付して送信
   </div>
-
   <div class="card" style="margin-bottom:12px">
-    <div class="card-hdr" style="cursor:default">&#9881; 生成オプション</div>
+    <div class="card-hdr" style="cursor:default">生成オプション</div>
     <div class="card-body">
       <b style="font-size:12px">モード：</b><br>
-      <label style="display:inline-block;margin:6px 16px 0 0"><input type="radio" name="mode" value="full" checked> 全項目点検（完全版）</label>
-      <label style="display:inline-block;margin:6px 16px 0 0"><input type="radio" name="mode" value="fmt"> 表記・書式のみ</label>
-      <label style="display:inline-block;margin:6px 16px 0 0"><input type="radio" name="mode" value="cnt"> コンテンツ品質のみ</label>
-      <label style="display:inline-block;margin:6px 0 0 0">  <input type="radio" name="mode" value="ng"> NG・要確認の再点検</label>
+      <label style="margin:6px 16px 0 0;display:inline-block"><input type="radio" name="mode" value="full" checked> 全項目点検（完全版）</label>
+      <label style="margin:6px 16px 0 0;display:inline-block"><input type="radio" name="mode" value="fmt"> 表記・書式のみ</label>
+      <label style="margin:6px 16px 0 0;display:inline-block"><input type="radio" name="mode" value="cnt"> コンテンツ品質のみ</label>
+      <label style="margin:6px 0 0 0;display:inline-block"><input type="radio" name="mode" value="ng"> NG・要確認の再点検</label>
       <br><br>
       <b style="font-size:12px">対象スライド：</b>
-      <input type="text" id="scope" placeholder="例）全スライド　または　スライド3〜15のみ" style="width:360px;margin-left:8px">
+      <input type="text" id="scope" placeholder="例）全スライド　または　スライド3〜15のみ" style="width:360px;margin-left:8px;display:inline-block;width:auto">
     </div>
   </div>
-
-  <input type="button" class="btn btn-blue" value="&#9889; プロンプト生成" onclick="genPrompt()" style="font-size:13px;padding:8px 20px">
-  <input type="button" class="btn btn-green" id="cpBtn" value="&#128203; コピー" onclick="cpPrompt()" style="display:none;font-size:13px;padding:8px 20px">
-  <span id="cpMsg" style="font-size:12px;color:#27ae60;font-weight:bold;display:none">&#10003; コピーしました！</span>
-
+  <input type="button" class="btn btn-blue"  value="プロンプト生成" onclick="genPrompt()" style="font-size:13px;padding:8px 20px">
+  <input type="button" class="btn btn-green" id="cpBtn" value="コピー" onclick="cpPrompt()" style="display:none;font-size:13px;padding:8px 20px">
+  <span id="cpMsg" style="font-size:12px;color:#27ae60;font-weight:bold;display:none">コピーしました！</span>
   <div class="card" id="promptCard" style="display:none;margin-top:12px">
     <div class="card-hdr" style="cursor:default">生成されたプロンプト <span id="charCnt" style="font-size:11px;color:#888;font-weight:normal"></span></div>
     <div class="card-body" style="padding:0">
@@ -255,21 +252,287 @@ textarea { resize: vertical; }
   </div>
 </div>
 
-</div><!-- /main -->
-
+</div>
+<input type="hidden" id="_csvBuf" value="">
 <div id="statusbar"><span id="stMsg">準備完了</span></div>
 
-<!-- VBScript: ファイルI/O -->
 <script language="VBScript">
-Dim gSavePath
+Dim gPath
+
+
+' ── JS→VBS ファイル書き込み ──
+Function vbsWriteFile(p, content)
+  Dim fso, f
+  On Error Resume Next
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  Set f = fso.OpenTextFile(p, 2, True, -1)
+  If Err.Number <> 0 Then
+    MsgBox "書き込みエラー: " & p & Chr(13) & Err.Description, 16, "エラー"
+    vbsWriteFile = False
+    Exit Function
+  End If
+  f.Write content
+  f.Close
+  vbsWriteFile = True
+  On Error GoTo 0
+End Function
+
+' ── JS→VBS ファイル読み込み ──
+Function vbsReadFile(p)
+  Dim fso, f
+  On Error Resume Next
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FileExists(p) Then
+    MsgBox "ファイルが見つかりません: " & p, 16, "エラー"
+    vbsReadFile = Null
+    Exit Function
+  End If
+  Set f = fso.OpenTextFile(p, 1, False, -1)
+  vbsReadFile = f.ReadAll
+  f.Close
+  On Error GoTo 0
+End Function
+
+' ── A-1参照ダイアログ ──
+Sub browseW()
+  Dim p
+  p = InputBox("A-1 表記揺れCSVのフルパスを入力（例: C:\work\表記揺れ.csv）", "CSVファイル選択", document.getElementById("wCsvPath").value)
+  If p = "" Then Exit Sub
+  If Right(p,4) <> ".csv" Then p = p & ".csv"
+  document.getElementById("wCsvPath").value = p
+  ' JSのonWPathChangeを呼ぶ
+  window.execScript "onWPathChange()", "JavaScript"
+  ' 存在すれば即読み込み
+  Dim fso
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If fso.FileExists(p) Then
+    window.execScript "reloadW()", "JavaScript"
+  Else
+    ' 新規作成
+    Dim f
+    Set f = fso.OpenTextFile(p, 2, True, -1)
+    f.Write Chr(239) & Chr(187) & Chr(191) & "正式表記,使用禁止の表記" & Chr(13) & Chr(10)
+    f.Close
+    setSt "新規CSVを作成しました: " & p
+  End If
+End Sub
+
+' ── A-2参照ダイアログ ──
+Sub browseB()
+  Dim p
+  p = InputBox("A-2 禁止キーワードCSVのフルパスを入力（例: C:\work\禁止キーワード.csv）", "CSVファイル選択", document.getElementById("bCsvPath").value)
+  If p = "" Then Exit Sub
+  If Right(p,4) <> ".csv" Then p = p & ".csv"
+  document.getElementById("bCsvPath").value = p
+  window.execScript "onBPathChange()", "JavaScript"
+  Dim fso
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If fso.FileExists(p) Then
+    window.execScript "reloadB()", "JavaScript"
+  Else
+    Dim f
+    Set f = fso.OpenTextFile(p, 2, True, -1)
+    f.Write Chr(239) & Chr(187) & Chr(191) & "カテゴリ,キーワード" & Chr(13) & Chr(10)
+    f.Close
+    setSt "新規CSVを作成しました: " & p
+  End If
+End Sub
+
+' ── CSV共通：フィールドをクォート ──
+Function csvQ(s)
+  s = Replace(s, """", """""")
+  If InStr(s, ",") > 0 Or InStr(s, """") > 0 Then
+    csvQ = """" & s & """"
+  Else
+    csvQ = s
+  End If
+End Function
+
+' ── CSV共通：1行をフィールド配列に分割 ──
+Function csvSplit(line)
+  Dim fields(50), n, i, c, inQ, buf
+  n = 0 : inQ = False : buf = ""
+  For i = 1 To Len(line)
+    c = Mid(line, i, 1)
+    If inQ Then
+      If c = """" Then
+        If Mid(line, i+1, 1) = """" Then
+          buf = buf & """" : i = i + 1
+        Else
+          inQ = False
+        End If
+      Else
+        buf = buf & c
+      End If
+    Else
+      If c = """" Then
+        inQ = True
+      ElseIf c = "," Then
+        fields(n) = buf : n = n + 1 : buf = ""
+      Else
+        buf = buf & c
+      End If
+    End If
+  Next
+  fields(n) = buf
+  ReDim Preserve fields(n)
+  csvSplit = fields
+End Function
+
+
+' ── 自動保存: A-1 ──
+Sub doAutoSaveW()
+  Dim p, csv
+  p = document.getElementById("wCsvPath").value
+  If p = "" Then Exit Sub
+  csv = window.execScript("getWordingCSV()", "JavaScript")
+  ' execScriptの戻り値はVBSでは取得できないので別手段
+  ' hiddenフィールドを使う
+  window.execScript "document.getElementById('_csvBuf').value = getWordingCSV()", "JavaScript"
+  csv = document.getElementById("_csvBuf").value
+  Dim fso, f
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  Set f = fso.OpenTextFile(p, 2, True, -1)
+  f.Write csv
+  f.Close
+End Sub
+
+' ── 自動保存: A-2 ──
+Sub doAutoSaveB()
+  Dim p, csv
+  p = document.getElementById("bCsvPath").value
+  If p = "" Then Exit Sub
+  window.execScript "document.getElementById('_csvBuf').value = getBannedCSV()", "JavaScript"
+  csv = document.getElementById("_csvBuf").value
+  Dim fso, f
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  Set f = fso.OpenTextFile(p, 2, True, -1)
+  f.Write csv
+  f.Close
+End Sub
+
+' ── 再読み込み: A-1 ──
+Sub doReloadW()
+  Dim p, fso, f, csv
+  p = document.getElementById("wCsvPath").value
+  If p = "" Then Exit Sub
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FileExists(p) Then Exit Sub
+  Set f = fso.OpenTextFile(p, 1, False, -1)
+  csv = f.ReadAll
+  f.Close
+  document.getElementById("_csvBuf").value = csv
+  window.execScript "setWordingCSV(parseCSV(document.getElementById('_csvBuf').value,0,1))", "JavaScript"
+  window.execScript "updateSyncBar()", "JavaScript"
+End Sub
+
+' ── 再読み込み: A-2 ──
+Sub doReloadB()
+  Dim p, fso, f, csv
+  p = document.getElementById("bCsvPath").value
+  If p = "" Then Exit Sub
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  If Not fso.FileExists(p) Then Exit Sub
+  Set f = fso.OpenTextFile(p, 1, False, -1)
+  csv = f.ReadAll
+  f.Close
+  document.getElementById("_csvBuf").value = csv
+  window.execScript "setBannedCSV(parseCSV(document.getElementById('_csvBuf').value,0,1))", "JavaScript"
+  window.execScript "updateSyncBar()", "JavaScript"
+End Sub
+
+' ── A-1 CSV読み込み ──
+Sub csvLoadW()
+  Dim fso, f, p, line, fields, csv, first
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  p = InputBox("A-1 表記揺れCSVのパス（例: C:\work\表記揺れ.csv）", "CSV読み込み", "")
+  If p = "" Then Exit Sub
+  If Not fso.FileExists(p) Then MsgBox "ファイルが見つかりません: " & p, 16, "エラー" : Exit Sub
+  Set f = fso.OpenTextFile(p, 1, False, -1)
+  csv = "" : first = True
+  Do While Not f.AtEndOfStream
+    line = f.ReadLine
+    If first Then
+      first = False
+    Else
+      If Len(Trim(line)) > 0 Then
+        fields = csvSplit(line)
+        If UBound(fields) >= 1 Then
+          csv = csv & fields(0) & Chr(1) & fields(1) & Chr(2)
+        End If
+      End If
+    End If
+  Loop
+  f.Close
+  If csv = "" Then MsgBox "データが見つかりません。", 64, "情報" : Exit Sub
+  setWordingCSV(csv)
+  setSt "A-1 CSVを読み込みました: " & p
+End Sub
+
+' ── A-1 CSV書き出し ──
+Sub csvSaveW()
+  Dim fso, f, p, csv
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  p = InputBox("A-1 表記揺れCSVの保存先（例: C:\work\表記揺れ.csv）", "CSV書き出し", "")
+  If p = "" Then Exit Sub
+  If Right(p, 4) <> ".csv" Then p = p & ".csv"
+  csv = getWordingCSV()
+  Set f = fso.OpenTextFile(p, 2, True, -1)
+  f.Write csv
+  f.Close
+  setSt "A-1 CSVを書き出しました: " & p
+End Sub
+
+' ── A-2 CSV読み込み ──
+Sub csvLoadB()
+  Dim fso, f, p, line, fields, csv, first
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  p = InputBox("A-2 禁止キーワードCSVのパス（例: C:\work\禁止キーワード.csv）", "CSV読み込み", "")
+  If p = "" Then Exit Sub
+  If Not fso.FileExists(p) Then MsgBox "ファイルが見つかりません: " & p, 16, "エラー" : Exit Sub
+  Set f = fso.OpenTextFile(p, 1, False, -1)
+  csv = "" : first = True
+  Do While Not f.AtEndOfStream
+    line = f.ReadLine
+    If first Then
+      first = False
+    Else
+      If Len(Trim(line)) > 0 Then
+        fields = csvSplit(line)
+        If UBound(fields) >= 1 Then
+          csv = csv & fields(0) & Chr(1) & fields(1) & Chr(2)
+        End If
+      End If
+    End If
+  Loop
+  f.Close
+  If csv = "" Then MsgBox "データが見つかりません。", 64, "情報" : Exit Sub
+  setBannedCSV(csv)
+  setSt "A-2 CSVを読み込みました: " & p
+End Sub
+
+' ── A-2 CSV書き出し ──
+Sub csvSaveB()
+  Dim fso, f, p, csv
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  p = InputBox("A-2 禁止キーワードCSVの保存先（例: C:\work\禁止キーワード.csv）", "CSV書き出し", "")
+  If p = "" Then Exit Sub
+  If Right(p, 4) <> ".csv" Then p = p & ".csv"
+  csv = getBannedCSV()
+  Set f = fso.OpenTextFile(p, 2, True, -1)
+  f.Write csv
+  f.Close
+  setSt "A-2 CSVを書き出しました: " & p
+End Sub
+
 
 Sub doSave()
   Dim fso, f, p, d
   Set fso = CreateObject("Scripting.FileSystemObject")
-  If gSavePath = "" Then
-    p = InputBox("保存先ファイルパスを入力（例: C:\Users\user\PPTX点検.json）", "保存先", "")
+  If gPath = "" Then
+    p = InputBox("保存先ファイルパス（例: C:\Users\user\PPTX点検.json）", "保存先", "")
   Else
-    p = InputBox("保存先ファイルパスを入力", "保存先", gSavePath)
+    p = InputBox("保存先ファイルパス", "保存先", gPath)
   End If
   If p = "" Then Exit Sub
   If Right(p,5) <> ".json" Then p = p & ".json"
@@ -277,7 +540,7 @@ Sub doSave()
   Set f = fso.OpenTextFile(p, 2, True, -1)
   f.Write d
   f.Close
-  gSavePath = p
+  gPath = p
   document.getElementById("fileLabel").innerText = p
   setSt "保存しました: " & p
 End Sub
@@ -285,7 +548,7 @@ End Sub
 Sub doLoad()
   Dim fso, f, p, d
   Set fso = CreateObject("Scripting.FileSystemObject")
-  p = InputBox("読み込むファイルパスを入力", "読み込み", "")
+  p = InputBox("読み込むファイルパス", "読み込み", "")
   If p = "" Then Exit Sub
   If Not fso.FileExists(p) Then
     MsgBox "ファイルが見つかりません: " & p, 16, "エラー"
@@ -295,7 +558,7 @@ Sub doLoad()
   d = f.ReadAll
   f.Close
   setJSON(d)
-  gSavePath = p
+  gPath = p
   document.getElementById("fileLabel").innerText = p
   setSt "読み込みました: " & p
 End Sub
@@ -303,14 +566,14 @@ End Sub
 Sub doExport()
   Dim fso, f, p, h
   Set fso = CreateObject("Scripting.FileSystemObject")
-  p = InputBox("レポートの保存先を入力（例: C:\Users\user\点検レポート.html）", "レポート出力", "")
+  p = InputBox("レポートの保存先（例: C:\Users\user\レポート.html）", "レポート出力", "")
   If p = "" Then Exit Sub
   If InStr(p, ".htm") = 0 Then p = p & ".html"
-  h = getReportHTML()
+  h = getRepHTML()
   Set f = fso.OpenTextFile(p, 2, True, -1)
   f.Write h
   f.Close
-  setSt "レポートを出力しました: " & p
+  setSt "レポート出力: " & p
   If MsgBox("ブラウザで開きますか？", 4, "確認") = 6 Then
     CreateObject("WScript.Shell").Run p
   End If
@@ -321,10 +584,8 @@ Sub setSt(msg)
 End Sub
 </script>
 
-<!-- JavaScript: アプリロジック -->
 <script language="JavaScript">
 
-/* ===== データ ===== */
 var D = {
   wording: [
     {id:1, c:"顧客",   w:"お客様 / クライアント / Client"},
@@ -335,7 +596,7 @@ var D = {
     {id:1, cat:"社外秘・機密",   kw:"プロジェクトコードネーム"},
     {id:2, cat:"作業中痕跡",     kw:"TBD / TODO / 要確認 / ○○を入れる"},
     {id:3, cat:"作業中痕跡",     kw:"Lorem ipsum / サンプル / ダミー"},
-    {id:4, cat:"過度な断言表現", kw:"必ず〜できる / 絶対に〜 / 簡単に"}
+    {id:4, cat:"過度な断言表現", kw:"必ず～できる / 絶対に～ / 簡単に"}
   ],
   objects: [
     {id:1, cat:"禁止オブジェクト", item:"アニメーション・スライドトランジション"},
@@ -359,8 +620,7 @@ var CL = [
   {id:2, t:"キーワード・用語の表記揺れ", items:[
     "A-1の表記揺れ注意ワードがすべて正式表記で統一されている",
     "同じ指標・KPIの名称が統一されている",
-    "同じ製品・サービス名の表記が統一されている",
-    "カタカナ語の表記揺れがない（例：マネージャー/マネジャー）",
+    "カタカナ語の表記揺れがない（例：マネージャー／マネジャー）",
     "英語表記の揺れがない（例：DX / D.X. / Digital Transformation）",
     "略語と正式名称が混在していない、または初出時に説明がある"
   ]},
@@ -389,7 +649,7 @@ var CL = [
   {id:6, t:"数字・単位・日付", items:[
     "数字が全角・半角で混在していない（原則：半角統一）",
     "桁区切りカンマの有無が統一されている",
-    "単位表記が統一されている（百万円・M円・百万が混在しない）",
+    "単位表記が統一されている（百万円・M円が混在しない）",
     "パーセント表記が統一されている（%か％かで統一）",
     "日付・年度の表記形式が統一されている"
   ]},
@@ -398,17 +658,15 @@ var CL = [
     "構成比（%）の合計が100%になっている",
     "前年比・増減率の計算値が元の数値から正しく導出されている",
     "グラフのデータラベルの数値が凡例・軸の値と整合している",
-    "「うち○○」「内訳」の合計が上位の集計値と一致している",
-    "CAGRや平均値などの二次計算値が正しく算出されている"
+    "「うち○○」「内訳」の合計が上位の集計値と一致している"
   ]},
   {id:8, t:"前後スライドとの整合性", items:[
-    "エグゼクティブサマリーの数値・結論が本編の詳細スライドと矛盾していない",
+    "エグゼクティブサマリーの数値・結論が本編と矛盾していない",
     "「前スライドで述べたとおり」などの参照表現が実際の内容と対応している",
     "前スライドで「3つの課題」と述べた場合、後続で過不足なく展開されている",
-    "アペンディックスの参照先が実際に存在し、内容が対応している",
-    "ロードマップのマイルストーンが他スライドのスケジュールと一致している"
+    "アペンディックスの参照先が実際に存在し、内容が対応している"
   ]},
-  {id:9, t:"Citation（出典・引用）の記載揺れ", items:[
+  {id:9, t:"Citation（出典）の記載揺れ", items:[
     "出典の記載形式が全スライドで統一されている（出典：/Source:/※○○よりが混在しない）",
     "出典の記載位置・フォントサイズ・色が統一されている",
     "調査会社・レポート名の表記が統一されている",
@@ -417,7 +675,6 @@ var CL = [
   {id:10, t:"キーメッセージの記載揺れ", items:[
     "エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している",
     "目次・アジェンダでの章タイトルと各章の扉スライドのタイトルが完全に一致している",
-    "同一の提言・施策名が複数スライドに登場する場合、表現が統一されている",
     "結論・提言で示されたアクション数・施策数が本編の展開数と一致している",
     "メッセージラインの数値・割合が本文・図表の数値と一致している"
   ]},
@@ -437,8 +694,7 @@ var CL = [
     "全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか",
     "デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか",
     "各章・セクションの役割が明確で、章の順序が自然か",
-    "論点が脱線・散漫になっているスライドがないか",
-    "エグゼクティブサマリーだけで全体の主張・提言が自己完結して理解できるか"
+    "論点が脱線・散漫になっているスライドがないか"
   ]},
   {id:14, t:"各スライドの結論明確性", items:[
     "スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）",
@@ -448,191 +704,247 @@ var CL = [
 ];
 
 var openSec = {1:true};
+var BCATS = ["社外秘・機密","不適切・品位を損なう表現","過度な断言表現","作業中痕跡"];
+var OCATS = ["禁止オブジェクト","禁止デザイン"];
 
-/* ===== タブ切替 ===== */
+/* ===== タブ ===== */
+var TAB_IDS = [6,0,1,2,3,4,5]; // order matches tab span order
+
 function sw(n) {
-  var ps = document.getElementsByTagName('div');
-  for (var i=0; i<ps.length; i++) {
-    if (ps[i].id && ps[i].id.charAt(0)==='p' && ps[i].id.length===2) {
-      ps[i].className = (ps[i].id === 'p'+n) ? 'panel on' : 'panel';
-    }
+  var i;
+  for (i=0; i<=6; i++) {
+    var p = document.getElementById('p'+i);
+    if (p) p.className = (i===n) ? 'panel on' : 'panel';
   }
-  var ts = document.getElementsByTagName('span');
-  for (var i=0; i<ts.length; i++) {
-    if (ts[i].className && ts[i].className.indexOf('tab')>=0) {
-      var idx = ts[i].getAttribute('onclick');
-      if (idx) ts[i].className = (idx === 'sw('+n+')') ? 'tab on' : 'tab';
-    }
+  var tabs = document.getElementById('tabs').getElementsByTagName('span');
+  for (i=0; i<tabs.length; i++) {
+    tabs[i].className = (TAB_IDS[i]===n) ? 'tab on' : 'tab';
   }
   if (n===3) { renderSum(); renderChk(); }
   if (n===4) renderRep();
 }
 
+/* ===== ユーティリティ ===== */
+function xe(s) {
+  s = (s === null || s === undefined) ? '' : String(s);
+  s = s.replace(/&/g,'&amp;');
+  s = s.replace(/</g,'&lt;');
+  s = s.replace(/>/g,'&gt;');
+  s = s.replace(/"/g,'&quot;');
+  return s;
+}
+function xe2(s) {
+  s = (s === null || s === undefined) ? '' : String(s);
+  s = s.replace(/&/g,'&amp;');
+  s = s.replace(/</g,'&lt;');
+  s = s.replace(/>/g,'&gt;');
+  return s;
+}
+function tr(s) {
+  s = (s === null || s === undefined) ? '' : String(s);
+  return s.replace(/^\s+/,'').replace(/\s+$/,'');
+}
+function uid() { return new Date().getTime(); }
+function setSt(msg) { document.getElementById('stMsg').innerText = msg; }
+
 /* ===== A-1 表記揺れ ===== */
 function renderW() {
-  var h = '';
-  for (var i=0; i<D.wording.length; i++) {
-    var r = D.wording[i];
-    h += '<tr><td><input type="text" value="'+xe(r.c)+'" onchange="updW('+r.id+',\'c\',this.value)"></td>' +
-         '<td><input type="text" value="'+xe(r.w)+'" onchange="updW('+r.id+',\'w\',this.value)"></td>' +
-         '<td style="text-align:center"><input type="button" class="del" value="削除" onclick="delW('+r.id+')"></td></tr>';
+  var h = '<table class="tbl"><thead><tr><th style="width:35%">正式表記（統一後）</th><th>使用禁止の表記</th><th style="width:50px"></th></tr></thead><tbody>';
+  var i, r;
+  for (i=0; i<D.wording.length; i++) {
+    r = D.wording[i];
+    h += '<tr><td><input type="text" value="'+xe(r.c)+'" id="wc'+r.id+'" onchange="updW('+r.id+',\'c\',this.value)"></td>';
+    h += '<td><input type="text" value="'+xe(r.w)+'" id="ww'+r.id+'" onchange="updW('+r.id+',\'w\',this.value)"></td>';
+    h += '<td style="text-align:center"><input type="button" class="del" value="削除" onclick="delW('+r.id+')"></td></tr>';
   }
-  document.getElementById('tbW').innerHTML = h;
+  h += '</tbody></table>';
+  document.getElementById('wDiv').innerHTML = h;
 }
 function addW() {
-  var c = document.getElementById('nWC').value;
-  var w = document.getElementById('nWW').value;
-  if (!trim(c)) { alert('正式表記を入力してください'); return; }
-  D.wording.push({id:now(), c:trim(c), w:trim(w)});
-  document.getElementById('nWC').value='';
-  document.getElementById('nWW').value='';
+  var c = tr(document.getElementById('nWC').value);
+  var w = tr(document.getElementById('nWW').value);
+  if (!c) { alert('正式表記を入力してください'); return; }
+  D.wording.push({id:uid(), c:c, w:w});
+  document.getElementById('nWC').value = '';
+  document.getElementById('nWW').value = '';
   renderW();
+  autoSaveW();
 }
-function delW(id) { D.wording=D.wording.filter(function(r){return r.id!==id;}); renderW(); }
-function updW(id,f,v) { for(var i=0;i<D.wording.length;i++){if(D.wording[i].id===id)D.wording[i][f]=v;} }
+function delW(id) {
+  var a = [], i;
+  for (i=0; i<D.wording.length; i++) { if (D.wording[i].id !== id) a.push(D.wording[i]); }
+  D.wording = a;
+  renderW();
+  autoSaveW();
+}
+function updW(id, f, v) {
+  var i;
+  for (i=0; i<D.wording.length; i++) { if (D.wording[i].id === id) D.wording[i][f] = v; }
+  autoSaveW();
+}
 
 /* ===== A-2 禁止キーワード ===== */
-var BCATS = ["社外秘・機密","不適切・品位を損なう表現","過度な断言表現","作業中痕跡"];
 function renderB() {
-  var h = '';
-  for (var ci=0; ci<BCATS.length; ci++) {
+  var h = '', ci, i, items, r;
+  for (ci=0; ci<BCATS.length; ci++) {
     var cat = BCATS[ci];
-    var items = D.banned.filter(function(r){return r.cat===cat;});
-    h += '<div class="card"><div class="card-body"><div class="cat-badge">'+cat+'</div><table><tbody>';
-    if (items.length===0) {
-      h += '<tr><td style="color:#aaa;font-size:12px">（未登録）</td></tr>';
+    items = [];
+    for (i=0; i<D.banned.length; i++) { if (D.banned[i].cat === cat) items.push(D.banned[i]); }
+    h += '<div class="card"><div class="card-body"><div class="cat-badge">'+cat+'</div>';
+    h += '<table class="tbl"><tbody>';
+    if (items.length === 0) {
+      h += '<tr><td style="color:#aaa;font-size:12px">（未登録）</td><td style="width:50px"></td></tr>';
     } else {
-      for (var i=0; i<items.length; i++) {
-        var r=items[i];
-        h += '<tr><td><input type="text" value="'+xe(r.kw)+'" onchange="updB('+r.id+',this.value)"></td>' +
-             '<td style="width:44px;text-align:center"><input type="button" class="del" value="削除" onclick="delB('+r.id+')"></td></tr>';
+      for (i=0; i<items.length; i++) {
+        r = items[i];
+        h += '<tr><td><input type="text" value="'+xe(r.kw)+'" onchange="updB('+r.id+',this.value)"></td>';
+        h += '<td style="width:50px;text-align:center"><input type="button" class="del" value="削除" onclick="delB('+r.id+')"></td></tr>';
       }
     }
     h += '</tbody></table></div></div>';
   }
-  document.getElementById('bannedWrap').innerHTML = h;
+  document.getElementById('bDiv').innerHTML = h;
 }
 function addB() {
   var cat = document.getElementById('nBCat').value;
-  var kw  = document.getElementById('nBKw').value;
-  if (!trim(kw)) { alert('キーワードを入力してください'); return; }
-  D.banned.push({id:now(), cat:cat, kw:trim(kw)});
-  document.getElementById('nBKw').value='';
+  var kw  = tr(document.getElementById('nBKw').value);
+  if (!kw) { alert('キーワードを入力してください'); return; }
+  D.banned.push({id:uid(), cat:cat, kw:kw});
+  document.getElementById('nBKw').value = '';
   renderB();
+  autoSaveB();
 }
-function delB(id) { D.banned=D.banned.filter(function(r){return r.id!==id;}); renderB(); }
-function updB(id,v) { for(var i=0;i<D.banned.length;i++){if(D.banned[i].id===id)D.banned[i].kw=v;} }
+function delB(id) {
+  var a = [], i;
+  for (i=0; i<D.banned.length; i++) { if (D.banned[i].id !== id) a.push(D.banned[i]); }
+  D.banned = a;
+  renderB();
+  autoSaveB();
+}
+function updB(id, v) {
+  var i;
+  for (i=0; i<D.banned.length; i++) { if (D.banned[i].id === id) D.banned[i].kw = v; }
+  autoSaveB();
+}
 
 /* ===== A-3 禁止オブジェクト ===== */
-var OCATS = ["禁止オブジェクト","禁止デザイン"];
 function renderO() {
-  var h = '';
-  for (var ci=0; ci<OCATS.length; ci++) {
+  var h = '', ci, i, items, r;
+  for (ci=0; ci<OCATS.length; ci++) {
     var cat = OCATS[ci];
-    var items = D.objects.filter(function(r){return r.cat===cat;});
-    h += '<div class="card"><div class="card-body"><div class="cat-badge">'+cat+'</div><table><tbody>';
-    if (items.length===0) {
-      h += '<tr><td style="color:#aaa;font-size:12px">（未登録）</td></tr>';
+    items = [];
+    for (i=0; i<D.objects.length; i++) { if (D.objects[i].cat === cat) items.push(D.objects[i]); }
+    h += '<div class="card"><div class="card-body"><div class="cat-badge">'+cat+'</div>';
+    h += '<table class="tbl"><tbody>';
+    if (items.length === 0) {
+      h += '<tr><td style="color:#aaa;font-size:12px">（未登録）</td><td style="width:50px"></td></tr>';
     } else {
-      for (var i=0; i<items.length; i++) {
-        var r=items[i];
-        h += '<tr><td><input type="text" value="'+xe(r.item)+'" onchange="updO('+r.id+',this.value)"></td>' +
-             '<td style="width:44px;text-align:center"><input type="button" class="del" value="削除" onclick="delO('+r.id+')"></td></tr>';
+      for (i=0; i<items.length; i++) {
+        r = items[i];
+        h += '<tr><td><input type="text" value="'+xe(r.item)+'" onchange="updO('+r.id+',this.value)"></td>';
+        h += '<td style="width:50px;text-align:center"><input type="button" class="del" value="削除" onclick="delO('+r.id+')"></td></tr>';
       }
     }
     h += '</tbody></table></div></div>';
   }
-  document.getElementById('objWrap').innerHTML = h;
+  document.getElementById('oDiv').innerHTML = h;
 }
 function addO() {
   var cat  = document.getElementById('nOCat').value;
-  var item = document.getElementById('nOItem').value;
-  if (!trim(item)) { alert('要素を入力してください'); return; }
-  D.objects.push({id:now(), cat:cat, item:trim(item)});
-  document.getElementById('nOItem').value='';
+  var item = tr(document.getElementById('nOItem').value);
+  if (!item) { alert('要素を入力してください'); return; }
+  D.objects.push({id:uid(), cat:cat, item:item});
+  document.getElementById('nOItem').value = '';
   renderO();
 }
-function delO(id) { D.objects=D.objects.filter(function(r){return r.id!==id;}); renderO(); }
-function updO(id,v) { for(var i=0;i<D.objects.length;i++){if(D.objects[i].id===id)D.objects[i].item=v;} }
+function delO(id) {
+  var a = [], i;
+  for (i=0; i<D.objects.length; i++) { if (D.objects[i].id !== id) a.push(D.objects[i]); }
+  D.objects = a;
+  renderO();
+}
+function updO(id, v) {
+  var i;
+  for (i=0; i<D.objects.length; i++) { if (D.objects[i].id === id) D.objects[i].item = v; }
+}
 
 /* ===== 点検リスト ===== */
 function renderSum() {
-  var c = {ok:0,warn:0,ng:0,none:0};
-  for (var si=0; si<CL.length; si++) {
-    for (var ii=0; ii<CL[si].items.length; ii++) {
-      var k = CL[si].id+'-'+ii;
-      c[D.st[k]||'none']++;
+  var c = {ok:0, warn:0, ng:0, none:0};
+  var si, ii, k;
+  for (si=0; si<CL.length; si++) {
+    for (ii=0; ii<CL[si].items.length; ii++) {
+      k = CL[si].id + '-' + ii;
+      var st = D.st[k] || 'none';
+      c[st]++;
     }
   }
   document.getElementById('sumBar').innerHTML =
-    '<div class="sum-box s-ok"><div class="sum-num">'+c.ok+'</div><div class="sum-lbl">&#10003; OK</div></div>' +
-    '<div class="sum-box s-warn"><div class="sum-num">'+c.warn+'</div><div class="sum-lbl">&#9888; 要確認</div></div>' +
-    '<div class="sum-box s-ng"><div class="sum-num">'+c.ng+'</div><div class="sum-lbl">&#10007; NG</div></div>' +
+    '<div class="sum-box s-ok"><div class="sum-num">'+c.ok+'</div><div class="sum-lbl">OK</div></div>' +
+    '<div class="sum-box s-warn"><div class="sum-num">'+c.warn+'</div><div class="sum-lbl">要確認</div></div>' +
+    '<div class="sum-box s-ng"><div class="sum-num">'+c.ng+'</div><div class="sum-lbl">NG</div></div>' +
     '<div class="sum-box s-none"><div class="sum-num">'+c.none+'</div><div class="sum-lbl">未評価</div></div>';
 }
 
 function renderChk() {
-  var h = '';
-  for (var si=0; si<CL.length; si++) {
-    var sec = CL[si];
-    var ngc=0, wc=0;
-    for (var ii=0; ii<sec.items.length; ii++) {
-      var k=sec.id+'-'+ii;
-      if(D.st[k]==='ng')   ngc++;
-      if(D.st[k]==='warn') wc++;
+  var h = '', si, ii, k, sec, st, ngc, wc, isOpen, badge, itemsH, showDiff;
+  for (si=0; si<CL.length; si++) {
+    sec = CL[si];
+    ngc = 0; wc = 0;
+    for (ii=0; ii<sec.items.length; ii++) {
+      k = sec.id + '-' + ii;
+      if (D.st[k] === 'ng')   ngc++;
+      if (D.st[k] === 'warn') wc++;
     }
-    var badge = (ngc?'<span style="color:#e74c3c;font-weight:bold;font-size:11px;margin-left:8px">&#10007; '+ngc+'</span>':'')+
-                (wc?'<span style="color:#e67e22;font-weight:bold;font-size:11px;margin-left:4px">&#9888; '+wc+'</span>':'');
-    var isOpen = openSec[sec.id] ? true : false;
-    var itemsH = '';
-    for (var ii=0; ii<sec.items.length; ii++) {
-      var k = sec.id+'-'+ii;
-      var st = D.st[k]||'none';
-      var showDiff = (st==='warn'||st==='ng') ? 'diff-box on' : 'diff-box';
-      itemsH +=
-        '<div class="chk-item">' +
-        '<span class="chk-no">'+sec.id+'-'+(ii+1)+'</span>' +
-        '<span class="chk-txt">'+sec.items[ii]+'</span><br>' +
-        '<div style="padding-left:36px;margin-top:4px">' +
-          mkSBtn(k,'ok',st)+ mkSBtn(k,'warn',st)+ mkSBtn(k,'ng',st) +
-          '<div class="'+showDiff+'" id="df_'+k+'">' +
-            '<table style="margin-bottom:6px"><tr>' +
-              '<td style="width:50%;padding-right:8px;vertical-align:top">' +
-                '<div class="diff-lbl lbl-b">&#128308; 原文</div>' +
-                '<textarea rows="2" style="border-color:#faa" onchange="D.bef[\''+k+'\']=this.value">'+xe(D.bef[k]||'')+'</textarea>' +
-              '</td>' +
-              '<td style="width:50%;vertical-align:top">' +
-                '<div class="diff-lbl lbl-a">&#9989; 修正案</div>' +
-                '<textarea rows="2" style="border-color:#9c9" onchange="D.aft[\''+k+'\']=this.value">'+xe(D.aft[k]||'')+'</textarea>' +
-              '</td>' +
-            '</tr></table>' +
-            '<div class="diff-lbl lbl-l">&#128205; 該当箇所</div>' +
-            '<input type="text" value="'+xe(D.loc[k]||'')+'" placeholder="例）スライド8｜メッセージライン" onchange="D.loc[\''+k+'\']=this.value">' +
-          '</div>' +
-        '</div>' +
-        '</div>';
+    badge = '';
+    if (ngc)  badge += ' <span style="color:#e74c3c;font-weight:bold;font-size:11px">NG:'+ngc+'</span>';
+    if (wc)   badge += ' <span style="color:#e67e22;font-weight:bold;font-size:11px">要確認:'+wc+'</span>';
+    isOpen = openSec[sec.id] ? true : false;
+
+    itemsH = '';
+    for (ii=0; ii<sec.items.length; ii++) {
+      k = sec.id + '-' + ii;
+      st = D.st[k] || 'none';
+      showDiff = (st === 'warn' || st === 'ng') ? 'diff-box on' : 'diff-box';
+
+      itemsH += '<div class="chk-item">';
+      itemsH += '<span class="chk-no">'+sec.id+'-'+(ii+1)+'</span> ';
+      itemsH += '<span class="chk-txt">'+xe2(sec.items[ii])+'</span><br>';
+      itemsH += '<div style="padding-left:40px;margin-top:4px">';
+      itemsH += mkSBtn(k,'ok',st) + mkSBtn(k,'warn',st) + mkSBtn(k,'ng',st);
+      itemsH += '<div class="'+showDiff+'" id="df_'+k+'">';
+      itemsH += '<table style="width:100%;border-collapse:collapse;margin-bottom:6px"><tr>';
+      itemsH += '<td style="width:50%;padding-right:6px;vertical-align:top">';
+      itemsH += '<div class="diff-lbl lbl-b">原文</div>';
+      itemsH += '<textarea rows="2" style="border-color:#faa" onchange="D.bef[\''+k+'\']=this.value">'+xe(D.bef[k]||'')+'</textarea>';
+      itemsH += '</td><td style="vertical-align:top">';
+      itemsH += '<div class="diff-lbl lbl-a">修正案</div>';
+      itemsH += '<textarea rows="2" style="border-color:#9c9" onchange="D.aft[\''+k+'\']=this.value">'+xe(D.aft[k]||'')+'</textarea>';
+      itemsH += '</td></tr></table>';
+      itemsH += '<div class="diff-lbl lbl-l">該当箇所</div>';
+      itemsH += '<input type="text" value="'+xe(D.loc[k]||'')+'" placeholder="例）スライド8｜メッセージライン" onchange="D.loc[\''+k+'\']=this.value">';
+      itemsH += '</div></div></div>';
     }
-    h += '<div class="card">' +
-         '<div class="card-hdr" onclick="togSec('+sec.id+')">' +
-           '<span class="arr" id="arr'+sec.id+'">'+(isOpen?'&#9660;':'&#9654;')+'</span>' +
-           '【'+sec.id+'】'+sec.t + badge +
-         '</div>' +
-         '<div id="sb'+sec.id+'" style="display:'+(isOpen?'block':'none')+'">' +
-           '<div class="card-body">'+itemsH+'</div>' +
-         '</div>' +
-         '</div>';
+
+    h += '<div class="card">';
+    h += '<div class="card-hdr" onclick="togSec('+sec.id+')">';
+    h += '<span id="arr'+sec.id+'">'+(isOpen ? '&#9660; ' : '&#9654; ')+'</span>';
+    h += '【'+sec.id+'】'+sec.t + badge;
+    h += '</div>';
+    h += '<div id="sb'+sec.id+'" style="display:'+(isOpen?'block':'none')+'">';
+    h += '<div class="card-body">'+itemsH+'</div></div></div>';
   }
-  document.getElementById('chkWrap').innerHTML = h;
+  document.getElementById('chkDiv').innerHTML = h;
 }
 
 function mkSBtn(k, s, cur) {
-  var labels = {ok:'&#10003; OK', warn:'&#9888; 要確認', ng:'&#10007; NG'};
-  var on = (cur===s) ? ' on' : '';
+  var labels = {ok:'OK', warn:'要確認', ng:'NG'};
+  var on = (cur === s) ? ' on' : '';
   return '<input type="button" class="sbtn sbtn-'+s+on+'" value="'+labels[s]+'" onclick="setSt(\''+k+'\',\''+s+'\')">';
 }
 
 function setSt(k, s) {
-  D.st[k] = (D.st[k]===s) ? 'none' : s;
+  D.st[k] = (D.st[k] === s) ? 'none' : s;
   renderSum();
   renderChk();
 }
@@ -640,47 +952,17 @@ function setSt(k, s) {
 function togSec(id) {
   openSec[id] = !openSec[id];
   document.getElementById('sb'+id).style.display = openSec[id] ? 'block' : 'none';
-  document.getElementById('arr'+id).innerHTML = openSec[id] ? '&#9660;' : '&#9654;';
+  document.getElementById('arr'+id).innerHTML = openSec[id] ? '&#9660; ' : '&#9654; ';
 }
 
 /* ===== レポート ===== */
-function renderRep() {
-  var issues = getIssues();
-  if (issues.length===0) {
-    document.getElementById('repWrap').innerHTML =
-      '<div class="card"><div class="card-body" style="color:#27ae60;font-weight:bold;padding:20px">&#127881; NG・要確認の項目はありません。</div></div>';
-    return;
-  }
-  var h = '<p style="font-weight:bold;margin-bottom:12px">指摘件数：'+issues.length+' 件</p>';
-  for (var i=0; i<issues.length; i++) {
-    var iss = issues[i];
-    var stLabel = iss.st==='ng' ? '&#10007; NG' : '&#9888; 要確認';
-    var stColor = iss.st==='ng' ? '#e74c3c' : '#e67e22';
-    h += '<div class="card" style="border-left:5px solid '+stColor+';margin-bottom:12px">' +
-         '<div class="card-body">' +
-           '<div style="margin-bottom:8px"><b style="color:'+stColor+'">['+(i+1<10?'0'+(i+1):(i+1))+'] '+stLabel+'</b>' +
-             '<span style="font-size:11px;color:#888;margin-left:10px">項目 '+iss.secId+'</span></div>' +
-           '<div style="font-weight:bold;margin-bottom:8px">'+iss.item+'</div>' +
-           (iss.loc ? '<p style="font-size:12px;margin-bottom:8px"><span class="diff-lbl lbl-l">&#128205; 該当箇所</span> '+xe2(iss.loc)+'</p>' : '') +
-           '<table style="border:1px solid #dde4f0"><tr>' +
-             '<td style="width:80px;background:#fde;color:#c00;font-weight:bold;font-size:12px;padding:8px;vertical-align:top">&#128308; 原文</td>' +
-             '<td style="padding:8px;white-space:pre-wrap;font-size:12px">'+(xe2(iss.bef)||'<span style="color:#aaa">（未記入）</span>')+'</td>' +
-           '</tr><tr style="border-top:1px solid #dde4f0">' +
-             '<td style="width:80px;background:#dfd;color:#060;font-weight:bold;font-size:12px;padding:8px;vertical-align:top">&#9989; 修正案</td>' +
-             '<td style="padding:8px;white-space:pre-wrap;font-size:12px">'+(xe2(iss.aft)||'<span style="color:#aaa">（未記入）</span>')+'</td>' +
-           '</tr></table>' +
-         '</div></div>';
-  }
-  document.getElementById('repWrap').innerHTML = h;
-}
-
 function getIssues() {
-  var res = [];
-  for (var si=0; si<CL.length; si++) {
-    for (var ii=0; ii<CL[si].items.length; ii++) {
-      var k = CL[si].id+'-'+ii;
-      var st = D.st[k];
-      if (st==='ng'||st==='warn') {
+  var res = [], si, ii, k, st;
+  for (si=0; si<CL.length; si++) {
+    for (ii=0; ii<CL[si].items.length; ii++) {
+      k = CL[si].id + '-' + ii;
+      st = D.st[k];
+      if (st === 'ng' || st === 'warn') {
         res.push({st:st, secId:CL[si].id, item:CL[si].items[ii],
                   bef:D.bef[k]||'', aft:D.aft[k]||'', loc:D.loc[k]||''});
       }
@@ -689,61 +971,79 @@ function getIssues() {
   return res;
 }
 
+function renderRep() {
+  var issues = getIssues();
+  if (issues.length === 0) {
+    document.getElementById('repDiv').innerHTML =
+      '<div class="card"><div class="card-body" style="color:#27ae60;font-weight:bold;padding:20px">NG・要確認の項目はありません。</div></div>';
+    return;
+  }
+  var h = '<p style="font-weight:bold;margin-bottom:12px">指摘件数：'+issues.length+' 件</p>';
+  var i, iss, stColor, stLabel;
+  for (i=0; i<issues.length; i++) {
+    iss = issues[i];
+    stLabel = iss.st === 'ng' ? 'NG' : '要確認';
+    stColor = iss.st === 'ng' ? '#e74c3c' : '#e67e22';
+    h += '<div class="card" style="border-left:5px solid '+stColor+';margin-bottom:12px">';
+    h += '<div class="card-body">';
+    h += '<p style="margin-bottom:8px"><b style="color:'+stColor+'">[No.'+(i+1<10?'0'+(i+1):(i+1))+'] '+stLabel+'</b>';
+    h += ' <span style="font-size:11px;color:#888;margin-left:10px">項目 '+iss.secId+'</span></p>';
+    h += '<p style="font-weight:bold;margin-bottom:8px">'+xe2(iss.item)+'</p>';
+    if (iss.loc) h += '<p style="margin-bottom:8px"><span class="diff-lbl lbl-l">該当箇所</span> '+xe2(iss.loc)+'</p>';
+    h += '<table class="tbl"><tr>';
+    h += '<td style="width:80px;background:#fde;color:#c00;font-weight:bold;font-size:12px;padding:8px;vertical-align:top">原文</td>';
+    h += '<td style="padding:8px;white-space:pre-wrap;font-size:12px">'+(xe2(iss.bef)||'<span style="color:#aaa">（未記入）</span>')+'</td>';
+    h += '</tr><tr>';
+    h += '<td style="width:80px;background:#dfd;color:#060;font-weight:bold;font-size:12px;padding:8px;vertical-align:top">修正案</td>';
+    h += '<td style="padding:8px;white-space:pre-wrap;font-size:12px">'+(xe2(iss.aft)||'<span style="color:#aaa">（未記入）</span>')+'</td>';
+    h += '</tr></table></div></div>';
+  }
+  document.getElementById('repDiv').innerHTML = h;
+}
+
 /* ===== AIプロンプト生成 ===== */
 function getMode() {
-  var rs = document.getElementsByName('mode');
-  for (var i=0; i<rs.length; i++) { if (rs[i].checked) return rs[i].value; }
+  var rs = document.getElementsByName('mode'), i;
+  for (i=0; i<rs.length; i++) { if (rs[i].checked) return rs[i].value; }
   return 'full';
 }
 
 function genPrompt() {
   var mode  = getMode();
-  var scope = trim(document.getElementById('scope').value) || '全スライド';
+  var scope = tr(document.getElementById('scope').value) || '全スライド';
+  var i, ci, items;
 
   var wList = '';
-  for (var i=0; i<D.wording.length; i++) {
+  for (i=0; i<D.wording.length; i++) {
     wList += '  - 正式表記「'+D.wording[i].c+'」← 使用禁止：'+D.wording[i].w+'\n';
   }
   if (!wList) wList = '  （未登録）\n';
 
   var bList = '';
-  for (var ci=0; ci<BCATS.length; ci++) {
-    var items = D.banned.filter(function(r){return r.cat===BCATS[ci];});
+  for (ci=0; ci<BCATS.length; ci++) {
+    items = [];
+    for (i=0; i<D.banned.length; i++) { if (D.banned[i].cat === BCATS[ci]) items.push(D.banned[i]); }
     if (items.length) {
       bList += '  【'+BCATS[ci]+'】\n';
-      for (var i=0; i<items.length; i++) bList += '    - '+items[i].kw+'\n';
+      for (i=0; i<items.length; i++) bList += '    - '+items[i].kw+'\n';
     }
   }
   if (!bList) bList = '  （未登録）\n';
 
   var oList = '';
-  for (var ci=0; ci<OCATS.length; ci++) {
-    var items = D.objects.filter(function(r){return r.cat===OCATS[ci];});
+  for (ci=0; ci<OCATS.length; ci++) {
+    items = [];
+    for (i=0; i<D.objects.length; i++) { if (D.objects[i].cat === OCATS[ci]) items.push(D.objects[i]); }
     if (items.length) {
       oList += '  【'+OCATS[ci]+'】\n';
-      for (var i=0; i<items.length; i++) oList += '    - '+items[i].item+'\n';
+      for (i=0; i<items.length; i++) oList += '    - '+items[i].item+'\n';
     }
   }
   if (!oList) oList = '  （未登録）\n';
 
-  var ngList = '';
-  var ngCnt = 0;
-  if (mode === 'ng') {
-    var issues = getIssues();
-    for (var i=0; i<issues.length; i++) {
-      ngCnt++;
-      var iss = issues[i];
-      ngList += '  No.'+(ngCnt<10?'0'+ngCnt:ngCnt)+' ['+(iss.st==='ng'?'NG':'要確認')+'] '+iss.item+'\n';
-      if (iss.loc)  ngList += '    該当箇所：'+iss.loc+'\n';
-      if (iss.bef)  ngList += '    原文：「'+iss.bef+'」\n';
-      if (iss.aft)  ngList += '    修正案：「'+iss.aft+'」\n';
-    }
-    if (!ngList) ngList = '  （前回の点検結果なし。まず全項目点検を実行してください）\n';
-  }
-
   var p = '';
   p += '# PowerPoint スライド 形式点検依頼\n\n';
-  p += '添付のPowerPointスライドを、以下の基準に従って点検してください。\n';
+  p += '添付のPowerPointスライドを以下の基準に従って点検してください。\n';
   p += '対象範囲：' + scope + '\n\n';
   p += '================================================================\n';
   p += '【カスタマイズ基準（必ず遵守してください）】\n';
@@ -759,97 +1059,50 @@ function genPrompt() {
   p += '================================================================\n\n';
 
   if (mode === 'ng') {
-    p += '以下は前回の点検でNG・要確認と判定された項目です。\n';
-    p += '修正後のスライドが正しく修正されているか確認してください。\n\n';
-    p += ngList + '\n';
+    p += '以下は前回点検でNG・要確認と判定された項目です。修正後のスライドが正しく修正されているか確認してください。\n\n';
+    var issues = getIssues();
+    if (issues.length === 0) {
+      p += '  （前回の点検結果なし。まず全項目点検を実行してください）\n';
+    } else {
+      for (i=0; i<issues.length; i++) {
+        var iss = issues[i];
+        p += '  No.'+(i+1<10?'0'+(i+1):(i+1))+' ['+(iss.st==='ng'?'NG':'要確認')+'] '+iss.item+'\n';
+        if (iss.loc) p += '    該当箇所：'+iss.loc+'\n';
+        if (iss.bef) p += '    原文：「'+iss.bef+'」\n';
+        if (iss.aft) p += '    修正案：「'+iss.aft+'」\n';
+      }
+    }
   } else {
-    p += '各項目を ✅OK / ⚠️要確認 / ❌NG の3段階で評価してください。\n\n';
+    p += '各項目を OK / 要確認 / NG の3段階で評価してください。\n\n';
 
-    if (mode==='full' || mode==='fmt') {
+    if (mode === 'full' || mode === 'fmt') {
       p += '--- SECTION 1：表記・書式チェック ---\n\n';
-      p += '【1】顧客名・部署名の正確性\n';
-      p += '  1-1. 顧客の会社名が正式名称と一致している（略称・旧社名の混在がない）\n';
-      p += '  1-2. 法人格表記が必要な箇所で統一されている\n';
-      p += '  1-3. 顧客の部署名・組織名が現在の正式名称と一致している\n';
-      p += '  1-4. 顧客の担当者名・役職名が最新情報と一致している\n';
-      p += '  1-5. 自社の部署名・チーム名・役職名が正式名称と一致している\n';
-      p += '  1-6. 他社（競合・パートナー等）の社名が現在の正式名称と一致している\n\n';
-      p += '【2】キーワード・用語の表記揺れ\n';
-      p += '  2-1. A-1の表記揺れ注意ワードがすべて正式表記で統一されている\n';
-      p += '  2-2. 同じ指標・KPIの名称が統一されている\n';
-      p += '  2-3. カタカナ語の表記揺れがない（マネージャー/マネジャー等）\n';
-      p += '  2-4. 英語表記の揺れがない（DX/D.X./Digital Transformation等）\n';
-      p += '  2-5. 略語と正式名称が混在していない、または初出時に説明がある\n\n';
-      p += '【3】スライド間の記載揺れ・不整合\n';
-      p += '  3-1. 目次・アジェンダのタイトルと本編の各スライドタイトルが一致している\n';
-      p += '  3-2. 同じフェーズ・ステップの名称がスライドをまたいで統一されている\n';
-      p += '  3-3. 同じ数値がスライドを横断して出てくる場合、すべて一致している\n';
-      p += '  3-4. 施策・アクションの名称が複数スライドにわたって一貫している\n\n';
-      p += '【4】不適切・要注意な記載内容\n';
-      p += '  4-1. A-2の使用禁止キーワード・表現が含まれていない\n';
-      p += '  4-2. A-3の使用禁止オブジェクト・デザイン要素が含まれていない\n';
-      p += '  4-3. 休日・祝日・曜日の記載が提示日時点で正確か（来週月曜・GW明け等）\n';
-      p += '  4-4. TBD・TODO・要確認など作業中の痕跡が残っていない\n';
-      p += '  4-5. コピー元資料の社名・案件名が残っていない（使い回しの確認）\n\n';
-      p += '【5】句読点・文末表記\n';
-      p += '  5-1. 箇条書きの文末「。」あり・なしが全体で統一されている\n';
-      p += '  5-2. 「です・ます調」と「だ・である調」が混在していない\n';
-      p += '  5-3. 箇条書きの語尾の形が同一スライド内で統一されている\n\n';
-      p += '【6】数字・単位・日付\n';
-      p += '  6-1. 数字が全角・半角で混在していない（原則：半角統一）\n';
-      p += '  6-2. 桁区切りカンマの有無が統一されている\n';
-      p += '  6-3. 単位表記が統一されている（百万円・M円が混在しない）\n';
-      p += '  6-4. パーセント表記が統一されている（%か％かで統一）\n';
-      p += '  6-5. 日付・年度の表記形式が統一されている\n\n';
-      p += '【7】表・グラフ内の数値整合性\n';
-      p += '  7-1. 表の合計行・合計列が各セルの合計と一致している\n';
-      p += '  7-2. 構成比（%）の合計が100%になっている\n';
-      p += '  7-3. 前年比・増減率の計算値が元の数値から正しく導出されている\n';
-      p += '  7-4. グラフのデータラベルの数値が凡例・軸の値と整合している\n\n';
-      p += '【8】前後スライドとの整合性\n';
-      p += '  8-1. エグゼクティブサマリーの数値・結論が本編の詳細スライドと矛盾していない\n';
-      p += '  8-2. 「前スライドで述べたとおり」などの参照表現が実際の内容と対応している\n';
-      p += '  8-3. 前のスライドで「3つの課題」と述べた場合、後続で過不足なく展開されている\n\n';
-      p += '【9】Citation（出典・引用）の記載揺れ\n';
-      p += '  9-1. 出典の記載形式が全スライドで統一されている（出典：/Source:/※○○よりが混在しない）\n';
-      p += '  9-2. 出典の記載位置・フォントサイズ・色が統一されている\n';
-      p += '  9-3. Citationが必要な図・グラフ・数値で出典が抜けていない\n\n';
-      p += '【10】キーメッセージの記載揺れ\n';
-      p += '  10-1. エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している\n';
-      p += '  10-2. 目次・アジェンダでの章タイトルと各章の扉スライドのタイトルが完全に一致している\n';
-      p += '  10-3. 結論・提言で示されたアクション数・施策数が本編の展開数と一致している\n';
-      p += '  10-4. メッセージラインの数値・割合が本文・図表の数値と一致している\n\n';
-      p += '【11】カラー（色）の使用揺れ\n';
-      p += '  11-1. 同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている\n';
-      p += '  11-2. 強調色（アクセントカラー）が全スライドで統一されている\n';
-      p += '  11-3. 同一の系列・セグメントが異なるスライドで異なる色になっていない\n\n';
+      p += '【1】顧客名・部署名の正確性\n  1-1. 顧客の会社名が正式名称と一致している（略称・旧社名の混在がない）\n  1-2. 法人格表記が必要な箇所で統一されている\n  1-3. 顧客の部署名・組織名が現在の正式名称と一致している\n  1-4. 顧客の担当者名・役職名が最新情報と一致している\n  1-5. 他社の社名が現在の正式名称と一致している\n\n';
+      p += '【2】キーワード・用語の表記揺れ\n  2-1. A-1の表記揺れ注意ワードがすべて正式表記で統一されている\n  2-2. 同じ指標・KPIの名称が統一されている\n  2-3. カタカナ語の表記揺れがない\n  2-4. 英語表記の揺れがない\n  2-5. 略語と正式名称が混在していない\n\n';
+      p += '【3】スライド間の記載揺れ・不整合\n  3-1. 目次・アジェンダのタイトルと本編の各スライドタイトルが一致している\n  3-2. 同じフェーズ・ステップの名称がスライドをまたいで統一されている\n  3-3. 同じ数値がスライドを横断して出てくる場合、すべて一致している\n  3-4. 施策・アクションの名称が複数スライドにわたって一貫している\n\n';
+      p += '【4】不適切・要注意な記載内容\n  4-1. A-2の使用禁止キーワード・表現が含まれていない\n  4-2. A-3の使用禁止オブジェクト・デザイン要素が含まれていない\n  4-3. 休日・祝日・曜日の記載が提示日時点で正確か\n  4-4. TBD・TODO・要確認など作業中の痕跡が残っていない\n  4-5. コピー元資料の社名・案件名が残っていない\n\n';
+      p += '【5】句読点・文末表記\n  5-1. 箇条書きの文末「。」あり・なしが全体で統一されている\n  5-2. 「です・ます調」と「だ・である調」が混在していない\n  5-3. 箇条書きの語尾の形が同一スライド内で統一されている\n\n';
+      p += '【6】数字・単位・日付\n  6-1. 数字が全角・半角で混在していない（原則：半角統一）\n  6-2. 桁区切りカンマの有無が統一されている\n  6-3. 単位表記が統一されている（百万円・M円が混在しない）\n  6-4. パーセント表記が統一されている\n  6-5. 日付・年度の表記形式が統一されている\n\n';
+      p += '【7】表・グラフ内の数値整合性\n  7-1. 表の合計行・合計列が各セルの合計と一致している\n  7-2. 構成比（%）の合計が100%になっている\n  7-3. 前年比・増減率の計算値が元の数値から正しく導出されている\n  7-4. グラフのデータラベルの数値が凡例・軸の値と整合している\n\n';
+      p += '【8】前後スライドとの整合性\n  8-1. エグゼクティブサマリーの数値・結論が本編と矛盾していない\n  8-2. 参照表現が実際の内容と対応している\n  8-3. 「3つの課題」と述べた場合、後続で過不足なく展開されている\n\n';
+      p += '【9】Citation（出典）の記載揺れ\n  9-1. 出典の記載形式が全スライドで統一されている\n  9-2. 出典の記載位置・フォントサイズ・色が統一されている\n  9-3. Citationが必要な箇所で出典が抜けていない\n\n';
+      p += '【10】キーメッセージの記載揺れ\n  10-1. エグゼクティブサマリーのキーメッセージ文言が本編と一字一句一致している\n  10-2. 目次・アジェンダでの章タイトルと扉スライドのタイトルが完全に一致している\n  10-3. メッセージラインの数値・割合が本文・図表の数値と一致している\n\n';
+      p += '【11】カラー（色）の使用揺れ\n  11-1. 同じ意味・カテゴリを表す要素が全スライドで同一の色で表現されている\n  11-2. 強調色（アクセントカラー）が全スライドで統一されている\n  11-3. 同一の系列・セグメントが異なるスライドで異なる色になっていない\n\n';
     }
 
-    if (mode==='full' || mode==='cnt') {
+    if (mode === 'full' || mode === 'cnt') {
       p += '--- SECTION 2：コンテンツ品質チェック ---\n\n';
-      p += '【12】1スライド1メッセージの原則\n';
-      p += '  12-1. 各スライドにSo What（主張・結論）が1文で書かれているか\n';
-      p += '  12-2. メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）\n';
-      p += '  12-3. 1枚のスライドに複数の独立したメッセージが混在していないか\n';
-      p += '  12-4. ボディがメッセージラインを証明・補足する構成になっているか\n\n';
-      p += '【13】デッキ全体のストーリー性\n';
-      p += '  13-1. 全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか\n';
-      p += '  13-2. デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか\n';
-      p += '  13-3. 各章・セクションの役割が明確で、章の順序が自然か\n';
-      p += '  13-4. 論点が脱線・散漫になっているスライドがないか\n\n';
-      p += '【14】各スライドの結論明確性\n';
-      p += '  14-1. スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）\n';
-      p += '  14-2. データや図が示唆（So What）まで落とし込まれているか\n';
-      p += '  14-3. 図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか\n\n';
+      p += '【12】1スライド1メッセージの原則\n  12-1. 各スライドにSo What（主張・結論）が1文で書かれているか\n  12-2. メッセージラインが動詞を含む完全文になっているか（体言止めになっていないか）\n  12-3. 1枚のスライドに複数の独立したメッセージが混在していないか\n  12-4. ボディがメッセージラインを証明・補足する構成になっているか\n\n';
+      p += '【13】デッキ全体のストーリー性\n  13-1. 全スライドのメッセージラインを順番に読んだとき、論理的なストーリーとして通じるか\n  13-2. デッキの冒頭で課題・問いが明確に設定されており、最後の提言がそれに答えているか\n  13-3. 各章・セクションの役割が明確で、章の順序が自然か\n\n';
+      p += '【14】各スライドの結論明確性\n  14-1. スライドの結論が何かが一目で明確か（事実の羅列に終わっていないか）\n  14-2. データや図が示唆（So What）まで落とし込まれているか\n  14-3. 図・グラフのタイトルがデータの説明でなく示唆・メッセージになっているか\n\n';
     }
   }
 
   p += '================================================================\n';
   p += '【出力形式】\n';
   p += '================================================================\n\n';
-  p += '指摘は以下のブロック形式で出力してください。\n';
-  p += 'スライド番号だけでなく「スライド内のどこか」まで必ず明記し、\n';
-  p += '問題のある文字列・数値は「」で引用してください。\n\n';
+  p += 'NG・要確認の指摘は以下のブロック形式で出力してください。\n';
+  p += 'スライド番号だけでなく「スライド内のどこか」まで必ず明記し、問題の文字列・数値は「」で引用してください。\n\n';
   p += '位置の表記形式：\n';
   p += '  スライドN｜メッセージライン\n';
   p += '  スライドN｜本文 箇条書きX行目\n';
@@ -857,23 +1110,12 @@ function genPrompt() {
   p += '  スライドN｜表「○○」X行Y列目\n';
   p += '  スライドN｜注釈・Citation欄\n\n';
   p += '--- 指摘ブロック形式 ---\n\n';
-  p += '### [No.XX] ❌NG または ⚠️要確認｜項目番号：XX-X\n\n';
-  p += '**箇所①** スライドN｜位置\n';
-  p += '| | テキスト・数値 |\n';
-  p += '|---|---|\n';
-  p += '| 🔴 原文 | 「問題のある文章・数値」 |\n';
-  p += '| ✅ 修正案 | 「修正後の文章・数値」 |\n\n';
-  p += '**問題の説明：** 問題の内容と修正理由\n\n';
-  p += '---\n\n';
-
-  if (mode==='full' || mode==='cnt') {
-    p += '最後に全スライドのメッセージラインを以下の表形式で一覧出力してください：\n\n';
-    p += '| スライド | メッセージライン | 評価 |\n';
-    p += '|---|---|---|\n';
-    p += '| 1 | ○○ | ✅ |\n';
-    p += '| 2 | ○○ | ⚠️ 体言止め |\n';
-    p += '（以降同様）\n\n';
-  }
+  p += '### [No.XX] NG または 要確認｜項目番号：XX-X\n\n';
+  p += '**箇所** スライドN｜位置\n';
+  p += '| | テキスト・数値 |\n|---|---|\n';
+  p += '| 原文  | 「問題のある文章・数値」 |\n';
+  p += '| 修正案 | 「修正後の文章・数値」 |\n\n';
+  p += '**問題の説明：** 問題の内容と修正理由\n\n---\n\n';
   p += '最後に「総合コメント」として、全体の完成度・特に注意すべき傾向・最優先の改善アクションを記載してください。\n';
 
   document.getElementById('promptOut').value = p;
@@ -893,37 +1135,205 @@ function cpPrompt() {
   setTimeout(function(){ document.getElementById('cpMsg').style.display='none'; }, 3000);
 }
 
-/* ===== ファイルI/O（VBScript橋渡し） ===== */
-function getJSON() { return JSON.stringify(D); }
-function setJSON(s) {
-  try {
-    var d = eval('('+s+')');
-    D.wording = d.wording || D.wording;
-    D.banned  = d.banned  || D.banned;
-    D.objects = d.objects || D.objects;
-    D.st  = d.st  || {};
-    D.bef = d.bef || {};
-    D.aft = d.aft || {};
-    D.loc = d.loc || {};
-    renderAll();
-  } catch(e) { alert('読み込みエラー: '+e.message); }
+
+
+/* ===== CSV自動連動 ===== */
+var wCsvPath = '';
+var bCsvPath = '';
+
+function onWPathChange() {
+  wCsvPath = document.getElementById('wCsvPath').value;
+  updateSyncBar();
+}
+function onBPathChange() {
+  bCsvPath = document.getElementById('bCsvPath').value;
+  updateSyncBar();
 }
 
-function getReportHTML() {
+function updateSyncBar() {
+  var wEl = document.getElementById('w_sync_msg');
+  var bEl = document.getElementById('b_sync_msg');
+  var wBar = document.getElementById('w_sync_bar');
+  var bBar = document.getElementById('b_sync_bar');
+  if (wCsvPath) {
+    wEl.innerHTML = '&#128257; 自動連動中: ' + wCsvPath;
+    wBar.style.background = '#f0fdf4';
+    wBar.style.borderColor = '#86efac';
+  } else {
+    wEl.innerHTML = '&#128196; CSV未設定 &#8213; 「CSV設定」タブでファイルパスを指定してください';
+    wBar.style.background = '#f0f5ff';
+    wBar.style.borderColor = '#c0d0f0';
+  }
+  if (bCsvPath) {
+    bEl.innerHTML = '&#128257; 自動連動中: ' + bCsvPath;
+    bBar.style.background = '#f0fdf4';
+    bBar.style.borderColor = '#86efac';
+  } else {
+    bEl.innerHTML = '&#128196; CSV未設定 &#8213; 「CSV設定」タブでファイルパスを指定してください';
+    bBar.style.background = '#f0f5ff';
+    bBar.style.borderColor = '#c0d0f0';
+  }
+}
+
+// CSVに自動書き出し（wording変更時）
+function autoSaveW() {
+  if (!wCsvPath) return;
+  window.execScript('doAutoSaveW()', 'VBScript');
+  setSt('A-1 CSV自動保存: ' + wCsvPath);
+}
+
+// CSVに自動書き出し（banned変更時）
+function autoSaveB() {
+  if (!bCsvPath) return;
+  window.execScript('doAutoSaveB()', 'VBScript');
+  setSt('A-2 CSV自動保存: ' + bCsvPath);
+}
+
+// 今すぐ再読み込み
+function reloadW() {
+  var p = document.getElementById('wCsvPath').value;
+  if (!p) { alert('A-1のCSVパスを設定してください'); return; }
+  wCsvPath = p;
+  window.execScript('doReloadW()', 'VBScript');
+  updateSyncBar();
+  document.getElementById('csvSetMsg').innerHTML = 'A-1を再読み込みしました';
+  setSt('A-1 CSV読み込み: ' + p);
+}
+function reloadB() {
+  var p = document.getElementById('bCsvPath').value;
+  if (!p) { alert('A-2のCSVパスを設定してください'); return; }
+  bCsvPath = p;
+  window.execScript('doReloadB()', 'VBScript');
+  updateSyncBar();
+  document.getElementById('csvSetMsg').innerHTML = 'A-2を再読み込みしました';
+  setSt('A-2 CSV読み込み: ' + p);
+}
+
+// CSV文字列をパースして "col0\x01col1\x02..." 形式に変換
+function parseCSV(text, col0, col1) {
+  var lines = text.split('\n');
+  var result = '';
+  var i, fields;
+  for (i = 1; i < lines.length; i++) { // skip header
+    var line = lines[i].replace(/\r$/, '');
+    if (!line) continue;
+    fields = splitCSVLine(line);
+    if (fields.length > col1) {
+      result += (fields[col0]||'') + '\x01' + (fields[col1]||'') + '\x02';
+    }
+  }
+  return result;
+}
+
+function splitCSVLine(line) {
+  var fields = [], buf = '', inQ = false, i, c;
+  for (i = 0; i < line.length; i++) {
+    c = line.charAt(i);
+    if (inQ) {
+      if (c === '"' && line.charAt(i+1) === '"') { buf += '"'; i++; }
+      else if (c === '"') { inQ = false; }
+      else { buf += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { fields.push(buf); buf = ''; }
+      else { buf += c; }
+    }
+  }
+  fields.push(buf);
+  return fields;
+}
+
+
+/* ===== VBS-JS ファイルブリッジ ===== */
+// VBScriptのvbsWriteFile/vbsReadFileをJS側から呼ぶ
+// autoSaveW/autoSaveBはVBScriptのSubとして実装
+/* ===== CSV橋渡し（VBScript→JavaScript） ===== */
+function setWordingCSV(csv) {
+  // csv: "正式\x01禁止\x02正式\x01禁止\x02..."
+  D.wording = [];
+  if (!csv) return;
+  var rows = csv.split('\x02');
+  var i, pair;
+  for (i = 0; i < rows.length; i++) {
+    if (!rows[i]) continue;
+    pair = rows[i].split('\x01');
+    D.wording.push({ id: uid(), c: pair[0] || '', w: pair[1] || '' });
+  }
+  renderW();
+}
+function getWordingCSV() {
+  var lines = '\ufeff正式表記,使用禁止の表記\r\n';
+  var i, r;
+  for (i = 0; i < D.wording.length; i++) {
+    r = D.wording[i];
+    lines += csvQ(r.c) + ',' + csvQ(r.w) + '\r\n';
+  }
+  return lines;
+}
+function setBannedCSV(csv) {
+  D.banned = [];
+  if (!csv) return;
+  var rows = csv.split('\x02');
+  var i, pair;
+  for (i = 0; i < rows.length; i++) {
+    if (!rows[i]) continue;
+    pair = rows[i].split('\x01');
+    D.banned.push({ id: uid(), cat: pair[0] || '', kw: pair[1] || '' });
+  }
+  renderB();
+}
+function getBannedCSV() {
+  var lines = '\ufeffカテゴリ,キーワード\r\n';
+  var i, r;
+  for (i = 0; i < D.banned.length; i++) {
+    r = D.banned[i];
+    lines += csvQ(r.cat) + ',' + csvQ(r.kw) + '\r\n';
+  }
+  return lines;
+}
+function csvQ(s) {
+  s = (s === null || s === undefined) ? '' : String(s);
+  if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+    s = s.replace(/"/g, '""');
+    return '"' + s + '"';
+  }
+  return s;
+}
+
+/* ===== ファイルI/O ===== */
+function getJSON() {
+  return JSON.stringify(D);
+}
+function setJSON(s) {
+  try {
+    var d = eval('(' + s + ')');
+    if (d.wording)  D.wording  = d.wording;
+    if (d.banned)   D.banned   = d.banned;
+    if (d.objects)  D.objects  = d.objects;
+    if (d.st)  D.st  = d.st;  else D.st  = {};
+    if (d.bef) D.bef = d.bef; else D.bef = {};
+    if (d.aft) D.aft = d.aft; else D.aft = {};
+    if (d.loc) D.loc = d.loc; else D.loc = {};
+    renderAll();
+  } catch(e) {
+    alert('読み込みエラー: ' + e.message);
+  }
+}
+function getRepHTML() {
   var issues = getIssues();
   var now = new Date();
-  var ds = now.getFullYear()+'/'+(now.getMonth()+1)+'/'+now.getDate();
-  var rows = '';
-  for (var i=0; i<issues.length; i++) {
-    var iss = issues[i];
-    rows += '<tr>' +
-      '<td style="color:'+(iss.st==='ng'?'#c00':'#e67e22')+';font-weight:bold;padding:7px 10px;border:1px solid #dde">'+(iss.st==='ng'?'NG':'要確認')+'</td>' +
-      '<td style="padding:7px 10px;border:1px solid #dde">'+iss.secId+'</td>' +
-      '<td style="padding:7px 10px;border:1px solid #dde">'+xe2(iss.item)+'</td>' +
-      '<td style="padding:7px 10px;border:1px solid #dde">'+xe2(iss.loc)+'</td>' +
-      '<td style="padding:7px 10px;border:1px solid #dde;background:#ffeee">'+xe2(iss.bef)+'</td>' +
-      '<td style="padding:7px 10px;border:1px solid #dde;background:#efeee">'+xe2(iss.aft)+'</td>' +
-    '</tr>';
+  var ds = now.getFullYear() + '/' + (now.getMonth()+1) + '/' + now.getDate();
+  var rows = '', i, iss;
+  for (i=0; i<issues.length; i++) {
+    iss = issues[i];
+    rows += '<tr>';
+    rows += '<td style="color:'+(iss.st==='ng'?'#c00':'#e67e22')+';font-weight:bold;padding:7px 10px;border:1px solid #dde">'+(iss.st==='ng'?'NG':'要確認')+'</td>';
+    rows += '<td style="padding:7px 10px;border:1px solid #dde">'+iss.secId+'</td>';
+    rows += '<td style="padding:7px 10px;border:1px solid #dde">'+xe2(iss.item)+'</td>';
+    rows += '<td style="padding:7px 10px;border:1px solid #dde">'+xe2(iss.loc)+'</td>';
+    rows += '<td style="padding:7px 10px;border:1px solid #dde;background:#fff5f5">'+xe2(iss.bef)+'</td>';
+    rows += '<td style="padding:7px 10px;border:1px solid #dde;background:#f5fff5">'+xe2(iss.aft)+'</td>';
+    rows += '</tr>';
   }
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>PPTX点検レポート</title>' +
     '<style>body{font-family:Meiryo,sans-serif;padding:20px}h1{font-size:16px;margin-bottom:4px}' +
@@ -937,24 +1347,11 @@ function getReportHTML() {
 
 function doReset() {
   if (!confirm('点検リストの評価・原文・修正案をすべてリセットしますか？\nA-1〜A-3のリストは保持されます。')) return;
-  D.st={}; D.bef={}; D.aft={}; D.loc={};
-  renderSum(); renderChk();
+  D.st = {}; D.bef = {}; D.aft = {}; D.loc = {};
+  renderSum();
+  renderChk();
   setSt('点検リストをリセットしました');
 }
-
-/* ===== ユーティリティ ===== */
-function xe(s) {
-  s = s||'';
-  s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  return s;
-}
-function xe2(s) {
-  s = s||'';
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-function trim(s) { return (s||'').replace(/^\s+|\s+$/g,''); }
-function now() { return new Date().getTime(); }
-function setSt(msg) { document.getElementById('stMsg').innerText = msg; }
 
 function renderAll() {
   renderW();
@@ -964,7 +1361,6 @@ function renderAll() {
   renderChk();
 }
 
-/* ===== 初期描画 ===== */
 renderAll();
 setSt('準備完了');
 </script>
