@@ -352,15 +352,13 @@ Sub vbsSaveB()
   writeUTF8 document.getElementById("bFile").value, document.getElementById("_bbuf").value
 End Sub
 
-' ── A-1 CSV読み込み（ファイルを読んで_wbufに入れる） ──
+' ── A-1 CSV読み込み（VBSでファイル読込→_wbufに格納→JSでパース） ──
 Sub vbsLoadW()
-  Dim fname, csv
+  Dim fname, csv, p, fso
   fname = document.getElementById("wFile").value
   If Trim(fname) = "" Then
     MsgBox "A-1のファイル名を設定してください。", 64, "情報" : Exit Sub
   End If
-  ' ファイルが無ければ新規作成
-  Dim p, fso
   p = fullPath(fname)
   Set fso = CreateObject("Scripting.FileSystemObject")
   If Not fso.FileExists(p) Then
@@ -368,16 +366,18 @@ Sub vbsLoadW()
   End If
   csv = readUTF8(fname)
   document.getElementById("_wbuf").value = csv
+  ' VBSが_wbufに書き込んだ直後にJSを呼ぶ（同期）
+  window.execScript "applyWordingFromBuf()", "JavaScript"
+  setSt "A-1 再読込完了"
 End Sub
 
-' ── A-2 CSV読み込み（ファイルを読んで_bbufに入れる） ──
+' ── A-2 CSV読み込み（VBSでファイル読込→_bbufに格納→JSでパース） ──
 Sub vbsLoadB()
-  Dim fname, csv
+  Dim fname, csv, p, fso
   fname = document.getElementById("bFile").value
   If Trim(fname) = "" Then
     MsgBox "A-2のファイル名を設定してください。", 64, "情報" : Exit Sub
   End If
-  Dim p, fso
   p = fullPath(fname)
   Set fso = CreateObject("Scripting.FileSystemObject")
   If Not fso.FileExists(p) Then
@@ -385,6 +385,9 @@ Sub vbsLoadB()
   End If
   csv = readUTF8(fname)
   document.getElementById("_bbuf").value = csv
+  ' VBSが_bbufに書き込んだ直後にJSを呼ぶ（同期）
+  window.execScript "applyBannedFromBuf()", "JavaScript"
+  setSt "A-2 再読込完了"
 End Sub
 
 
@@ -588,9 +591,9 @@ function saveB(){
   genPrompt();
 }
 
-/* ===== CSV再読込（VBS→_buf→JS） ===== */
-function jsReloadW(){
-  window.execScript('vbsLoadW()','VBScript');
+/* ===== CSV再読込 ===== */
+// VBSから直接呼ばれる（_wbuf書込後に同期で呼ばれる）
+function applyWordingFromBuf(){
   var csv=document.getElementById('_wbuf').value;
   var rows=parseCSV(csv),i;
   D.wording=[];
@@ -601,8 +604,8 @@ function jsReloadW(){
   genPrompt();
   setSt('A-1 再読込完了（'+D.wording.length+'件）');
 }
-function jsReloadB(){
-  window.execScript('vbsLoadB()','VBScript');
+// VBSから直接呼ばれる（_bbuf書込後に同期で呼ばれる）
+function applyBannedFromBuf(){
   var csv=document.getElementById('_bbuf').value;
   var rows=parseCSV(csv),i;
   D.banned=[];
@@ -612,6 +615,13 @@ function jsReloadB(){
   updateSyncBars();
   genPrompt();
   setSt('A-2 再読込完了（'+D.banned.length+'件）');
+}
+// ボタンから呼ばれる（VBSを起動するだけ、処理はapply*FromBufで完結）
+function jsReloadW(){
+  window.execScript('vbsLoadW()','VBScript');
+}
+function jsReloadB(){
+  window.execScript('vbsLoadB()','VBScript');
 }
 function jsReloadAll(){
   jsReloadW();
