@@ -304,41 +304,44 @@ Function fullPath(fname)
   fullPath = gBaseDir & Trim(fname)
 End Function
 
-' ── UTF-8でファイル読み込み（ADODB.Stream使用） ──
+' ── ファイル読み込み（FSO + システムデフォルト文字コード） ──
 Function readUTF8(fname)
   readUTF8 = ""
   If Trim(fname) = "" Then Exit Function
-  Dim p, fso, st
+  Dim p, fso, f
   p = fullPath(fname)
   Set fso = CreateObject("Scripting.FileSystemObject")
-  If Not fso.FileExists(p) Then Exit Function
+  If Not fso.FileExists(p) Then
+    MsgBox "ファイルが見つかりません:" & Chr(13) & p, 64, "情報"
+    Exit Function
+  End If
   On Error Resume Next
-  Set st = CreateObject("ADODB.Stream")
-  st.Open
-  st.Type = 2
-  st.Charset = "UTF-8"
-  st.LoadFromFile p
-  readUTF8 = st.ReadText
-  st.Close
+  Set f = fso.OpenTextFile(p, 1, False, 0)
+  If Err.Number <> 0 Then
+    MsgBox "読込エラー: " & p & Chr(13) & Err.Description, 16, "エラー"
+    On Error GoTo 0
+    Exit Function
+  End If
+  readUTF8 = f.ReadAll
+  f.Close
   On Error GoTo 0
 End Function
 
-' ── UTF-8でファイル書き込み（ADODB.Stream使用） ──
+' ── ファイル書き込み（FSO + システムデフォルト文字コード） ──
 Sub writeUTF8(fname, content)
   If Trim(fname) = "" Then Exit Sub
-  Dim p, st
+  Dim p, fso, f
   p = fullPath(fname)
+  Set fso = CreateObject("Scripting.FileSystemObject")
   On Error Resume Next
-  Set st = CreateObject("ADODB.Stream")
-  st.Open
-  st.Type = 2
-  st.Charset = "UTF-8"
-  st.WriteText content
-  st.SaveToFile p, 2
-  st.Close
+  Set f = fso.OpenTextFile(p, 2, True, 0)
   If Err.Number <> 0 Then
-    MsgBox "書き込みエラー: " & p & Chr(13) & Err.Description, 16, "エラー"
+    MsgBox "書込エラー: " & p & Chr(13) & Err.Description, 16, "エラー"
+    On Error GoTo 0
+    Exit Sub
   End If
+  f.Write content
+  f.Close
   On Error GoTo 0
 End Sub
 
@@ -363,12 +366,16 @@ Sub vbsLoadW()
   Set fso = CreateObject("Scripting.FileSystemObject")
   If Not fso.FileExists(p) Then
     writeUTF8 fname, "正式表記,使用禁止の表記" & Chr(13) & Chr(10)
+    MsgBox "新規CSVを作成しました:" & Chr(13) & p, 64, "情報"
   End If
   csv = readUTF8(fname)
+  If Len(Trim(csv)) = 0 Then
+    MsgBox "CSVが空か読み込めませんでした:" & Chr(13) & p, 64, "情報"
+    Exit Sub
+  End If
   document.getElementById("_wbuf").value = csv
-  ' VBSが_wbufに書き込んだ直後にJSを呼ぶ（同期）
   window.execScript "applyWordingFromBuf()", "JavaScript"
-  setSt "A-1 再読込完了"
+  setSt "A-1 再読込完了: " & p
 End Sub
 
 ' ── A-2 CSV読み込み（VBSでファイル読込→_bbufに格納→JSでパース） ──
@@ -382,12 +389,16 @@ Sub vbsLoadB()
   Set fso = CreateObject("Scripting.FileSystemObject")
   If Not fso.FileExists(p) Then
     writeUTF8 fname, "カテゴリ,キーワード" & Chr(13) & Chr(10)
+    MsgBox "新規CSVを作成しました:" & Chr(13) & p, 64, "情報"
   End If
   csv = readUTF8(fname)
+  If Len(Trim(csv)) = 0 Then
+    MsgBox "CSVが空か読み込めませんでした:" & Chr(13) & p, 64, "情報"
+    Exit Sub
+  End If
   document.getElementById("_bbuf").value = csv
-  ' VBSが_bbufに書き込んだ直後にJSを呼ぶ（同期）
   window.execScript "applyBannedFromBuf()", "JavaScript"
-  setSt "A-2 再読込完了"
+  setSt "A-2 再読込完了: " & p
 End Sub
 
 
@@ -541,14 +552,16 @@ function splitCSVLine(line){
 }
 function parseCSV(text){
   if(!text) return [];
-  // BOM除去
+  // BOM除去（UTF-8 BOM: EF BB BF / UTF-16 BOM）
   if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  if(text.charCodeAt(0)===0xFEFF) text=text.slice(1); // 念のため2回
+  // CRLF/LF両対応
   var lines=text.split('\n'),res=[],i,f,ln;
   for(i=1;i<lines.length;i++){
-    ln=lines[i].replace(/\r$/,'');
-    if(!ln) continue;
+    ln=lines[i].replace(/\r$/,'').replace(/\r/g,'');
+    if(!ln||!ln.replace(/,/g,'').replace(/\s/g,'')) continue;
     f=splitCSVLine(ln);
-    if(f.length>=2) res.push({c0:f[0],c1:f[1]});
+    if(f.length>=2&&(f[0]||f[1])) res.push({c0:f[0],c1:f[1]});
   }
   return res;
 }
@@ -595,6 +608,7 @@ function saveB(){
 // VBSから直接呼ばれる（_wbuf書込後に同期で呼ばれる）
 function applyWordingFromBuf(){
   var csv=document.getElementById('_wbuf').value;
+  if(!csv){ setSt('A-1: CSVデータが空です'); return; }
   var rows=parseCSV(csv),i;
   D.wording=[];
   for(i=0;i<rows.length;i++)
@@ -604,9 +618,9 @@ function applyWordingFromBuf(){
   genPrompt();
   setSt('A-1 再読込完了（'+D.wording.length+'件）');
 }
-// VBSから直接呼ばれる（_bbuf書込後に同期で呼ばれる）
 function applyBannedFromBuf(){
   var csv=document.getElementById('_bbuf').value;
+  if(!csv){ setSt('A-2: CSVデータが空です'); return; }
   var rows=parseCSV(csv),i;
   D.banned=[];
   for(i=0;i<rows.length;i++)
