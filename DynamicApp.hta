@@ -1,0 +1,2666 @@
+<html>
+<head>
+<title>HTA Dynamic App</title>
+<meta http-equiv="X-UA-Compatible" content="IE=9">
+<HTA:APPLICATION
+  ID="DynamicApp"
+  APPLICATIONNAME="HTA Dynamic App"
+  BORDER="thick"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  ICON=""
+  MAXIMIZEBUTTON="yes"
+  MINIMIZEBUTTON="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="maximize"
+  SCROLL="no"
+  SELECTION="yes"
+/>
+<style>
+/* ===== RESET & BASE ===== */
+* { margin:0; padding:0; box-sizing:content-box; }
+html, body { width:100%; height:100%; overflow:hidden; font-family:"Meiryo UI","Meiryo",sans-serif; font-size:13px; color:#1a1a1a; background:#f0f2f5; }
+input,select,textarea,button { font-family:inherit; font-size:13px; }
+button { cursor:pointer; }
+
+/* ===== HEADER ===== */
+#header { height:36px; line-height:36px; background:#1a237e; color:#fff; padding:0 16px; overflow:hidden; }
+#header .app-name { font-size:15px; font-weight:bold; float:left; }
+#header .dirty-mark { color:#ff9800; font-weight:bold; margin-left:8px; display:none; float:left; line-height:36px; }
+#header .version { float:right; font-size:11px; color:#90caf9; }
+
+/* ===== TAB BAR ===== */
+#tabbar { height:34px; background:#283593; overflow:hidden; padding:0 8px; border-bottom:2px solid #1a237e; white-space:nowrap; }
+.tab-btn { display:inline-block; height:32px; line-height:32px; padding:0 16px; color:#b0bec5; background:transparent; border:none; border-bottom:2px solid transparent; cursor:pointer; font-size:13px; margin-right:2px; vertical-align:top; }
+.tab-btn:hover { color:#fff; background:rgba(255,255,255,0.08); }
+.tab-btn.active { color:#fff; background:#3949ab; border-bottom:2px solid #ffab40; font-weight:bold; }
+
+/* ===== TOOLBAR ===== */
+#toolbar { height:38px; background:#e8eaf6; border-bottom:1px solid #c5cae9; padding:4px 12px; overflow:hidden; }
+.tool-btn { display:inline-block; height:28px; line-height:28px; padding:0 12px; margin-right:4px; background:#fff; border:1px solid #9fa8da; color:#283593; cursor:pointer; font-size:12px; vertical-align:middle; }
+.tool-btn:hover { background:#c5cae9; }
+.tool-btn.active { background:#3949ab; color:#fff; border-color:#3949ab; }
+.tool-sep { display:inline-block; width:1px; height:20px; background:#9fa8da; margin:4px 8px; vertical-align:middle; }
+.tool-label { display:inline-block; font-size:12px; color:#455a64; margin-right:6px; vertical-align:middle; line-height:28px; }
+.tool-select { height:26px; border:1px solid #9fa8da; padding:0 4px; vertical-align:middle; }
+
+/* ===== DATE NAV ===== */
+.date-nav { display:inline-block; vertical-align:middle; }
+.date-nav .nav-btn { display:inline-block; width:26px; height:26px; line-height:26px; text-align:center; background:#fff; border:1px solid #9fa8da; cursor:pointer; vertical-align:middle; }
+.date-nav .nav-btn:hover { background:#c5cae9; }
+.date-nav .nav-label { display:inline-block; min-width:100px; text-align:center; font-size:12px; color:#283593; font-weight:bold; vertical-align:middle; line-height:26px; }
+
+/* ===== MAIN CONTENT ===== */
+#main-area { position:absolute; top:112px; left:0; right:0; bottom:26px; overflow:hidden; }
+.pane-container { width:100%; height:100%; overflow:hidden; position:relative; }
+.pane { position:absolute; top:0; overflow:auto; background:#fff; border:1px solid #c5cae9; }
+.pane-header { height:28px; line-height:28px; background:#e8eaf6; padding:0 10px; font-size:12px; font-weight:bold; color:#283593; border-bottom:1px solid #c5cae9; overflow:hidden; }
+
+/* ===== LIST PANE ===== */
+.list-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+.list-table th { background:#e8eaf6; color:#283593; font-size:12px; font-weight:bold; padding:4px 8px; border:1px solid #c5cae9; text-align:left; cursor:pointer; white-space:nowrap; overflow:hidden; position:relative; user-select:none; }
+.list-table th:hover { background:#c5cae9; }
+.list-table th .sort-icon { float:right; color:#9fa8da; font-size:10px; }
+.list-table td { padding:3px 6px; border:1px solid #e0e0e0; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default; }
+.list-table tr:hover td { background:#e3f2fd; }
+.list-table tr.selected td { background:#bbdefb; }
+.list-table td.active-cell { outline:2px solid #1565c0; outline-offset:-1px; }
+.list-table td input, .list-table td select { width:100%; border:1px solid #90caf9; padding:1px 3px; font-size:12px; background:#fff; }
+.list-table td input[type="checkbox"] { width:auto; }
+.drag-handle { cursor:move; color:#9e9e9e; margin-right:4px; font-size:11px; }
+
+/* filter row */
+.filter-row input { width:100%; border:1px solid #c5cae9; padding:2px 4px; font-size:11px; background:#fafafa; }
+
+/* ===== DETAIL PANE ===== */
+.detail-form { padding:12px; overflow-y:auto; }
+.detail-field { margin-bottom:10px; }
+.detail-field label { display:block; font-size:11px; color:#455a64; font-weight:bold; margin-bottom:3px; }
+.detail-field input[type="text"], .detail-field input[type="date"], .detail-field select, .detail-field textarea { width:95%; border:1px solid #c5cae9; padding:4px 6px; font-size:13px; background:#fff; }
+.detail-field textarea { height:60px; resize:vertical; }
+.detail-field input[type="checkbox"] { width:auto; }
+
+/* ===== EDITOR PANE ===== */
+.editor-area { width:100%; height:100%; border:none; padding:8px; font-family:"Consolas","MS Gothic",monospace; font-size:13px; line-height:1.6; resize:none; outline:none; }
+
+/* ===== WBS PANE ===== */
+.wbs-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+.wbs-table th { background:#e8eaf6; color:#283593; font-size:12px; font-weight:bold; padding:4px 6px; border:1px solid #c5cae9; text-align:left; }
+.wbs-table td { padding:3px 6px; border:1px solid #e0e0e0; font-size:12px; white-space:nowrap; overflow:hidden; }
+.wbs-table tr:hover td { background:#e3f2fd; }
+.wbs-table tr.selected td { background:#bbdefb; }
+.wbs-toggle { cursor:pointer; display:inline-block; width:16px; text-align:center; color:#455a64; font-size:11px; }
+.wbs-indent { display:inline-block; }
+
+/* ===== GANTT PANE ===== */
+.gantt-wrapper { width:100%; height:100%; overflow:auto; position:relative; }
+.gantt-header { height:44px; position:relative; background:#e8eaf6; border-bottom:1px solid #c5cae9; }
+.gantt-header-month { position:absolute; top:0; height:22px; line-height:22px; text-align:center; font-size:11px; font-weight:bold; color:#283593; border-right:1px solid #c5cae9; border-bottom:1px solid #c5cae9; }
+.gantt-header-day { position:absolute; top:22px; height:22px; line-height:22px; text-align:center; font-size:10px; color:#455a64; border-right:1px solid #e0e0e0; }
+.gantt-header-day.weekend { background:#fff3e0; }
+.gantt-header-day.today { background:#bbdefb; font-weight:bold; }
+.gantt-row { height:28px; position:relative; border-bottom:1px solid #f0f0f0; }
+.gantt-bar { position:absolute; height:18px; top:5px; border-radius:3px; min-width:4px; cursor:pointer; font-size:10px; color:#fff; line-height:18px; padding:0 4px; overflow:hidden; white-space:nowrap; }
+.gantt-bar:hover { opacity:0.85; }
+.gantt-today-line { position:absolute; top:0; bottom:0; width:2px; background:#e53935; z-index:5; }
+.gantt-milestone { position:absolute; top:4px; width:0; height:0; border:10px solid transparent; border-bottom-color:#ff6f00; border-top:none; cursor:pointer; }
+.gantt-dep-arrow { position:absolute; z-index:2; }
+
+/* ===== MENU PANE ===== */
+.menu-list { list-style:none; padding:4px 0; }
+.menu-item { padding:8px 14px; cursor:pointer; color:#37474f; font-size:13px; border-left:3px solid transparent; }
+.menu-item:hover { background:#e3f2fd; border-left-color:#42a5f5; }
+.menu-item.active { background:#bbdefb; border-left-color:#1565c0; font-weight:bold; color:#0d47a1; }
+.menu-group-label { padding:6px 14px; font-size:11px; font-weight:bold; color:#90a4ae; text-transform:uppercase; }
+
+/* ===== SETTINGS PANE ===== */
+.settings-panel { padding:16px; overflow-y:auto; }
+.settings-section { margin-bottom:20px; border:1px solid #c5cae9; background:#fafafa; }
+.settings-section-title { background:#e8eaf6; padding:8px 12px; font-size:13px; font-weight:bold; color:#283593; cursor:pointer; border-bottom:1px solid #c5cae9; }
+.settings-section-body { padding:12px; display:none; }
+.settings-section.open .settings-section-body { display:block; }
+.settings-row { margin-bottom:8px; overflow:hidden; }
+.settings-row label { display:inline-block; width:140px; font-size:12px; color:#455a64; font-weight:bold; vertical-align:top; line-height:26px; }
+.settings-row input[type="text"], .settings-row select, .settings-row textarea { border:1px solid #c5cae9; padding:3px 6px; font-size:12px; }
+.settings-row input[type="text"] { width:260px; }
+.settings-row textarea { width:400px; height:60px; }
+.settings-btn { display:inline-block; padding:4px 14px; margin:2px; background:#3949ab; color:#fff; border:1px solid #283593; cursor:pointer; font-size:12px; }
+.settings-btn:hover { background:#283593; }
+.settings-btn.danger { background:#c62828; border-color:#b71c1c; }
+.settings-btn.danger:hover { background:#b71c1c; }
+.settings-mini-table { border-collapse:collapse; width:100%; margin-top:6px; }
+.settings-mini-table th { background:#e0e0e0; padding:4px 8px; border:1px solid #bdbdbd; font-size:11px; text-align:left; }
+.settings-mini-table td { padding:3px 6px; border:1px solid #e0e0e0; font-size:11px; }
+.settings-mini-table tr:hover td { background:#e3f2fd; }
+
+/* ===== DASHBOARD ===== */
+.dashboard { padding:16px; overflow-y:auto; }
+.dash-card { display:inline-block; width:220px; vertical-align:top; margin:0 12px 12px 0; border:1px solid #c5cae9; background:#fff; }
+.dash-card-title { background:#e8eaf6; padding:8px 12px; font-size:12px; font-weight:bold; color:#283593; border-bottom:1px solid #c5cae9; }
+.dash-card-body { padding:12px; font-size:12px; }
+.dash-card-num { font-size:28px; font-weight:bold; color:#1a237e; }
+.dash-card-sub { font-size:11px; color:#78909c; margin-top:4px; }
+
+/* ===== STATUSBAR ===== */
+#statusbar { position:absolute; bottom:0; left:0; right:0; height:24px; line-height:24px; background:#263238; color:#b0bec5; padding:0 12px; font-size:11px; overflow:hidden; }
+#statusbar span { margin-right:16px; }
+.status-dirty { color:#ff9800; }
+
+/* ===== MODAL ===== */
+.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#000; filter:alpha(opacity=50); opacity:0.5; z-index:1000; }
+.modal-dialog { display:none; position:fixed; top:50%; left:50%; background:#fff; border:2px solid #1a237e; z-index:1001; padding:0; min-width:380px; }
+.modal-title { background:#283593; color:#fff; padding:10px 16px; font-size:14px; font-weight:bold; }
+.modal-body { padding:16px; font-size:13px; max-height:400px; overflow-y:auto; }
+.modal-footer { padding:10px 16px; text-align:right; border-top:1px solid #e0e0e0; background:#fafafa; }
+.modal-footer button { padding:6px 18px; margin-left:8px; cursor:pointer; font-size:13px; border:1px solid #9e9e9e; background:#fff; }
+.modal-footer button.primary { background:#3949ab; color:#fff; border-color:#283593; }
+.modal-footer button.primary:hover { background:#283593; }
+.modal-footer button.danger { background:#c62828; color:#fff; border-color:#b71c1c; }
+
+/* ===== CONTEXT MENU ===== */
+.ctx-menu { display:none; position:absolute; background:#fff; border:1px solid #bdbdbd; z-index:999; min-width:160px; box-shadow:2px 2px 6px rgba(0,0,0,0.15); }
+.ctx-menu-item { padding:6px 14px; font-size:12px; cursor:pointer; color:#333; }
+.ctx-menu-item:hover { background:#e3f2fd; }
+.ctx-menu-sep { height:1px; background:#e0e0e0; margin:2px 0; }
+.ctx-menu-item.danger { color:#c62828; }
+
+/* ===== TOAST ===== */
+.toast-container { position:fixed; bottom:40px; right:20px; z-index:2000; }
+.toast { padding:10px 18px; margin-top:6px; color:#fff; font-size:12px; border-radius:3px; opacity:0.95; }
+.toast.success { background:#2e7d32; }
+.toast.error { background:#c62828; }
+.toast.warning { background:#e65100; }
+.toast.info { background:#1565c0; }
+
+/* ===== HIGHLIGHT RULES ===== */
+.hl-overdue { background-color:#ffcdd2 !important; color:#b71c1c !important; font-weight:bold; }
+.hl-due-soon { background-color:#fff9c4 !important; }
+.hl-complete { background-color:#e8f5e9 !important; color:#9e9e9e !important; text-decoration:line-through; }
+.hl-high-risk { background-color:#ffe0b2 !important; font-weight:bold; }
+.hl-critical { background-color:#ffcdd2 !important; }
+.hl-milestone { background-color:#e3f2fd !important; }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar { display:inline-block; width:60px; height:12px; background:#e0e0e0; vertical-align:middle; position:relative; }
+.progress-fill { height:100%; background:#43a047; }
+.progress-text { font-size:10px; margin-left:4px; vertical-align:middle; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width:8px; height:8px; }
+</style>
+
+<!-- ===== VBSCRIPT LAYER ===== -->
+<script language="VBScript">
+Dim gFSO
+Set gFSO = CreateObject("Scripting.FileSystemObject")
+
+Function getAppDir()
+  Dim p
+  p = Replace(document.location.pathname, "/", "\")
+  If Left(p,1) = "\" Then p = Mid(p, 2)
+  p = Replace(p, "%20", " ")
+  getAppDir = gFSO.GetParentFolderName(p)
+  If Right(getAppDir, 1) <> "\" Then getAppDir = getAppDir & "\"
+End Function
+
+Sub readUTF8(filePath)
+  Dim s, result
+  On Error Resume Next
+  Set s = CreateObject("ADODB.Stream")
+  s.Type = 2
+  s.Charset = "UTF-8"
+  s.Open
+  s.LoadFromFile filePath
+  result = s.ReadText
+  s.Close
+  Set s = Nothing
+  If Err.Number <> 0 Then
+    result = ""
+    Err.Clear
+  End If
+  On Error GoTo 0
+  document.getElementById("_vbs_result").value = result
+End Sub
+
+Sub writeUTF8(filePath, content)
+  Dim tmpStream, binaryData, outStream
+  On Error Resume Next
+  Set tmpStream = CreateObject("ADODB.Stream")
+  tmpStream.Type = 2
+  tmpStream.Charset = "UTF-8"
+  tmpStream.Open
+  tmpStream.WriteText content
+  tmpStream.Position = 0
+  tmpStream.Type = 1
+  tmpStream.Position = 3
+  binaryData = tmpStream.Read
+  tmpStream.Close
+  Set outStream = CreateObject("ADODB.Stream")
+  outStream.Type = 1
+  outStream.Open
+  outStream.Write binaryData
+  outStream.SaveToFile filePath, 2
+  outStream.Close
+  Set tmpStream = Nothing
+  Set outStream = Nothing
+  If Err.Number <> 0 Then
+    document.getElementById("_vbs_result").value = "ERROR:" & Err.Description
+    Err.Clear
+  Else
+    document.getElementById("_vbs_result").value = "OK"
+  End If
+  On Error GoTo 0
+End Sub
+
+Sub vbsReadFile()
+  Dim fp
+  fp = document.getElementById("_vbs_buffer").value
+  Call readUTF8(fp)
+  window.execScript "jsVbsCallback()", "JavaScript"
+End Sub
+
+Sub vbsWriteFile()
+  Dim fp, ct
+  fp = document.getElementById("_vbs_filepath").value
+  ct = document.getElementById("_vbs_buffer").value
+  Call writeUTF8(fp, ct)
+  window.execScript "jsVbsCallback()", "JavaScript"
+End Sub
+
+Sub vbsEnsureDir(dirPath)
+  If Not gFSO.FolderExists(dirPath) Then
+    gFSO.CreateFolder dirPath
+  End If
+End Sub
+
+Sub vbsBrowseFile()
+  Dim dlg, f
+  Set dlg = CreateObject("UserAccounts.CommonDialog")
+  dlg.Filter = "All Files|*.*|CSV Files|*.csv|JSON Files|*.json|Text Files|*.txt"
+  dlg.FilterIndex = 1
+  If dlg.ShowOpen Then
+    document.getElementById("_vbs_result").value = dlg.FileName
+  Else
+    document.getElementById("_vbs_result").value = ""
+  End If
+  Set dlg = Nothing
+  window.execScript "jsVbsCallback()", "JavaScript"
+End Sub
+
+Function vbsFileExists(fp)
+  vbsFileExists = gFSO.FileExists(fp)
+End Function
+
+Function vbsFolderExists(fp)
+  vbsFolderExists = gFSO.FolderExists(fp)
+End Function
+</script>
+
+</head>
+<body>
+
+<!-- Hidden buffers for VBS<->JS -->
+<input type="hidden" id="_vbs_buffer" />
+<input type="hidden" id="_vbs_result" />
+<input type="hidden" id="_vbs_filepath" />
+
+<!-- ===== HEADER ===== -->
+<div id="header">
+  <span class="app-name" id="appName">HTA Dynamic App</span>
+  <span class="dirty-mark" id="dirtyMark">● 未保存</span>
+  <span class="version" id="appVersion">v1.0.0</span>
+</div>
+
+<!-- ===== TAB BAR ===== -->
+<div id="tabbar"></div>
+
+<!-- ===== TOOLBAR ===== -->
+<div id="toolbar">
+  <span class="tool-btn" onclick="saveAllData()">&#128190; 保存</span>
+  <span class="tool-btn" onclick="exportCSV()">&#128196; CSV出力</span>
+  <span class="tool-sep"></span>
+  <span class="tool-btn" onclick="addListRow()">&#10010; 行追加</span>
+  <span class="tool-btn" onclick="deleteListRow()">&#10006; 行削除</span>
+  <span class="tool-sep"></span>
+  <span id="dateNavArea" style="display:none;">
+    <span class="tool-label">表示:</span>
+    <span class="tool-btn" id="btnScaleMonth" onclick="setDateScale('month')">月</span>
+    <span class="tool-btn" id="btnScaleWeek" onclick="setDateScale('week')">週</span>
+    <span class="tool-btn" id="btnScaleDay" onclick="setDateScale('day')">日</span>
+    <span class="tool-sep"></span>
+    <span class="date-nav">
+      <span class="nav-btn" onclick="navDate(-1)">&#9664;</span>
+      <span class="nav-label" id="dateNavLabel">-</span>
+      <span class="nav-btn" onclick="navDate(0)">今日</span>
+      <span class="nav-btn" onclick="navDate(1)">&#9654;</span>
+    </span>
+  </span>
+  <span class="tool-sep"></span>
+  <span class="tool-label">ビュー:</span>
+  <select class="tool-select" id="filterViewSelect" onchange="applyFilterView(this.value)">
+    <option value="">すべて</option>
+  </select>
+  <span style="float:right;">
+    <span class="tool-btn" onclick="showSettingsHelp()">&#9881; ヘルプ</span>
+  </span>
+</div>
+
+<!-- ===== MAIN AREA ===== -->
+<div id="main-area"></div>
+
+<!-- ===== STATUSBAR ===== -->
+<div id="statusbar">
+  <span id="statusTab">-</span>
+  <span id="statusRows">行: 0</span>
+  <span id="statusDirty"></span>
+  <span id="statusSaved">-</span>
+  <span style="float:right;" id="statusEncoding">UTF-8 | CRLF</span>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-overlay" id="modalOverlay"></div>
+<div class="modal-dialog" id="modalDialog">
+  <div class="modal-title" id="modalTitle">確認</div>
+  <div class="modal-body" id="modalBody"></div>
+  <div class="modal-footer" id="modalFooter"></div>
+</div>
+
+<!-- ===== CONTEXT MENU ===== -->
+<div class="ctx-menu" id="ctxMenu"></div>
+
+<!-- ===== TOASTS ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== MAIN JAVASCRIPT ===== -->
+<script language="JavaScript">
+// ========================================================================
+// POLYFILLS (ES5)
+// ========================================================================
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(v, s) {
+    var i = s || 0;
+    for (; i < this.length; i++) { if (this[i] === v) return i; }
+    return -1;
+  };
+}
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(fn, ctx) {
+    for (var i = 0; i < this.length; i++) fn.call(ctx, this[i], i, this);
+  };
+}
+if (!Array.prototype.filter) {
+  Array.prototype.filter = function(fn, ctx) {
+    var r = [];
+    for (var i = 0; i < this.length; i++) { if (fn.call(ctx, this[i], i, this)) r.push(this[i]); }
+    return r;
+  };
+}
+if (!Array.prototype.map) {
+  Array.prototype.map = function(fn, ctx) {
+    var r = [];
+    for (var i = 0; i < this.length; i++) r.push(fn.call(ctx, this[i], i, this));
+    return r;
+  };
+}
+if (!Array.isArray) {
+  Array.isArray = function(a) { return Object.prototype.toString.call(a) === '[object Array]'; };
+}
+if (!String.prototype.trim) {
+  String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
+}
+
+// ========================================================================
+// GLOBALS
+// ========================================================================
+var APP_DIR = '';
+var CONFIG = null;
+var DATA_STORE = {};        // paneId -> array of row objects
+var DIRTY_FLAGS = {};       // paneId -> boolean
+var ACTIVE_TAB = null;
+var ACTIVE_CELL = null;     // {paneId, row, col}
+var SELECTED_ROW = {};      // paneId -> row index
+var DATE_SCALE = 'week';
+var DATE_CURSOR = new Date();
+var VBS_CALLBACK = null;
+var UNDO_STACKS = {};       // paneId -> [{data snapshot}]
+var REDO_STACKS = {};
+var EDITOR_CONTENTS = {};   // paneId -> string
+
+// ========================================================================
+// UTILITY
+// ========================================================================
+function uid() {
+  return 'id_' + (new Date().getTime()) + '_' + Math.floor(Math.random() * 10000);
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function padZero(n) { return n < 10 ? '0' + n : '' + n; }
+function formatDate(d) {
+  if (!d) return '';
+  if (typeof d === 'string') d = parseDate(d);
+  if (!d) return '';
+  return d.getFullYear() + '-' + padZero(d.getMonth()+1) + '-' + padZero(d.getDate());
+}
+function parseDate(s) {
+  if (!s) return null;
+  var m = String(s).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (!m) return null;
+  return new Date(parseInt(m[1],10), parseInt(m[2],10)-1, parseInt(m[3],10));
+}
+function todayStr() { return formatDate(new Date()); }
+function dateDiffDays(d1, d2) {
+  return Math.round((d2 - d1) / 86400000);
+}
+function getWeekStart(d) {
+  var dd = new Date(d.getTime());
+  var day = dd.getDay();
+  var diff = day === 0 ? 6 : day - 1;
+  dd.setDate(dd.getDate() - diff);
+  return dd;
+}
+function deepCopy(obj) {
+  return safeParseJSON(JSON.stringify(obj));
+}
+function safeParseJSON(text) {
+  try { return JSON.parse(text); } catch(e) {
+    try { return eval('(' + text + ')'); } catch(e2) { return null; }
+  }
+}
+
+// ========================================================================
+// FILE I/O (via VBScript)
+// ========================================================================
+function readFileSync(filePath) {
+  document.getElementById('_vbs_buffer').value = filePath;
+  document.getElementById('_vbs_result').value = '';
+  window.execScript('vbsReadFile()', 'VBScript');
+  return document.getElementById('_vbs_result').value;
+}
+function writeFileSync(filePath, content) {
+  document.getElementById('_vbs_filepath').value = filePath;
+  document.getElementById('_vbs_buffer').value = content;
+  document.getElementById('_vbs_result').value = '';
+  window.execScript('vbsWriteFile()', 'VBScript');
+  return document.getElementById('_vbs_result').value;
+}
+function jsVbsCallback() {
+  if (VBS_CALLBACK) { var cb = VBS_CALLBACK; VBS_CALLBACK = null; cb(); }
+}
+function ensureDir(dirPath) {
+  window.execScript('vbsEnsureDir "' + dirPath.replace(/"/g,'""') + '"', 'VBScript');
+}
+function resolvePath(rel) {
+  if (!rel) return '';
+  if (rel.indexOf(':') > 0) return rel;
+  return APP_DIR + rel.replace(/\//g, '\\');
+}
+
+// ========================================================================
+// CSV PARSER / GENERATOR (RFC 4180)
+// ========================================================================
+function parseCSV(text) {
+  if (!text || !text.trim()) return { headers: [], rows: [] };
+  var lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  var result = [];
+  var row = [];
+  var field = '';
+  var inQ = false;
+  for (var i = 0; i < lines.length; i++) {
+    var c = lines.charAt(i);
+    if (inQ) {
+      if (c === '"') {
+        if (i+1 < lines.length && lines.charAt(i+1) === '"') { field += '"'; i++; }
+        else { inQ = false; }
+      } else { field += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); field = ''; result.push(row); row = []; }
+      else { field += c; }
+    }
+  }
+  if (field || row.length > 0) { row.push(field); result.push(row); }
+  if (result.length === 0) return { headers: [], rows: [] };
+  var headers = result[0];
+  var rows = [];
+  for (var r = 1; r < result.length; r++) {
+    if (result[r].length === 1 && result[r][0] === '') continue;
+    var obj = {};
+    for (var c2 = 0; c2 < headers.length; c2++) {
+      obj[headers[c2]] = (c2 < result[r].length) ? result[r][c2] : '';
+    }
+    rows.push(obj);
+  }
+  return { headers: headers, rows: rows };
+}
+function csvQ(s) {
+  s = String(s == null ? '' : s);
+  if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+    return '"' + s.replace(/"/g,'""') + '"';
+  }
+  return s;
+}
+function generateCSV(headers, rows) {
+  var lines = [headers.map(function(h){ return csvQ(h); }).join(',')];
+  rows.forEach(function(row) {
+    var vals = headers.map(function(h) { return csvQ(row[h] != null ? row[h] : ''); });
+    lines.push(vals.join(','));
+  });
+  return lines.join('\r\n');
+}
+
+// ========================================================================
+// DEFAULT PROJECT MANAGEMENT TEMPLATE CONFIG
+// ========================================================================
+function getDefaultConfig() {
+  return {
+    app: {
+      name: "プロジェクト管理",
+      version: "1.0.0",
+      theme: "light",
+      autoSaveEnabled: false,
+      autoSaveIntervalSec: 60,
+      baseDir: "./data/",
+      undoLimit: 50,
+      toastDurationMs: 3000
+    },
+    tabs: [
+      {
+        id: "tab_dashboard", label: "ダッシュボード", icon: "dashboard", visible: true, order: 1,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_dashboard", type: "dashboard", widthPercent: 100, config: {} }
+        ]}
+      },
+      {
+        id: "tab_wbs", label: "WBS / スケジュール", icon: "gantt", visible: true, order: 2,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_wbs_001", type: "wbs", widthPercent: 40, config: {
+            dataFile: "wbs_tasks.csv",
+            columns: [
+              { key: "wbs_no", label: "WBS No", type: "text", width: 70, auto: true },
+              { key: "task_name", label: "タスク名", type: "text", width: 180 },
+              { key: "assignee", label: "担当者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
+              { key: "start_date", label: "開始日", type: "date", width: 100 },
+              { key: "end_date", label: "終了日", type: "date", width: 100 },
+              { key: "progress", label: "進捗%", type: "number", width: 55 },
+              { key: "status", label: "状態", type: "select", width: 75, options: ["未着手","進行中","完了","保留"] }
+            ]
+          }},
+          { id: "pane_gantt_001", type: "gantt", widthPercent: 60, config: {
+            dataFile: "wbs_tasks.csv",
+            taskNameColumn: "task_name",
+            startDateColumn: "start_date",
+            endDateColumn: "end_date",
+            progressColumn: "progress",
+            statusColumn: "status",
+            dependencyColumn: "dependency",
+            defaultScale: "week",
+            showTodayLine: true,
+            barColors: { "未着手":"#B0BEC5", "進行中":"#42A5F5", "完了":"#66BB6A", "保留":"#FFA726", "遅延":"#EF5350" }
+          }}
+        ]}
+      },
+      {
+        id: "tab_tasks", label: "タスク一覧", icon: "list", visible: true, order: 3,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_task_list", type: "list", widthPercent: 55, config: {
+            dataFile: "wbs_tasks.csv",
+            columns: [
+              { key: "id", label: "ID", type: "text", width: 60, readonly: true },
+              { key: "wbs_no", label: "WBS No", type: "text", width: 70 },
+              { key: "task_name", label: "タスク名", type: "text", width: 200 },
+              { key: "assignee", label: "担当者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
+              { key: "start_date", label: "開始日", type: "date", width: 100 },
+              { key: "end_date", label: "終了日", type: "date", width: 100 },
+              { key: "progress", label: "進捗%", type: "number", width: 55 },
+              { key: "status", label: "状態", type: "select", width: 75, options: ["未着手","進行中","完了","保留"] },
+              { key: "priority", label: "優先度", type: "select", width: 65, options: ["高","中","低"] },
+              { key: "milestone", label: "MS", type: "checkbox", width: 30 },
+              { key: "notes", label: "備考", type: "text", width: 150 }
+            ],
+            dateFilter: { enabled: true, column: "end_date", defaultScale: "week" }
+          }},
+          { id: "pane_task_detail", type: "detail", widthPercent: 45, config: {
+            linkedPane: "pane_task_list",
+            dataFile: "wbs_tasks.csv"
+          }}
+        ]}
+      },
+      {
+        id: "tab_minutes", label: "議事録", icon: "edit", visible: true, order: 4,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_minutes_list", type: "list", widthPercent: 40, config: {
+            dataFile: "minutes.csv",
+            columns: [
+              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
+              { key: "date", label: "日付", type: "date", width: 100 },
+              { key: "title", label: "会議名", type: "text", width: 180 },
+              { key: "attendees", label: "参加者", type: "text", width: 120 },
+              { key: "status", label: "状態", type: "select", width: 70, options: ["作成中","確定"] }
+            ]
+          }},
+          { id: "pane_minutes_editor", type: "editor", widthPercent: 60, config: {
+            dataFile: "",
+            linkedPane: "pane_minutes_list",
+            fileColumn: "file_path",
+            baseDir: "minutes/"
+          }}
+        ]}
+      },
+      {
+        id: "tab_requests", label: "依頼事項", icon: "request", visible: true, order: 5,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_req_list", type: "list", widthPercent: 55, config: {
+            dataFile: "requests.csv",
+            columns: [
+              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
+              { key: "request_date", label: "依頼日", type: "date", width: 95 },
+              { key: "requester", label: "依頼者", type: "text", width: 80 },
+              { key: "target", label: "依頼先", type: "text", width: 80 },
+              { key: "title", label: "件名", type: "text", width: 180 },
+              { key: "due_date", label: "期限", type: "date", width: 95 },
+              { key: "status", label: "状態", type: "select", width: 75, options: ["依頼中","回答済","完了","取下げ"] }
+            ],
+            dateFilter: { enabled: true, column: "due_date", defaultScale: "month" }
+          }},
+          { id: "pane_req_detail", type: "detail", widthPercent: 45, config: {
+            linkedPane: "pane_req_list",
+            dataFile: "requests.csv"
+          }}
+        ]}
+      },
+      {
+        id: "tab_risks", label: "リスク管理", icon: "warning", visible: true, order: 6,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_risk_list", type: "list", widthPercent: 55, config: {
+            dataFile: "risks.csv",
+            columns: [
+              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
+              { key: "registered_date", label: "登録日", type: "date", width: 95 },
+              { key: "category", label: "分類", type: "select", width: 80, options: ["技術","スケジュール","コスト","品質","外部","その他"] },
+              { key: "description", label: "リスク内容", type: "text", width: 200 },
+              { key: "probability", label: "発生確率", type: "select", width: 70, options: ["高","中","低"] },
+              { key: "impact", label: "影響度", type: "select", width: 70, options: ["高","中","低"] },
+              { key: "owner", label: "責任者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
+              { key: "status", label: "状態", type: "select", width: 75, options: ["監視中","対策中","顕在化","クローズ"] }
+            ]
+          }},
+          { id: "pane_risk_detail", type: "detail", widthPercent: 45, config: {
+            linkedPane: "pane_risk_list",
+            dataFile: "risks.csv"
+          }}
+        ]}
+      },
+      {
+        id: "tab_issues", label: "課題管理", icon: "issue", visible: true, order: 7,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_issue_list", type: "list", widthPercent: 55, config: {
+            dataFile: "issues.csv",
+            columns: [
+              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
+              { key: "registered_date", label: "起票日", type: "date", width: 95 },
+              { key: "title", label: "課題名", type: "text", width: 180 },
+              { key: "severity", label: "重要度", type: "select", width: 65, options: ["重大","高","中","低"] },
+              { key: "assignee", label: "対応者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
+              { key: "due_date", label: "期限", type: "date", width: 95 },
+              { key: "status", label: "状態", type: "select", width: 75, options: ["未着手","対応中","完了","保留"] }
+            ],
+            dateFilter: { enabled: true, column: "due_date", defaultScale: "month" }
+          }},
+          { id: "pane_issue_detail", type: "detail", widthPercent: 45, config: {
+            linkedPane: "pane_issue_list",
+            dataFile: "issues.csv"
+          }}
+        ]}
+      },
+      {
+        id: "tab_settings", label: "⚙ 設定", icon: "settings", visible: true, order: 99,
+        layout: { direction: "horizontal", panes: [
+          { id: "pane_settings", type: "settings", widthPercent: 100, config: {} }
+        ]}
+      }
+    ],
+    highlightRules: {
+      global: [
+        { id: "hl_overdue", label: "期限超過", condition: { column: "end_date,due_date", operator: "before", value: "TODAY" }, statusCheck: { column: "status", notEquals: "完了" }, style: { className: "hl-overdue" }, enabled: true, priority: 1 },
+        { id: "hl_due_soon", label: "期限間近(3日)", condition: { column: "end_date,due_date", operator: "within_days", value: 3 }, statusCheck: { column: "status", notEquals: "完了" }, style: { className: "hl-due-soon" }, enabled: true, priority: 2 }
+      ],
+      panes: {}
+    },
+    filterViews: {
+      "default": [
+        { id: "view_all", label: "すべて", filter: null },
+        { id: "view_incomplete", label: "未完了のみ", filter: { column: "status", operator: "notEquals", value: "完了" } },
+        { id: "view_high_priority", label: "高優先度", filter: { column: "priority", operator: "equals", value: "高" } }
+      ]
+    },
+    paneLinks: [
+      { source: "pane_task_list", target: "pane_task_detail", trigger: "selectRow", action: "showDetail" },
+      { source: "pane_req_list", target: "pane_req_detail", trigger: "selectRow", action: "showDetail" },
+      { source: "pane_risk_list", target: "pane_risk_detail", trigger: "selectRow", action: "showDetail" },
+      { source: "pane_issue_list", target: "pane_issue_detail", trigger: "selectRow", action: "showDetail" },
+      { source: "pane_minutes_list", target: "pane_minutes_editor", trigger: "selectRow", action: "loadFile" }
+    ]
+  };
+}
+
+// ========================================================================
+// CONFIG MANAGEMENT
+// ========================================================================
+function loadConfig() {
+  var configPath = resolvePath('app_config.json');
+  var text = readFileSync(configPath);
+  if (text && text.trim()) {
+    CONFIG = safeParseJSON(text);
+  }
+  if (!CONFIG) {
+    CONFIG = getDefaultConfig();
+    saveConfig();
+  }
+  // ensure baseDir
+  var baseDir = resolvePath(CONFIG.app.baseDir || './data/');
+  ensureDir(baseDir);
+}
+function saveConfig() {
+  var configPath = resolvePath('app_config.json');
+  writeFileSync(configPath, JSON.stringify(CONFIG, null, 2));
+}
+
+// ========================================================================
+// DATA LOAD / SAVE
+// ========================================================================
+function loadDataForPane(pane) {
+  if (!pane.config || !pane.config.dataFile) return;
+  var filePath = resolvePath((CONFIG.app.baseDir || '') + pane.config.dataFile);
+  if (DATA_STORE[pane.id] && DATA_STORE[pane.id]._file === pane.config.dataFile) return;
+  var text = readFileSync(filePath);
+  if (!text || !text.trim()) {
+    // create empty file with headers
+    if (pane.config.columns) {
+      var hdrs = pane.config.columns.map(function(c){ return c.key; });
+      writeFileSync(filePath, hdrs.join(',') + '\r\n');
+    }
+    DATA_STORE[pane.id] = [];
+  } else {
+    var parsed = parseCSV(text);
+    DATA_STORE[pane.id] = parsed.rows;
+  }
+  DATA_STORE[pane.id]._file = pane.config.dataFile;
+  DATA_STORE[pane.id]._headers = pane.config.columns ? pane.config.columns.map(function(c){ return c.key; }) : [];
+  DIRTY_FLAGS[pane.id] = false;
+  // share data between panes with same dataFile
+  CONFIG.tabs.forEach(function(tab) {
+    tab.layout.panes.forEach(function(p) {
+      if (p.id !== pane.id && p.config && p.config.dataFile === pane.config.dataFile) {
+        DATA_STORE[p.id] = DATA_STORE[pane.id];
+      }
+    });
+  });
+}
+function saveDataForPane(pane) {
+  if (!pane.config || !pane.config.dataFile) return;
+  var data = DATA_STORE[pane.id];
+  if (!data) return;
+  var headers = data._headers;
+  if (!headers || headers.length === 0) {
+    if (pane.config.columns) headers = pane.config.columns.map(function(c){ return c.key; });
+    else return;
+  }
+  var rows = [];
+  for (var i = 0; i < data.length; i++) rows.push(data[i]);
+  var csv = generateCSV(headers, rows);
+  var filePath = resolvePath((CONFIG.app.baseDir || '') + pane.config.dataFile);
+  writeFileSync(filePath, csv);
+  DIRTY_FLAGS[pane.id] = false;
+}
+function saveAllData() {
+  var savedFiles = {};
+  CONFIG.tabs.forEach(function(tab) {
+    tab.layout.panes.forEach(function(pane) {
+      if (pane.config && pane.config.dataFile && !savedFiles[pane.config.dataFile]) {
+        saveDataForPane(pane);
+        savedFiles[pane.config.dataFile] = true;
+      }
+      if (pane.type === 'editor') {
+        saveEditorContent(pane);
+      }
+    });
+  });
+  // reset all dirty
+  for (var k in DIRTY_FLAGS) DIRTY_FLAGS[k] = false;
+  updateDirtyUI();
+  toast('success', 'すべてのデータを保存しました');
+  document.getElementById('statusSaved').innerText = '保存: ' + new Date().toLocaleTimeString();
+}
+function markDirty(paneId) {
+  DIRTY_FLAGS[paneId] = true;
+  updateDirtyUI();
+}
+function updateDirtyUI() {
+  var dirty = false;
+  for (var k in DIRTY_FLAGS) { if (DIRTY_FLAGS[k]) { dirty = true; break; } }
+  document.getElementById('dirtyMark').style.display = dirty ? 'inline' : 'none';
+  document.getElementById('statusDirty').innerText = dirty ? '● 未保存あり' : '';
+  document.getElementById('statusDirty').className = dirty ? 'status-dirty' : '';
+}
+
+// ========================================================================
+// TOAST
+// ========================================================================
+function toast(type, msg) {
+  var c = document.getElementById('toastContainer');
+  var d = document.createElement('div');
+  d.className = 'toast ' + type;
+  d.innerText = msg;
+  d.onclick = function() { c.removeChild(d); };
+  c.appendChild(d);
+  setTimeout(function() { try { c.removeChild(d); } catch(e){} }, CONFIG && CONFIG.app ? (CONFIG.app.toastDurationMs || 3000) : 3000);
+}
+
+// ========================================================================
+// MODAL
+// ========================================================================
+function modal(type, opts, callback) {
+  var ov = document.getElementById('modalOverlay');
+  var dlg = document.getElementById('modalDialog');
+  var title = document.getElementById('modalTitle');
+  var body = document.getElementById('modalBody');
+  var footer = document.getElementById('modalFooter');
+
+  title.innerText = opts.title || '確認';
+  var w = opts.width || 400;
+  dlg.style.width = w + 'px';
+  dlg.style.marginLeft = '-' + Math.floor(w/2) + 'px';
+  dlg.style.marginTop = '-120px';
+
+  if (type === 'confirm') {
+    body.innerHTML = '<p>' + escapeHtml(opts.message || '') + '</p>';
+    footer.innerHTML = '<button onclick="closeModal(\'cancel\')">' + escapeHtml(opts.cancelLabel || 'キャンセル') + '</button>' +
+      (opts.thirdLabel ? '<button onclick="closeModal(\'third\')">' + escapeHtml(opts.thirdLabel) + '</button>' : '') +
+      '<button class="primary" onclick="closeModal(\'ok\')">' + escapeHtml(opts.okLabel || 'OK') + '</button>';
+  } else if (type === 'alert') {
+    body.innerHTML = '<p>' + escapeHtml(opts.message || '') + '</p>';
+    footer.innerHTML = '<button class="primary" onclick="closeModal(\'ok\')">OK</button>';
+  } else if (type === 'prompt') {
+    body.innerHTML = '<p>' + escapeHtml(opts.message || '') + '</p><input type="text" id="modalInput" style="width:95%;padding:4px;" value="' + escapeHtml(opts.defaultValue || '') + '">';
+    footer.innerHTML = '<button onclick="closeModal(\'cancel\')">キャンセル</button><button class="primary" onclick="closeModal(\'ok\')">OK</button>';
+  } else if (type === 'form') {
+    var h = '';
+    (opts.fields || []).forEach(function(f) {
+      h += '<div class="detail-field"><label>' + escapeHtml(f.label) + '</label>';
+      if (f.type === 'text') {
+        h += '<input type="text" id="mf_' + f.key + '" value="' + escapeHtml(f.value || '') + '">';
+      } else if (f.type === 'select') {
+        h += '<select id="mf_' + f.key + '">';
+        (f.options || []).forEach(function(o) {
+          h += '<option value="' + escapeHtml(o) + '"' + (o === f.value ? ' selected' : '') + '>' + escapeHtml(o) + '</option>';
+        });
+        h += '</select>';
+      } else if (f.type === 'textarea') {
+        h += '<textarea id="mf_' + f.key + '">' + escapeHtml(f.value || '') + '</textarea>';
+      } else if (f.type === 'radio') {
+        (f.options || []).forEach(function(o) {
+          h += '<label style="margin-right:10px;"><input type="radio" name="mf_' + f.key + '" value="' + escapeHtml(o) + '"' + (o === f.value ? ' checked' : '') + '> ' + escapeHtml(o) + '</label>';
+        });
+      } else if (f.type === 'number') {
+        h += '<input type="text" id="mf_' + f.key + '" value="' + escapeHtml(f.value || '') + '" style="width:80px;">';
+      } else if (f.type === 'date') {
+        h += '<input type="text" id="mf_' + f.key + '" value="' + escapeHtml(f.value || '') + '" placeholder="YYYY-MM-DD" style="width:120px;">';
+      } else if (f.type === 'checkbox') {
+        h += '<input type="checkbox" id="mf_' + f.key + '"' + (f.value ? ' checked' : '') + '>';
+      }
+      h += '</div>';
+    });
+    body.innerHTML = h;
+    footer.innerHTML = '<button onclick="closeModal(\'cancel\')">キャンセル</button><button class="primary" onclick="closeModal(\'ok\')">OK</button>';
+  }
+
+  ov.style.display = 'block';
+  dlg.style.display = 'block';
+  window._modalCallback = callback;
+  window._modalType = type;
+  window._modalOpts = opts;
+}
+function closeModal(result) {
+  document.getElementById('modalOverlay').style.display = 'none';
+  document.getElementById('modalDialog').style.display = 'none';
+  var cb = window._modalCallback;
+  var type = window._modalType;
+  var opts = window._modalOpts;
+  window._modalCallback = null;
+  if (!cb) return;
+  if (type === 'prompt') {
+    var inp = document.getElementById('modalInput');
+    cb(result, inp ? inp.value : '');
+  } else if (type === 'form') {
+    var data = {};
+    (opts.fields || []).forEach(function(f) {
+      var el = document.getElementById('mf_' + f.key);
+      if (el) {
+        if (f.type === 'checkbox') data[f.key] = el.checked;
+        else data[f.key] = el.value;
+      } else if (f.type === 'radio') {
+        var radios = document.getElementsByName('mf_' + f.key);
+        for (var i = 0; i < radios.length; i++) { if (radios[i].checked) { data[f.key] = radios[i].value; break; } }
+      }
+    });
+    cb(result, data);
+  } else {
+    cb(result);
+  }
+}
+
+// ========================================================================
+// CONTEXT MENU
+// ========================================================================
+function showCtxMenu(e, items) {
+  e = e || window.event;
+  var menu = document.getElementById('ctxMenu');
+  var h = '';
+  items.forEach(function(item) {
+    if (item.separator) { h += '<div class="ctx-menu-sep"></div>'; }
+    else {
+      h += '<div class="ctx-menu-item' + (item.danger ? ' danger' : '') + '" onclick="hideCtxMenu();(' + item.action + ')()">' + escapeHtml(item.label) + '</div>';
+    }
+  });
+  menu.innerHTML = h;
+  menu.style.left = (e.clientX || e.x) + 'px';
+  menu.style.top = (e.clientY || e.y) + 'px';
+  menu.style.display = 'block';
+  return false;
+}
+function hideCtxMenu() {
+  document.getElementById('ctxMenu').style.display = 'none';
+}
+
+// ========================================================================
+// TAB RENDERING
+// ========================================================================
+function renderTabs() {
+  var bar = document.getElementById('tabbar');
+  var h = '';
+  var tabs = CONFIG.tabs.filter(function(t) { return t.visible !== false; });
+  tabs.sort(function(a,b){ return (a.order||0) - (b.order||0); });
+  tabs.forEach(function(tab) {
+    h += '<span class="tab-btn' + (tab.id === ACTIVE_TAB ? ' active' : '') + '" id="tabbtn_' + tab.id + '" onclick="switchTab(\'' + tab.id + '\')" oncontextmenu="return onTabCtxMenu(event,\'' + tab.id + '\')">' + escapeHtml(tab.label) + '</span>';
+  });
+  bar.innerHTML = h;
+}
+function switchTab(tabId) {
+  ACTIVE_TAB = tabId;
+  renderTabs();
+  renderMainArea();
+  updateToolbar();
+  document.getElementById('statusTab').innerText = getTabLabel(tabId);
+}
+function getTabLabel(tabId) {
+  for (var i = 0; i < CONFIG.tabs.length; i++) { if (CONFIG.tabs[i].id === tabId) return CONFIG.tabs[i].label; }
+  return '';
+}
+function getTabById(tabId) {
+  for (var i = 0; i < CONFIG.tabs.length; i++) { if (CONFIG.tabs[i].id === tabId) return CONFIG.tabs[i]; }
+  return null;
+}
+function onTabCtxMenu(e, tabId) {
+  return showCtxMenu(e, [
+    { label: 'タブ名を変更', action: 'function(){renameTab("' + tabId + '")}' },
+    { separator: true },
+    { label: 'タブを非表示', action: 'function(){hideTab("' + tabId + '")}' },
+    { label: '左へ移動', action: 'function(){moveTab("' + tabId + '",-1)}' },
+    { label: '右へ移動', action: 'function(){moveTab("' + tabId + '",1)}' }
+  ]);
+}
+function renameTab(tabId) {
+  var tab = getTabById(tabId);
+  if (!tab) return;
+  modal('prompt', { title: 'タブ名を変更', message: '新しいタブ名:', defaultValue: tab.label }, function(r, v) {
+    if (r === 'ok' && v.trim()) { tab.label = v.trim(); saveConfig(); renderTabs(); }
+  });
+}
+function hideTab(tabId) {
+  var tab = getTabById(tabId);
+  if (tab) { tab.visible = false; saveConfig(); renderTabs(); }
+}
+function moveTab(tabId, dir) {
+  var tabs = CONFIG.tabs;
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].id === tabId) {
+      var j = i + dir;
+      if (j >= 0 && j < tabs.length) {
+        var tmp = tabs[i].order; tabs[i].order = tabs[j].order; tabs[j].order = tmp;
+        saveConfig(); renderTabs();
+      }
+      break;
+    }
+  }
+}
+
+// ========================================================================
+// MAIN AREA RENDERING
+// ========================================================================
+function renderMainArea() {
+  var area = document.getElementById('main-area');
+  var tab = getTabById(ACTIVE_TAB);
+  if (!tab) { area.innerHTML = '<div style="padding:20px;color:#999;">タブを選択してください</div>'; return; }
+
+  var panes = tab.layout.panes;
+  var dir = tab.layout.direction || 'horizontal';
+  var h = '<div class="pane-container" style="display:table;width:100%;height:100%;">';
+
+  panes.forEach(function(pane) {
+    var w = pane.widthPercent || Math.floor(100 / panes.length);
+    if (dir === 'horizontal') {
+      h += '<div class="pane" id="pane_' + pane.id + '" style="display:table-cell;width:' + w + '%;vertical-align:top;position:relative;height:100%;">';
+    } else {
+      h += '<div class="pane" id="pane_' + pane.id + '" style="display:block;width:100%;height:' + w + '%;position:relative;">';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  area.innerHTML = h;
+
+  // render each pane content
+  panes.forEach(function(pane) {
+    loadDataForPane(pane);
+    renderPaneContent(pane);
+  });
+
+  // update filter view dropdown
+  updateFilterViews();
+}
+
+function renderPaneContent(pane) {
+  var el = document.getElementById('pane_' + pane.id);
+  if (!el) return;
+  switch(pane.type) {
+    case 'list': renderListPane(pane, el); break;
+    case 'detail': renderDetailPane(pane, el); break;
+    case 'editor': renderEditorPane(pane, el); break;
+    case 'wbs': renderWbsPane(pane, el); break;
+    case 'gantt': renderGanttPane(pane, el); break;
+    case 'menu': renderMenuPane(pane, el); break;
+    case 'settings': renderSettingsPane(pane, el); break;
+    case 'dashboard': renderDashboardPane(pane, el); break;
+    default: el.innerHTML = '<div style="padding:20px;color:#999;">未実装のペインタイプ: ' + escapeHtml(pane.type) + '</div>';
+  }
+}
+
+// ========================================================================
+// LIST PANE
+// ========================================================================
+function renderListPane(pane, el) {
+  var data = DATA_STORE[pane.id] || [];
+  var cols = pane.config.columns || [];
+  var filteredData = applyFilters(pane, data);
+  var h = '<div class="pane-header">' + escapeHtml(getTabLabel(ACTIVE_TAB)) + ' (' + filteredData.length + '件)</div>';
+  h += '<div style="overflow:auto;position:absolute;top:28px;left:0;right:0;bottom:0;">';
+  h += '<table class="list-table" id="lt_' + pane.id + '">';
+
+  // header
+  h += '<thead><tr>';
+  h += '<th style="width:24px;"></th>';
+  cols.forEach(function(col, ci) {
+    h += '<th style="width:' + (col.width || 100) + 'px;" onclick="sortList(\'' + pane.id + '\',\'' + col.key + '\')">' +
+      escapeHtml(col.label) + '<span class="sort-icon">&#9650;&#9660;</span></th>';
+  });
+  h += '</tr>';
+
+  // filter row
+  h += '<tr class="filter-row"><td></td>';
+  cols.forEach(function(col) {
+    h += '<td><input type="text" placeholder="フィルタ" onkeyup="onFilterInput(\'' + pane.id + '\',\'' + col.key + '\',this.value)"></td>';
+  });
+  h += '</tr></thead>';
+
+  // data rows
+  h += '<tbody>';
+  filteredData.forEach(function(row, ri) {
+    var actualIdx = data.indexOf(row);
+    var hlClass = getHighlightClass(pane.id, row, cols);
+    h += '<tr class="' + hlClass + (SELECTED_ROW[pane.id] === actualIdx ? ' selected' : '') + '" ' +
+      'onclick="selectListRow(\'' + pane.id + '\',' + actualIdx + ')" ' +
+      'ondblclick="editListCell(\'' + pane.id + '\',' + actualIdx + ',1)" ' +
+      'oncontextmenu="return onListRowCtxMenu(event,\'' + pane.id + '\',' + actualIdx + ')">';
+    h += '<td class="drag-handle">&#9776;</td>';
+    cols.forEach(function(col, ci) {
+      var val = row[col.key] != null ? row[col.key] : '';
+      var cellId = 'cell_' + pane.id + '_' + actualIdx + '_' + ci;
+      var isActive = ACTIVE_CELL && ACTIVE_CELL.paneId === pane.id && ACTIVE_CELL.row === actualIdx && ACTIVE_CELL.col === ci;
+      h += '<td id="' + cellId + '" class="' + (isActive ? 'active-cell' : '') + '" onclick="setActiveCell(\'' + pane.id + '\',' + actualIdx + ',' + ci + ')" ondblclick="editListCell(\'' + pane.id + '\',' + actualIdx + ',' + ci + ')">';
+      if (col.type === 'checkbox') {
+        h += '<input type="checkbox"' + (val === 'true' || val === '1' || val === true ? ' checked' : '') + ' onclick="toggleCheckbox(\'' + pane.id + '\',' + actualIdx + ',\'' + col.key + '\',this)">';
+      } else if (col.type === 'select' && isActive) {
+        h += '<select onchange="updateCell(\'' + pane.id + '\',' + actualIdx + ',\'' + col.key + '\',this.value);renderListPane(findPane(\'' + pane.id + '\'),document.getElementById(\'pane_' + pane.id + '\'))">';
+        (col.options || []).forEach(function(o) { h += '<option' + (o === val ? ' selected' : '') + '>' + escapeHtml(o) + '</option>'; });
+        h += '</select>';
+      } else if (col.type === 'number' && val !== '') {
+        if (col.key === 'progress' || col.key.indexOf('progress') >= 0) {
+          var pv = parseInt(val, 10) || 0;
+          h += '<div class="progress-bar"><div class="progress-fill" style="width:' + pv + '%;background:' + (pv >= 100 ? '#43a047' : pv >= 50 ? '#fb8c00' : '#e53935') + ';"></div></div><span class="progress-text">' + pv + '%</span>';
+        } else { h += escapeHtml(val); }
+      } else {
+        h += escapeHtml(val);
+      }
+      h += '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
+  updateStatusRows(pane.id, filteredData.length);
+}
+
+var LIST_FILTERS = {};     // paneId -> { colKey: filterText }
+var LIST_SORT = {};        // paneId -> { key: colKey, asc: bool }
+
+function onFilterInput(paneId, colKey, val) {
+  if (!LIST_FILTERS[paneId]) LIST_FILTERS[paneId] = {};
+  LIST_FILTERS[paneId][colKey] = val.trim().toLowerCase();
+  var pane = findPane(paneId);
+  if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
+}
+function applyFilters(pane, data) {
+  var filtered = data.slice ? data.slice(0) : [];
+  // text filters
+  var tf = LIST_FILTERS[pane.id];
+  if (tf) {
+    for (var key in tf) {
+      if (tf[key]) {
+        var fv = tf[key];
+        filtered = filtered.filter(function(row) {
+          return String(row[key] || '').toLowerCase().indexOf(fv) >= 0;
+        });
+      }
+    }
+  }
+  // date filter
+  if (pane.config && pane.config.dateFilter && pane.config.dateFilter.enabled && window._dateFilterActive) {
+    var dcol = pane.config.dateFilter.column;
+    filtered = filtered.filter(function(row) {
+      var d = parseDate(row[dcol]);
+      if (!d) return false;
+      return d >= window._dateFilterStart && d <= window._dateFilterEnd;
+    });
+  }
+  // filter view
+  var fv2 = document.getElementById('filterViewSelect');
+  if (fv2 && fv2.value) {
+    var views = CONFIG.filterViews && CONFIG.filterViews['default'] ? CONFIG.filterViews['default'] : [];
+    for (var i = 0; i < views.length; i++) {
+      if (views[i].id === fv2.value && views[i].filter) {
+        var f = views[i].filter;
+        filtered = filtered.filter(function(row) {
+          return evalFilterCondition(row, f);
+        });
+        break;
+      }
+    }
+  }
+  return filtered;
+}
+function evalFilterCondition(row, f) {
+  var val = String(row[f.column] || '');
+  switch(f.operator) {
+    case 'equals': return val === f.value;
+    case 'notEquals': return val !== f.value;
+    case 'contains': return val.indexOf(f.value) >= 0;
+    case 'isEmpty': return val === '';
+    case 'isNotEmpty': return val !== '';
+    default: return true;
+  }
+}
+function sortList(paneId, colKey) {
+  if (!LIST_SORT[paneId] || LIST_SORT[paneId].key !== colKey) {
+    LIST_SORT[paneId] = { key: colKey, asc: true };
+  } else {
+    LIST_SORT[paneId].asc = !LIST_SORT[paneId].asc;
+  }
+  var data = DATA_STORE[paneId];
+  if (!data) return;
+  var asc = LIST_SORT[paneId].asc;
+  data.sort(function(a, b) {
+    var va = String(a[colKey] || ''), vb = String(b[colKey] || '');
+    if (!isNaN(parseFloat(va)) && !isNaN(parseFloat(vb))) { va = parseFloat(va); vb = parseFloat(vb); }
+    if (va < vb) return asc ? -1 : 1;
+    if (va > vb) return asc ? 1 : -1;
+    return 0;
+  });
+  var pane = findPane(paneId);
+  if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
+}
+function selectListRow(paneId, idx) {
+  SELECTED_ROW[paneId] = idx;
+  var pane = findPane(paneId);
+  if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
+  // trigger pane link
+  triggerPaneLink(paneId, 'selectRow', idx);
+}
+function setActiveCell(paneId, row, col) {
+  ACTIVE_CELL = { paneId: paneId, row: row, col: col };
+  selectListRow(paneId, row);
+}
+function editListCell(paneId, rowIdx, colIdx) {
+  var pane = findPane(paneId);
+  if (!pane || !pane.config.columns) return;
+  var col = pane.config.columns[colIdx];
+  if (!col || col.readonly) return;
+  var data = DATA_STORE[paneId];
+  if (!data || !data[rowIdx]) return;
+  var cellId = 'cell_' + paneId + '_' + rowIdx + '_' + colIdx;
+  var td = document.getElementById(cellId);
+  if (!td) return;
+  var val = data[rowIdx][col.key] || '';
+  if (col.type === 'checkbox' || col.type === 'select') return; // handled inline
+  td.innerHTML = '<input type="text" value="' + escapeHtml(val) + '" onblur="finishEditCell(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onkeydown="if(event.keyCode===13){this.blur();}if(event.keyCode===27){this.value=\'' + escapeHtml(val).replace(/'/g,"\\'") + '\';this.blur();}" style="width:100%;">';
+  td.firstChild.focus();
+  td.firstChild.select();
+}
+function finishEditCell(paneId, rowIdx, colKey, val) {
+  var data = DATA_STORE[paneId];
+  if (!data || !data[rowIdx]) return;
+  if (data[rowIdx][colKey] !== val) {
+    data[rowIdx][colKey] = val;
+    markDirty(paneId);
+  }
+  var pane = findPane(paneId);
+  if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
+  // update detail if linked
+  if (SELECTED_ROW[paneId] === rowIdx) triggerPaneLink(paneId, 'selectRow', rowIdx);
+}
+function updateCell(paneId, rowIdx, colKey, val) {
+  var data = DATA_STORE[paneId];
+  if (!data || !data[rowIdx]) return;
+  data[rowIdx][colKey] = val;
+  markDirty(paneId);
+  if (SELECTED_ROW[paneId] === rowIdx) triggerPaneLink(paneId, 'selectRow', rowIdx);
+}
+function toggleCheckbox(paneId, rowIdx, colKey, cb) {
+  updateCell(paneId, rowIdx, colKey, cb.checked ? 'true' : 'false');
+}
+function addListRow() {
+  var tab = getTabById(ACTIVE_TAB);
+  if (!tab) return;
+  var listPane = null;
+  tab.layout.panes.forEach(function(p) { if (p.type === 'list' || p.type === 'wbs') listPane = p; });
+  if (!listPane) return;
+  var data = DATA_STORE[listPane.id];
+  if (!data) { DATA_STORE[listPane.id] = []; data = DATA_STORE[listPane.id]; data._headers = listPane.config.columns.map(function(c){return c.key;}); data._file = listPane.config.dataFile; }
+  var row = {};
+  (listPane.config.columns || []).forEach(function(c) { row[c.key] = ''; });
+  row.id = uid();
+  data.push(row);
+  markDirty(listPane.id);
+  renderPaneContent(listPane);
+  selectListRow(listPane.id, data.length - 1);
+}
+function deleteListRow() {
+  var tab = getTabById(ACTIVE_TAB);
+  if (!tab) return;
+  var listPane = null;
+  tab.layout.panes.forEach(function(p) { if (p.type === 'list' || p.type === 'wbs') listPane = p; });
+  if (!listPane) return;
+  var idx = SELECTED_ROW[listPane.id];
+  if (idx == null) { toast('warning', '行を選択してください'); return; }
+  modal('confirm', { title: '削除確認', message: 'この行を削除しますか？', okLabel: '削除', okClass: 'danger' }, function(r) {
+    if (r === 'ok') {
+      var data = DATA_STORE[listPane.id];
+      if (data && data[idx] != null) {
+        data.splice(idx, 1);
+        SELECTED_ROW[listPane.id] = null;
+        markDirty(listPane.id);
+        renderPaneContent(listPane);
+      }
+    }
+  });
+}
+function onListRowCtxMenu(e, paneId, idx) {
+  SELECTED_ROW[paneId] = idx;
+  return showCtxMenu(e, [
+    { label: '上に行を挿入', action: 'function(){insertRow("' + paneId + '",' + idx + ',0)}' },
+    { label: '下に行を挿入', action: 'function(){insertRow("' + paneId + '",' + idx + ',1)}' },
+    { label: '行を複製', action: 'function(){duplicateRow("' + paneId + '",' + idx + ')}' },
+    { separator: true },
+    { label: '行を削除', action: 'function(){deleteRowDirect("' + paneId + '",' + idx + ')}', danger: true }
+  ]);
+}
+function insertRow(paneId, idx, after) {
+  var pane = findPane(paneId);
+  if (!pane) return;
+  var data = DATA_STORE[paneId];
+  var row = {};
+  (pane.config.columns || []).forEach(function(c) { row[c.key] = ''; });
+  row.id = uid();
+  data.splice(idx + after, 0, row);
+  markDirty(paneId);
+  renderPaneContent(pane);
+}
+function duplicateRow(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  if (!data || !data[idx]) return;
+  var dup = {};
+  for (var k in data[idx]) { if (k.charAt(0) !== '_') dup[k] = data[idx][k]; }
+  dup.id = uid();
+  data.splice(idx + 1, 0, dup);
+  markDirty(paneId);
+  var pane = findPane(paneId);
+  if (pane) renderPaneContent(pane);
+}
+function deleteRowDirect(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  if (data) { data.splice(idx, 1); markDirty(paneId); }
+  SELECTED_ROW[paneId] = null;
+  var pane = findPane(paneId);
+  if (pane) renderPaneContent(pane);
+}
+
+// ========================================================================
+// HIGHLIGHT ENGINE
+// ========================================================================
+function getHighlightClass(paneId, row, cols) {
+  var classes = '';
+  if (!CONFIG.highlightRules) return '';
+  var rules = (CONFIG.highlightRules.global || []).concat(CONFIG.highlightRules.panes && CONFIG.highlightRules.panes[paneId] ? CONFIG.highlightRules.panes[paneId] : []);
+  rules.forEach(function(rule) {
+    if (!rule.enabled) return;
+    var colNames = (rule.condition.column || '').split(',');
+    var match = false;
+    colNames.forEach(function(cn) {
+      cn = cn.trim();
+      var val = row[cn];
+      if (val == null) val = '';
+      if (evaluateCondition(val, rule.condition)) match = true;
+    });
+    if (match && rule.statusCheck) {
+      var sv = row[rule.statusCheck.column] || '';
+      if (rule.statusCheck.notEquals && sv === rule.statusCheck.notEquals) match = false;
+      if (rule.statusCheck.equals && sv !== rule.statusCheck.equals) match = false;
+    }
+    if (match && rule.style && rule.style.className) {
+      classes += ' ' + rule.style.className;
+    }
+  });
+  return classes.trim();
+}
+function evaluateCondition(val, cond) {
+  var op = cond.operator;
+  var cv = cond.value;
+  switch(op) {
+    case 'equals': return String(val) === String(cv);
+    case 'notEquals': return String(val) !== String(cv);
+    case 'contains': return String(val).indexOf(String(cv)) >= 0;
+    case 'before':
+      var d = parseDate(val);
+      if (!d) return false;
+      var ref = cv === 'TODAY' ? new Date() : parseDate(cv);
+      if (!ref) return false;
+      ref.setHours(0,0,0,0);
+      return d < ref;
+    case 'after':
+      var d2 = parseDate(val);
+      if (!d2) return false;
+      var ref2 = cv === 'TODAY' ? new Date() : parseDate(cv);
+      return d2 > ref2;
+    case 'within_days':
+      var d3 = parseDate(val);
+      if (!d3) return false;
+      var now = new Date(); now.setHours(0,0,0,0);
+      var diff = dateDiffDays(now, d3);
+      return diff >= 0 && diff <= parseInt(cv, 10);
+    case 'isEmpty': return !val || String(val).trim() === '';
+    case 'isNotEmpty': return val && String(val).trim() !== '';
+    case 'greaterThan': return parseFloat(val) > parseFloat(cv);
+    case 'lessThan': return parseFloat(val) < parseFloat(cv);
+    default: return false;
+  }
+}
+
+// ========================================================================
+// DETAIL PANE
+// ========================================================================
+function renderDetailPane(pane, el) {
+  var linkedPaneId = pane.config ? pane.config.linkedPane : null;
+  var selectedIdx = linkedPaneId ? SELECTED_ROW[linkedPaneId] : null;
+  if (selectedIdx == null || selectedIdx < 0) {
+    el.innerHTML = '<div class="pane-header">詳細</div><div style="padding:20px;color:#999;">リストから行を選択してください</div>';
+    return;
+  }
+  var data = DATA_STORE[linkedPaneId];
+  if (!data || !data[selectedIdx]) {
+    el.innerHTML = '<div class="pane-header">詳細</div><div style="padding:20px;color:#999;">データがありません</div>';
+    return;
+  }
+  var row = data[selectedIdx];
+  var linkedPane = findPane(linkedPaneId);
+  var cols = linkedPane && linkedPane.config ? linkedPane.config.columns : [];
+
+  var h = '<div class="pane-header">詳細 - ' + escapeHtml(row.task_name || row.title || row.id || '') + '</div>';
+  h += '<div class="detail-form" style="position:absolute;top:28px;left:0;right:0;bottom:0;overflow-y:auto;">';
+  cols.forEach(function(col) {
+    var val = row[col.key] || '';
+    h += '<div class="detail-field"><label>' + escapeHtml(col.label) + '</label>';
+    if (col.readonly || col.auto) {
+      h += '<input type="text" value="' + escapeHtml(val) + '" disabled style="background:#f0f0f0;">';
+    } else if (col.type === 'select') {
+      h += '<select onchange="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">';
+      (col.options || []).forEach(function(o) {
+        h += '<option' + (o === val ? ' selected' : '') + '>' + escapeHtml(o) + '</option>';
+      });
+      h += '</select>';
+    } else if (col.type === 'checkbox') {
+      h += '<input type="checkbox"' + (val === 'true' || val === '1' ? ' checked' : '') + ' onchange="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.checked?\'true\':\'false\')">';
+    } else if (col.type === 'date') {
+      h += '<input type="text" value="' + escapeHtml(val) + '" placeholder="YYYY-MM-DD" onblur="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">';
+    } else if (col.key === 'description' || col.key === 'notes' || col.key === 'mitigation' || col.key === 'resolution' || col.key === 'response') {
+      h += '<textarea onblur="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">' + escapeHtml(val) + '</textarea>';
+    } else {
+      h += '<input type="text" value="' + escapeHtml(val) + '" onblur="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+  el.innerHTML = h;
+}
+function updateDetailField(paneId, rowIdx, colKey, val) {
+  var data = DATA_STORE[paneId];
+  if (!data || !data[rowIdx]) return;
+  if (data[rowIdx][colKey] !== val) {
+    data[rowIdx][colKey] = val;
+    markDirty(paneId);
+    // re-render linked list
+    var pane = findPane(paneId);
+    if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
+  }
+}
+
+// ========================================================================
+// EDITOR PANE
+// ========================================================================
+function renderEditorPane(pane, el) {
+  var content = EDITOR_CONTENTS[pane.id] || '';
+  // Check if linked to list pane
+  if (pane.config && pane.config.linkedPane) {
+    var linkedIdx = SELECTED_ROW[pane.config.linkedPane];
+    if (linkedIdx != null) {
+      var linkedData = DATA_STORE[pane.config.linkedPane];
+      if (linkedData && linkedData[linkedIdx]) {
+        var fileCol = pane.config.fileColumn || 'file_path';
+        var fp = linkedData[linkedIdx][fileCol];
+        if (fp) {
+          var fullPath = resolvePath((CONFIG.app.baseDir || '') + (pane.config.baseDir || '') + fp);
+          var text = readFileSync(fullPath);
+          content = text || '';
+          EDITOR_CONTENTS[pane.id] = content;
+          EDITOR_CONTENTS[pane.id + '_path'] = fullPath;
+        }
+      }
+    }
+  } else if (pane.config && pane.config.dataFile) {
+    if (!EDITOR_CONTENTS[pane.id + '_loaded']) {
+      var fp2 = resolvePath((CONFIG.app.baseDir || '') + pane.config.dataFile);
+      content = readFileSync(fp2) || '';
+      EDITOR_CONTENTS[pane.id] = content;
+      EDITOR_CONTENTS[pane.id + '_path'] = fp2;
+      EDITOR_CONTENTS[pane.id + '_loaded'] = true;
+    }
+    content = EDITOR_CONTENTS[pane.id] || '';
+  }
+  var h = '<div class="pane-header">エディタ</div>';
+  h += '<textarea class="editor-area" id="editor_' + pane.id + '" onkeyup="onEditorChange(\'' + pane.id + '\')" onchange="onEditorChange(\'' + pane.id + '\')">' + escapeHtml(content) + '</textarea>';
+  el.innerHTML = h;
+}
+function onEditorChange(paneId) {
+  var ta = document.getElementById('editor_' + paneId);
+  if (ta) {
+    EDITOR_CONTENTS[paneId] = ta.value;
+    markDirty(paneId);
+  }
+}
+function saveEditorContent(pane) {
+  if (!EDITOR_CONTENTS[pane.id + '_path']) return;
+  var content = EDITOR_CONTENTS[pane.id] || '';
+  writeFileSync(EDITOR_CONTENTS[pane.id + '_path'], content);
+}
+
+// ========================================================================
+// WBS PANE
+// ========================================================================
+function renderWbsPane(pane, el) {
+  var data = DATA_STORE[pane.id] || [];
+  var cols = pane.config.columns || [];
+  // auto-assign WBS numbers
+  assignWbsNumbers(data);
+
+  var h = '<div class="pane-header">WBS (' + data.length + '件)</div>';
+  h += '<div style="overflow:auto;position:absolute;top:28px;left:0;right:0;bottom:0;">';
+  h += '<table class="wbs-table" id="wt_' + pane.id + '">';
+  h += '<thead><tr>';
+  cols.forEach(function(col) {
+    h += '<th style="width:' + (col.width || 100) + 'px;">' + escapeHtml(col.label) + '</th>';
+  });
+  h += '</tr></thead><tbody>';
+
+  data.forEach(function(row, ri) {
+    var level = parseInt(row.level, 10) || 0;
+    var hasChildren = false;
+    if (ri + 1 < data.length) {
+      var nextLevel = parseInt(data[ri+1].level, 10) || 0;
+      hasChildren = nextLevel > level;
+    }
+    var hlClass = getHighlightClass(pane.id, row, cols);
+    h += '<tr class="' + hlClass + (SELECTED_ROW[pane.id] === ri ? ' selected' : '') + '" onclick="selectListRow(\'' + pane.id + '\',' + ri + ')" oncontextmenu="return onWbsCtxMenu(event,\'' + pane.id + '\',' + ri + ')">';
+    cols.forEach(function(col, ci) {
+      var val = row[col.key] || '';
+      h += '<td>';
+      if (ci === 0 || col.key === 'wbs_no') {
+        // WBS number with indent
+        h += escapeHtml(val);
+      } else if (col.key === 'task_name') {
+        var indent = level * 20;
+        h += '<span class="wbs-indent" style="width:' + indent + 'px;"></span>';
+        if (hasChildren) {
+          h += '<span class="wbs-toggle" onclick="toggleWbsFold(\'' + pane.id + '\',' + ri + ')">&#9660;</span> ';
+        } else {
+          h += '<span style="display:inline-block;width:16px;"></span> ';
+        }
+        h += escapeHtml(val);
+      } else if (col.type === 'select') {
+        h += escapeHtml(val);
+      } else if (col.key === 'progress') {
+        var pv = parseInt(val, 10) || 0;
+        h += '<div class="progress-bar"><div class="progress-fill" style="width:' + pv + '%;"></div></div> ' + pv + '%';
+      } else {
+        h += escapeHtml(val);
+      }
+      h += '</td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
+}
+function assignWbsNumbers(data) {
+  var counters = [0];
+  for (var i = 0; i < data.length; i++) {
+    var level = parseInt(data[i].level, 10) || 0;
+    while (counters.length <= level) counters.push(0);
+    while (counters.length > level + 1) counters.pop();
+    counters[level]++;
+    var wbs = '';
+    for (var j = 0; j <= level; j++) {
+      if (j > 0) wbs += '.';
+      wbs += counters[j];
+    }
+    data[i].wbs_no = wbs;
+  }
+}
+function onWbsCtxMenu(e, paneId, idx) {
+  return showCtxMenu(e, [
+    { label: '子タスクを追加', action: 'function(){addWbsChild("' + paneId + '",' + idx + ')}' },
+    { label: '同レベルに追加', action: 'function(){addWbsSibling("' + paneId + '",' + idx + ')}' },
+    { separator: true },
+    { label: 'インデント (→)', action: 'function(){wbsIndent("' + paneId + '",' + idx + ')}' },
+    { label: 'アウトデント (←)', action: 'function(){wbsOutdent("' + paneId + '",' + idx + ')}' },
+    { separator: true },
+    { label: '行を削除', action: 'function(){deleteRowDirect("' + paneId + '",' + idx + ')}', danger: true }
+  ]);
+}
+function addWbsChild(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  var parentLevel = parseInt(data[idx].level, 10) || 0;
+  var row = {};
+  var pane = findPane(paneId);
+  (pane.config.columns || []).forEach(function(c) { row[c.key] = ''; });
+  row.id = uid();
+  row.level = String(parentLevel + 1);
+  row.status = '未着手';
+  data.splice(idx + 1, 0, row);
+  markDirty(paneId);
+  renderPaneContent(pane);
+}
+function addWbsSibling(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  var level = parseInt(data[idx].level, 10) || 0;
+  var insertAt = idx + 1;
+  while (insertAt < data.length && (parseInt(data[insertAt].level, 10) || 0) > level) insertAt++;
+  var row = {};
+  var pane = findPane(paneId);
+  (pane.config.columns || []).forEach(function(c) { row[c.key] = ''; });
+  row.id = uid();
+  row.level = String(level);
+  row.status = '未着手';
+  data.splice(insertAt, 0, row);
+  markDirty(paneId);
+  renderPaneContent(pane);
+}
+function wbsIndent(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  if (!data[idx]) return;
+  var lv = parseInt(data[idx].level, 10) || 0;
+  if (idx === 0) return;
+  data[idx].level = String(lv + 1);
+  markDirty(paneId);
+  var pane = findPane(paneId);
+  renderPaneContent(pane);
+}
+function wbsOutdent(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  if (!data[idx]) return;
+  var lv = parseInt(data[idx].level, 10) || 0;
+  if (lv <= 0) return;
+  data[idx].level = String(lv - 1);
+  markDirty(paneId);
+  var pane = findPane(paneId);
+  renderPaneContent(pane);
+}
+
+// ========================================================================
+// GANTT CHART PANE
+// ========================================================================
+function renderGanttPane(pane, el) {
+  var data = DATA_STORE[pane.id] || [];
+  var cfg = pane.config || {};
+  var dayWidth = DATE_SCALE === 'day' ? 60 : DATE_SCALE === 'week' ? 28 : 16;
+
+  // Calculate date range
+  var minDate = null, maxDate = null;
+  data.forEach(function(row) {
+    var sd = parseDate(row[cfg.startDateColumn || 'start_date']);
+    var ed = parseDate(row[cfg.endDateColumn || 'end_date']);
+    if (sd && (!minDate || sd < minDate)) minDate = sd;
+    if (ed && (!maxDate || ed > maxDate)) maxDate = ed;
+  });
+  if (!minDate) minDate = new Date();
+  if (!maxDate) maxDate = new Date();
+  // Add padding
+  var padStart = new Date(minDate.getTime()); padStart.setDate(padStart.getDate() - 7);
+  var padEnd = new Date(maxDate.getTime()); padEnd.setDate(padEnd.getDate() + 14);
+  if (DATE_SCALE === 'week') { padStart = getWeekStart(padStart); }
+  if (DATE_SCALE === 'month') { padStart.setDate(1); }
+
+  var totalDays = dateDiffDays(padStart, padEnd) + 1;
+  if (totalDays < 30) totalDays = 30;
+  var totalWidth = totalDays * dayWidth;
+
+  var h = '<div class="pane-header">ガントチャート</div>';
+  h += '<div class="gantt-wrapper" style="position:absolute;top:28px;left:0;right:0;bottom:0;overflow:auto;">';
+
+  // Header - months
+  h += '<div class="gantt-header" style="width:' + totalWidth + 'px;">';
+  var curMonth = new Date(padStart.getTime());
+  while (curMonth <= padEnd) {
+    var monthStart = new Date(curMonth.getFullYear(), curMonth.getMonth(), 1);
+    var monthEnd = new Date(curMonth.getFullYear(), curMonth.getMonth() + 1, 0);
+    var mLeft = Math.max(0, dateDiffDays(padStart, monthStart)) * dayWidth;
+    var mDays = dateDiffDays(monthStart > padStart ? monthStart : padStart, monthEnd < padEnd ? monthEnd : padEnd) + 1;
+    h += '<div class="gantt-header-month" style="left:' + mLeft + 'px;width:' + (mDays * dayWidth) + 'px;">' +
+      (curMonth.getMonth()+1) + '月 ' + curMonth.getFullYear() + '</div>';
+    curMonth.setMonth(curMonth.getMonth() + 1);
+  }
+
+  // Header - days
+  var dd = new Date(padStart.getTime());
+  for (var di = 0; di < totalDays; di++) {
+    var dayOfWeek = dd.getDay();
+    var isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    var isToday = formatDate(dd) === todayStr();
+    h += '<div class="gantt-header-day' + (isWeekend ? ' weekend' : '') + (isToday ? ' today' : '') + '" style="left:' + (di * dayWidth) + 'px;width:' + dayWidth + 'px;">';
+    if (dayWidth >= 28) { h += dd.getDate(); }
+    else if (dd.getDate() === 1 || dd.getDate() % 5 === 0) { h += dd.getDate(); }
+    h += '</div>';
+    dd.setDate(dd.getDate() + 1);
+  }
+  h += '</div>';
+
+  // Today line
+  var todayOffset = dateDiffDays(padStart, new Date());
+  if (cfg.showTodayLine !== false && todayOffset >= 0 && todayOffset < totalDays) {
+    h += '<div class="gantt-today-line" style="left:' + (todayOffset * dayWidth + Math.floor(dayWidth/2)) + 'px;top:44px;"></div>';
+  }
+
+  // Bars
+  var barColors = cfg.barColors || { "未着手":"#B0BEC5", "進行中":"#42A5F5", "完了":"#66BB6A", "保留":"#FFA726" };
+  data.forEach(function(row, ri) {
+    var sd = parseDate(row[cfg.startDateColumn || 'start_date']);
+    var ed = parseDate(row[cfg.endDateColumn || 'end_date']);
+    var isMilestone = row.milestone === 'true' || row.milestone === '1';
+    h += '<div class="gantt-row" style="width:' + totalWidth + 'px;">';
+    if (sd && ed) {
+      var barLeft = dateDiffDays(padStart, sd) * dayWidth;
+      var barDays = dateDiffDays(sd, ed) + 1;
+      var barW = barDays * dayWidth;
+      var status = row[cfg.statusColumn || 'status'] || '未着手';
+      var color = barColors[status] || '#90a4ae';
+      var progress = parseInt(row[cfg.progressColumn || 'progress'], 10) || 0;
+
+      if (isMilestone) {
+        h += '<div class="gantt-milestone" style="left:' + barLeft + 'px;" title="' + escapeHtml(row[cfg.taskNameColumn || 'task_name']) + '"></div>';
+      } else {
+        // bar background
+        h += '<div class="gantt-bar" style="left:' + barLeft + 'px;width:' + barW + 'px;background:' + color + ';" ' +
+          'title="' + escapeHtml(row[cfg.taskNameColumn || 'task_name']) + ' (' + progress + '%)" ' +
+          'onclick="onGanttBarClick(\'' + pane.id + '\',' + ri + ')">';
+        // progress fill
+        if (progress > 0 && progress < 100) {
+          h += '<div style="position:absolute;top:0;left:0;height:100%;width:' + progress + '%;background:rgba(0,0,0,0.15);"></div>';
+        }
+        h += escapeHtml(row[cfg.taskNameColumn || 'task_name']);
+        h += '</div>';
+      }
+    }
+    h += '</div>';
+  });
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+function onGanttBarClick(paneId, rowIdx) {
+  SELECTED_ROW[paneId] = rowIdx;
+  triggerPaneLink(paneId, 'clickBar', rowIdx);
+}
+
+// ========================================================================
+// MENU PANE
+// ========================================================================
+function renderMenuPane(pane, el) {
+  var items = pane.config.items || [];
+  var h = '<div class="pane-header">メニュー</div><ul class="menu-list">';
+  items.forEach(function(item) {
+    if (item.group) {
+      h += '<li class="menu-group-label">' + escapeHtml(item.label) + '</li>';
+    } else {
+      h += '<li class="menu-item" onclick="onMenuClick(\'' + pane.id + '\',\'' + (item.id || '') + '\')">' + escapeHtml(item.label) + '</li>';
+    }
+  });
+  h += '</ul>';
+  el.innerHTML = h;
+}
+function onMenuClick(paneId, itemId) {
+  // handle menu click - could switch content
+}
+
+// ========================================================================
+// DASHBOARD PANE
+// ========================================================================
+function renderDashboardPane(pane, el) {
+  // Gather statistics from all data
+  var wbsData = findDataByFile('wbs_tasks.csv') || [];
+  var reqData = findDataByFile('requests.csv') || [];
+  var riskData = findDataByFile('risks.csv') || [];
+  var issueData = findDataByFile('issues.csv') || [];
+
+  var totalTasks = wbsData.length;
+  var completedTasks = wbsData.filter(function(r) { return r.status === '完了'; }).length;
+  var progressAvg = 0;
+  if (totalTasks > 0) {
+    var sum = 0;
+    wbsData.forEach(function(r) { sum += parseInt(r.progress, 10) || 0; });
+    progressAvg = Math.round(sum / totalTasks);
+  }
+
+  var openRequests = reqData.filter(function(r) { return r.status === '依頼中'; }).length;
+  var activeRisks = riskData.filter(function(r) { return r.status === '監視中' || r.status === '対策中'; }).length;
+  var openIssues = issueData.filter(function(r) { return r.status !== '完了'; }).length;
+  var criticalIssues = issueData.filter(function(r) { return r.severity === '重大' && r.status !== '完了'; }).length;
+
+  // Overdue tasks
+  var today = new Date(); today.setHours(0,0,0,0);
+  var overdueTasks = wbsData.filter(function(r) {
+    if (r.status === '完了') return false;
+    var ed = parseDate(r.end_date);
+    return ed && ed < today;
+  });
+
+  // This week's tasks
+  var weekStart = getWeekStart(new Date());
+  var weekEnd = new Date(weekStart.getTime()); weekEnd.setDate(weekEnd.getDate() + 6);
+  var thisWeekTasks = wbsData.filter(function(r) {
+    var ed = parseDate(r.end_date);
+    return ed && ed >= weekStart && ed <= weekEnd && r.status !== '完了';
+  });
+
+  var h = '<div class="pane-header">ダッシュボード</div>';
+  h += '<div class="dashboard" style="position:absolute;top:28px;left:0;right:0;bottom:0;overflow-y:auto;padding:16px;">';
+
+  // Cards
+  h += '<div class="dash-card"><div class="dash-card-title">プロジェクト進捗</div><div class="dash-card-body">' +
+    '<div class="dash-card-num">' + progressAvg + '%</div>' +
+    '<div class="dash-card-sub">' + completedTasks + ' / ' + totalTasks + ' タスク完了</div>' +
+    '<div class="progress-bar" style="width:100%;height:16px;margin-top:8px;"><div class="progress-fill" style="width:' + progressAvg + '%;"></div></div>' +
+    '</div></div>';
+
+  h += '<div class="dash-card"><div class="dash-card-title">期限超過タスク</div><div class="dash-card-body">' +
+    '<div class="dash-card-num" style="color:' + (overdueTasks.length > 0 ? '#c62828' : '#2e7d32') + ';">' + overdueTasks.length + '</div>' +
+    '<div class="dash-card-sub">件のタスクが遅延中</div></div></div>';
+
+  h += '<div class="dash-card"><div class="dash-card-title">未回答の依頼事項</div><div class="dash-card-body">' +
+    '<div class="dash-card-num">' + openRequests + '</div>' +
+    '<div class="dash-card-sub">件が回答待ち</div></div></div>';
+
+  h += '<div class="dash-card"><div class="dash-card-title">アクティブリスク</div><div class="dash-card-body">' +
+    '<div class="dash-card-num">' + activeRisks + '</div>' +
+    '<div class="dash-card-sub">件のリスクを監視中</div></div></div>';
+
+  h += '<div class="dash-card"><div class="dash-card-title">オープン課題</div><div class="dash-card-body">' +
+    '<div class="dash-card-num">' + openIssues + '</div>' +
+    '<div class="dash-card-sub">' + (criticalIssues > 0 ? '(重大: ' + criticalIssues + '件)' : 'すべて軽微') + '</div></div></div>';
+
+  // This week table
+  h += '<div style="clear:both;margin-top:16px;"><h3 style="font-size:14px;color:#283593;margin-bottom:8px;">今週の予定タスク (' + thisWeekTasks.length + '件)</h3>';
+  if (thisWeekTasks.length > 0) {
+    h += '<table class="list-table" style="width:auto;"><thead><tr><th>タスク名</th><th>担当者</th><th>終了日</th><th>進捗</th><th>状態</th></tr></thead><tbody>';
+    thisWeekTasks.forEach(function(t) {
+      var hlC = '';
+      var ed = parseDate(t.end_date);
+      if (ed && ed < today) hlC = ' class="hl-overdue"';
+      h += '<tr' + hlC + '><td>' + escapeHtml(t.task_name) + '</td><td>' + escapeHtml(t.assignee) + '</td><td>' + escapeHtml(t.end_date) + '</td><td>' + (t.progress || 0) + '%</td><td>' + escapeHtml(t.status) + '</td></tr>';
+    });
+    h += '</tbody></table>';
+  } else {
+    h += '<div style="color:#999;">今週期限のタスクはありません</div>';
+  }
+  h += '</div>';
+
+  // Overdue table
+  if (overdueTasks.length > 0) {
+    h += '<div style="margin-top:16px;"><h3 style="font-size:14px;color:#c62828;margin-bottom:8px;">期限超過タスク (' + overdueTasks.length + '件)</h3>';
+    h += '<table class="list-table" style="width:auto;"><thead><tr><th>タスク名</th><th>担当者</th><th>終了日</th><th>状態</th></tr></thead><tbody>';
+    overdueTasks.forEach(function(t) {
+      h += '<tr class="hl-overdue"><td>' + escapeHtml(t.task_name) + '</td><td>' + escapeHtml(t.assignee) + '</td><td>' + escapeHtml(t.end_date) + '</td><td>' + escapeHtml(t.status) + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  }
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+function findDataByFile(fileName) {
+  for (var k in DATA_STORE) {
+    if (DATA_STORE[k]._file === fileName) return DATA_STORE[k];
+  }
+  // try to load it
+  var filePath = resolvePath((CONFIG.app.baseDir || '') + fileName);
+  var text = readFileSync(filePath);
+  if (text && text.trim()) {
+    return parseCSV(text).rows;
+  }
+  return [];
+}
+
+// ========================================================================
+// SETTINGS PANE - Full Configuration GUI
+// ========================================================================
+function renderSettingsPane(pane, el) {
+  var h = '<div class="pane-header">アプリケーション設定</div>';
+  h += '<div class="settings-panel" style="position:absolute;top:28px;left:0;right:0;bottom:0;overflow-y:auto;">';
+
+  // App settings
+  h += '<div class="settings-section open">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9660; アプリケーション基本設定</div>';
+  h += '<div class="settings-section-body">';
+  h += settingsInput('アプリ名', 'app_name', CONFIG.app.name);
+  h += settingsInput('バージョン', 'app_version', CONFIG.app.version);
+  h += settingsInput('データフォルダ', 'app_baseDir', CONFIG.app.baseDir);
+  h += settingsCheckbox('自動保存', 'app_autoSave', CONFIG.app.autoSaveEnabled);
+  h += settingsInput('自動保存間隔(秒)', 'app_autoSaveInterval', CONFIG.app.autoSaveIntervalSec);
+  h += settingsInput('通知表示時間(ms)', 'app_toastDuration', CONFIG.app.toastDurationMs);
+  h += settingsInput('Undo上限', 'app_undoLimit', CONFIG.app.undoLimit);
+  h += '<div class="settings-row"><label></label><span class="settings-btn" onclick="applyAppSettings()">適用</span></div>';
+  h += '</div></div>';
+
+  // Tab Management
+  h += '<div class="settings-section">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9654; タブ管理</div>';
+  h += '<div class="settings-section-body">';
+  h += '<table class="settings-mini-table"><thead><tr><th>順序</th><th>タブ名</th><th>表示</th><th>操作</th></tr></thead><tbody>';
+  var sortedTabs = CONFIG.tabs.slice(0).sort(function(a,b){ return (a.order||0) - (b.order||0); });
+  sortedTabs.forEach(function(tab, i) {
+    h += '<tr><td>' + (tab.order || i) + '</td><td>' + escapeHtml(tab.label) + '</td>' +
+      '<td><input type="checkbox"' + (tab.visible !== false ? ' checked' : '') + ' onchange="toggleTabVisible(\'' + tab.id + '\',this.checked)"></td>' +
+      '<td><span class="settings-btn" onclick="editTabSettings(\'' + tab.id + '\')">編集</span> ' +
+      '<span class="settings-btn danger" onclick="removeTab(\'' + tab.id + '\')">削除</span></td></tr>';
+  });
+  h += '</tbody></table>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addNewTab()">&#10010; タブを追加</span></div>';
+  h += '</div></div>';
+
+  // Column / Data Source Management
+  h += '<div class="settings-section">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9654; データソース・列定義</div>';
+  h += '<div class="settings-section-body">';
+  h += '<div class="settings-row"><label>タブ選択:</label><select id="settingsTabSelect" onchange="onSettingsTabChange(this.value)">';
+  CONFIG.tabs.forEach(function(tab) {
+    h += '<option value="' + tab.id + '">' + escapeHtml(tab.label) + '</option>';
+  });
+  h += '</select></div>';
+  h += '<div id="settingsColumnArea"></div>';
+  h += '</div></div>';
+
+  // Highlight Rules
+  h += '<div class="settings-section">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9654; ハイライトルール</div>';
+  h += '<div class="settings-section-body">';
+  var allRules = CONFIG.highlightRules ? (CONFIG.highlightRules.global || []) : [];
+  h += '<table class="settings-mini-table"><thead><tr><th>ルール名</th><th>対象列</th><th>条件</th><th>有効</th><th>操作</th></tr></thead><tbody>';
+  allRules.forEach(function(rule, ri) {
+    h += '<tr><td>' + escapeHtml(rule.label) + '</td><td>' + escapeHtml(rule.condition.column) + '</td>' +
+      '<td>' + escapeHtml(rule.condition.operator) + ' ' + escapeHtml(String(rule.condition.value || '')) + '</td>' +
+      '<td><input type="checkbox"' + (rule.enabled ? ' checked' : '') + ' onchange="toggleHighlightRule(' + ri + ',this.checked)"></td>' +
+      '<td><span class="settings-btn danger" onclick="removeHighlightRule(' + ri + ')">削除</span></td></tr>';
+  });
+  h += '</tbody></table>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addHighlightRule()">&#10010; ルールを追加</span></div>';
+  h += '</div></div>';
+
+  // Filter Views
+  h += '<div class="settings-section">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9654; フィルタビュー</div>';
+  h += '<div class="settings-section-body">';
+  var views = CONFIG.filterViews && CONFIG.filterViews['default'] ? CONFIG.filterViews['default'] : [];
+  h += '<table class="settings-mini-table"><thead><tr><th>ビュー名</th><th>条件列</th><th>演算子</th><th>値</th><th>操作</th></tr></thead><tbody>';
+  views.forEach(function(v, vi) {
+    h += '<tr><td>' + escapeHtml(v.label) + '</td>';
+    if (v.filter) {
+      h += '<td>' + escapeHtml(v.filter.column || '') + '</td><td>' + escapeHtml(v.filter.operator || '') + '</td><td>' + escapeHtml(String(v.filter.value || '')) + '</td>';
+    } else {
+      h += '<td>-</td><td>-</td><td>-</td>';
+    }
+    h += '<td><span class="settings-btn danger" onclick="removeFilterView(' + vi + ')">削除</span></td></tr>';
+  });
+  h += '</tbody></table>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addFilterView()">&#10010; ビューを追加</span></div>';
+  h += '</div></div>';
+
+  // Import/Export
+  h += '<div class="settings-section">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9654; 設定のインポート / エクスポート</div>';
+  h += '<div class="settings-section-body">';
+  h += '<span class="settings-btn" onclick="exportConfig()">設定をエクスポート</span> ';
+  h += '<span class="settings-btn" onclick="importConfig()">設定をインポート</span> ';
+  h += '<span class="settings-btn" onclick="resetToDefault()">初期設定に戻す</span>';
+  h += '</div></div>';
+
+  // JSON Editor (raw)
+  h += '<div class="settings-section">';
+  h += '<div class="settings-section-title" onclick="toggleSettingsSection(this)">&#9654; 設定JSON直接編集</div>';
+  h += '<div class="settings-section-body">';
+  h += '<textarea id="rawConfigEditor" style="width:95%;height:300px;font-family:Consolas,monospace;font-size:11px;">' + escapeHtml(JSON.stringify(CONFIG, null, 2)) + '</textarea>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="applyRawConfig()">JSONを適用</span></div>';
+  h += '</div></div>';
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function settingsInput(label, id, val) {
+  return '<div class="settings-row"><label>' + escapeHtml(label) + '</label><input type="text" id="si_' + id + '" value="' + escapeHtml(String(val || '')) + '"></div>';
+}
+function settingsCheckbox(label, id, val) {
+  return '<div class="settings-row"><label>' + escapeHtml(label) + '</label><input type="checkbox" id="si_' + id + '"' + (val ? ' checked' : '') + '></div>';
+}
+function toggleSettingsSection(titleEl) {
+  var section = titleEl.parentNode;
+  if (section.className.indexOf('open') >= 0) {
+    section.className = section.className.replace(' open','').replace('open','');
+    titleEl.innerHTML = titleEl.innerHTML.replace('▼','▶').replace('&#9660;','&#9654;');
+  } else {
+    section.className += ' open';
+    titleEl.innerHTML = titleEl.innerHTML.replace('▶','▼').replace('&#9654;','&#9660;');
+  }
+}
+function applyAppSettings() {
+  CONFIG.app.name = document.getElementById('si_app_name').value;
+  CONFIG.app.version = document.getElementById('si_app_version').value;
+  CONFIG.app.baseDir = document.getElementById('si_app_baseDir').value;
+  CONFIG.app.autoSaveEnabled = document.getElementById('si_app_autoSave').checked;
+  CONFIG.app.autoSaveIntervalSec = parseInt(document.getElementById('si_app_autoSaveInterval').value, 10) || 60;
+  CONFIG.app.toastDurationMs = parseInt(document.getElementById('si_app_toastDuration').value, 10) || 3000;
+  CONFIG.app.undoLimit = parseInt(document.getElementById('si_app_undoLimit').value, 10) || 50;
+  document.getElementById('appName').innerText = CONFIG.app.name;
+  document.getElementById('appVersion').innerText = 'v' + CONFIG.app.version;
+  saveConfig();
+  toast('success', '基本設定を適用しました');
+}
+function toggleTabVisible(tabId, visible) {
+  var tab = getTabById(tabId);
+  if (tab) { tab.visible = visible; saveConfig(); renderTabs(); }
+}
+function addNewTab() {
+  modal('form', {
+    title: '新規タブ追加',
+    fields: [
+      { key: 'label', label: 'タブ名', type: 'text', required: true },
+      { key: 'paneType', label: 'ペインタイプ', type: 'select', options: ['list','editor','wbs','gantt','detail','menu','dashboard'] },
+      { key: 'dataFile', label: 'データファイル名', type: 'text', value: '' },
+      { key: 'layout', label: 'レイアウト', type: 'radio', options: ['horizontal','vertical'], value: 'horizontal' }
+    ],
+    width: 500
+  }, function(result, data) {
+    if (result !== 'ok' || !data.label) return;
+    var maxOrder = 0;
+    CONFIG.tabs.forEach(function(t) { if ((t.order || 0) > maxOrder) maxOrder = t.order || 0; });
+    var newTab = {
+      id: 'tab_' + uid(),
+      label: data.label,
+      visible: true,
+      order: maxOrder + 1,
+      layout: {
+        direction: data.layout || 'horizontal',
+        panes: [{
+          id: 'pane_' + uid(),
+          type: data.paneType || 'list',
+          widthPercent: 100,
+          config: { dataFile: data.dataFile || '' }
+        }]
+      }
+    };
+    // if list pane, add default columns
+    if (data.paneType === 'list' && data.dataFile) {
+      newTab.layout.panes[0].config.columns = [
+        { key: 'id', label: 'ID', type: 'text', width: 60, readonly: true },
+        { key: 'title', label: 'タイトル', type: 'text', width: 200 },
+        { key: 'status', label: '状態', type: 'select', width: 80, options: ['未着手','進行中','完了','保留'] },
+        { key: 'notes', label: '備考', type: 'text', width: 150 }
+      ];
+    }
+    CONFIG.tabs.push(newTab);
+    saveConfig();
+    renderTabs();
+    toast('success', 'タブ「' + data.label + '」を追加しました');
+    // re-render settings
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+  });
+}
+function editTabSettings(tabId) {
+  var tab = getTabById(tabId);
+  if (!tab) return;
+  var pane = tab.layout.panes[0];
+  modal('form', {
+    title: 'タブ設定: ' + tab.label,
+    fields: [
+      { key: 'label', label: 'タブ名', type: 'text', value: tab.label },
+      { key: 'order', label: '表示順', type: 'number', value: String(tab.order || 0) },
+      { key: 'direction', label: 'レイアウト方向', type: 'radio', options: ['horizontal','vertical'], value: tab.layout.direction || 'horizontal' }
+    ],
+    width: 450
+  }, function(result, data) {
+    if (result !== 'ok') return;
+    tab.label = data.label || tab.label;
+    tab.order = parseInt(data.order, 10) || tab.order;
+    tab.layout.direction = data.direction || 'horizontal';
+    saveConfig();
+    renderTabs();
+    toast('success', 'タブ設定を更新しました');
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+  });
+}
+function removeTab(tabId) {
+  modal('confirm', { title: '確認', message: 'このタブを削除しますか？' }, function(r) {
+    if (r !== 'ok') return;
+    CONFIG.tabs = CONFIG.tabs.filter(function(t) { return t.id !== tabId; });
+    saveConfig();
+    renderTabs();
+    if (ACTIVE_TAB === tabId && CONFIG.tabs.length > 0) switchTab(CONFIG.tabs[0].id);
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+  });
+}
+function onSettingsTabChange(tabId) {
+  var tab = getTabById(tabId);
+  if (!tab) return;
+  var area = document.getElementById('settingsColumnArea');
+  if (!area) return;
+  var h = '';
+  tab.layout.panes.forEach(function(pane) {
+    h += '<h4 style="margin:8px 0 4px;color:#283593;">ペイン: ' + escapeHtml(pane.id) + ' (type: ' + escapeHtml(pane.type) + ')</h4>';
+    h += '<div class="settings-row"><label>幅%</label><input type="text" id="pw_' + pane.id + '" value="' + (pane.widthPercent || 50) + '" style="width:60px;"> ' +
+      '<span class="settings-btn" onclick="updatePaneWidth(\'' + tabId + '\',\'' + pane.id + '\')">適用</span></div>';
+    h += '<div class="settings-row"><label>データファイル</label><input type="text" id="pdf_' + pane.id + '" value="' + escapeHtml(pane.config.dataFile || '') + '" style="width:200px;"> ' +
+      '<span class="settings-btn" onclick="updatePaneDataFile(\'' + tabId + '\',\'' + pane.id + '\')">適用</span></div>';
+    if (pane.config.columns) {
+      h += '<div style="margin-top:6px;"><strong>列定義:</strong></div>';
+      h += '<table class="settings-mini-table"><thead><tr><th>キー</th><th>ラベル</th><th>型</th><th>幅</th><th>選択肢</th><th>操作</th></tr></thead><tbody>';
+      pane.config.columns.forEach(function(col, ci) {
+        h += '<tr><td>' + escapeHtml(col.key) + '</td><td>' + escapeHtml(col.label) + '</td><td>' + escapeHtml(col.type) + '</td><td>' + (col.width || '') + '</td>';
+        h += '<td>' + escapeHtml((col.options || []).join(',')) + '</td>';
+        h += '<td><span class="settings-btn" onclick="editColumn(\'' + tabId + '\',\'' + pane.id + '\',' + ci + ')">編集</span> ' +
+          '<span class="settings-btn danger" onclick="removeColumn(\'' + tabId + '\',\'' + pane.id + '\',' + ci + ')">削除</span></td></tr>';
+      });
+      h += '</tbody></table>';
+      h += '<div style="margin-top:4px;"><span class="settings-btn" onclick="addColumn(\'' + tabId + '\',\'' + pane.id + '\')">&#10010; 列を追加</span></div>';
+    }
+  });
+  area.innerHTML = h;
+}
+function updatePaneWidth(tabId, paneId) {
+  var tab = getTabById(tabId);
+  if (!tab) return;
+  tab.layout.panes.forEach(function(p) {
+    if (p.id === paneId) {
+      var el = document.getElementById('pw_' + paneId);
+      if (el) p.widthPercent = parseInt(el.value, 10) || 50;
+    }
+  });
+  saveConfig();
+  toast('success', 'ペイン幅を更新しました');
+}
+function updatePaneDataFile(tabId, paneId) {
+  var tab = getTabById(tabId);
+  if (!tab) return;
+  tab.layout.panes.forEach(function(p) {
+    if (p.id === paneId) {
+      var el = document.getElementById('pdf_' + paneId);
+      if (el) p.config.dataFile = el.value;
+    }
+  });
+  saveConfig();
+  toast('success', 'データファイルを更新しました');
+}
+function addColumn(tabId, paneId) {
+  modal('form', {
+    title: '列を追加',
+    fields: [
+      { key: 'key', label: 'キー名', type: 'text' },
+      { key: 'label', label: '表示ラベル', type: 'text' },
+      { key: 'type', label: '型', type: 'select', options: ['text','number','date','select','checkbox','radio'] },
+      { key: 'width', label: '幅(px)', type: 'number', value: '100' },
+      { key: 'options', label: '選択肢(カンマ区切り)', type: 'text' }
+    ],
+    width: 480
+  }, function(r, data) {
+    if (r !== 'ok' || !data.key) return;
+    var tab = getTabById(tabId);
+    tab.layout.panes.forEach(function(p) {
+      if (p.id === paneId && p.config.columns) {
+        var col = {
+          key: data.key,
+          label: data.label || data.key,
+          type: data.type || 'text',
+          width: parseInt(data.width, 10) || 100
+        };
+        if (data.options) col.options = data.options.split(',').map(function(s) { return s.trim(); });
+        p.config.columns.push(col);
+      }
+    });
+    saveConfig();
+    onSettingsTabChange(tabId);
+    toast('success', '列を追加しました');
+  });
+}
+function editColumn(tabId, paneId, colIdx) {
+  var tab = getTabById(tabId);
+  var pane = null;
+  tab.layout.panes.forEach(function(p) { if (p.id === paneId) pane = p; });
+  if (!pane || !pane.config.columns || !pane.config.columns[colIdx]) return;
+  var col = pane.config.columns[colIdx];
+  modal('form', {
+    title: '列を編集: ' + col.key,
+    fields: [
+      { key: 'label', label: '表示ラベル', type: 'text', value: col.label },
+      { key: 'type', label: '型', type: 'select', options: ['text','number','date','select','checkbox','radio'], value: col.type },
+      { key: 'width', label: '幅(px)', type: 'number', value: String(col.width || 100) },
+      { key: 'options', label: '選択肢(カンマ区切り)', type: 'text', value: (col.options || []).join(',') },
+      { key: 'readonly', label: '読取専用', type: 'checkbox', value: col.readonly }
+    ],
+    width: 480
+  }, function(r, data) {
+    if (r !== 'ok') return;
+    col.label = data.label || col.label;
+    col.type = data.type || col.type;
+    col.width = parseInt(data.width, 10) || col.width;
+    col.readonly = data.readonly;
+    if (data.options) col.options = data.options.split(',').map(function(s) { return s.trim(); });
+    else col.options = undefined;
+    saveConfig();
+    onSettingsTabChange(tabId);
+    toast('success', '列を更新しました');
+  });
+}
+function removeColumn(tabId, paneId, colIdx) {
+  modal('confirm', { title: '確認', message: 'この列を削除しますか？' }, function(r) {
+    if (r !== 'ok') return;
+    var tab = getTabById(tabId);
+    tab.layout.panes.forEach(function(p) {
+      if (p.id === paneId && p.config.columns) { p.config.columns.splice(colIdx, 1); }
+    });
+    saveConfig();
+    onSettingsTabChange(tabId);
+  });
+}
+function addHighlightRule() {
+  modal('form', {
+    title: 'ハイライトルールを追加',
+    fields: [
+      { key: 'label', label: 'ルール名', type: 'text' },
+      { key: 'column', label: '対象列', type: 'text' },
+      { key: 'operator', label: '演算子', type: 'select', options: ['equals','notEquals','contains','before','after','within_days','isEmpty','isNotEmpty','greaterThan','lessThan'] },
+      { key: 'value', label: '値', type: 'text' },
+      { key: 'className', label: 'CSSクラス', type: 'select', options: ['hl-overdue','hl-due-soon','hl-complete','hl-high-risk','hl-critical','hl-milestone'] }
+    ],
+    width: 500
+  }, function(r, data) {
+    if (r !== 'ok' || !data.label) return;
+    if (!CONFIG.highlightRules) CONFIG.highlightRules = { global: [] };
+    CONFIG.highlightRules.global.push({
+      id: 'hl_' + uid(),
+      label: data.label,
+      condition: { column: data.column, operator: data.operator, value: data.value },
+      style: { className: data.className || 'hl-overdue' },
+      enabled: true,
+      priority: CONFIG.highlightRules.global.length + 1
+    });
+    saveConfig();
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+    toast('success', 'ハイライトルールを追加しました');
+  });
+}
+function toggleHighlightRule(idx, enabled) {
+  if (CONFIG.highlightRules && CONFIG.highlightRules.global && CONFIG.highlightRules.global[idx]) {
+    CONFIG.highlightRules.global[idx].enabled = enabled;
+    saveConfig();
+  }
+}
+function removeHighlightRule(idx) {
+  if (CONFIG.highlightRules && CONFIG.highlightRules.global) {
+    CONFIG.highlightRules.global.splice(idx, 1);
+    saveConfig();
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+  }
+}
+function addFilterView() {
+  modal('form', {
+    title: 'フィルタビューを追加',
+    fields: [
+      { key: 'label', label: 'ビュー名', type: 'text' },
+      { key: 'column', label: '条件列', type: 'text' },
+      { key: 'operator', label: '演算子', type: 'select', options: ['equals','notEquals','contains','isEmpty','isNotEmpty'] },
+      { key: 'value', label: '値', type: 'text' }
+    ],
+    width: 450
+  }, function(r, data) {
+    if (r !== 'ok' || !data.label) return;
+    if (!CONFIG.filterViews) CONFIG.filterViews = {};
+    if (!CONFIG.filterViews['default']) CONFIG.filterViews['default'] = [{ id: 'view_all', label: 'すべて', filter: null }];
+    CONFIG.filterViews['default'].push({
+      id: 'fv_' + uid(),
+      label: data.label,
+      filter: data.column ? { column: data.column, operator: data.operator, value: data.value } : null
+    });
+    saveConfig();
+    updateFilterViews();
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+    toast('success', 'フィルタビューを追加しました');
+  });
+}
+function removeFilterView(idx) {
+  if (CONFIG.filterViews && CONFIG.filterViews['default']) {
+    CONFIG.filterViews['default'].splice(idx, 1);
+    saveConfig();
+    var sp = findPane('pane_settings');
+    if (sp) renderSettingsPane(sp, document.getElementById('pane_pane_settings'));
+  }
+}
+function exportConfig() {
+  var path = resolvePath('app_config_export.json');
+  writeFileSync(path, JSON.stringify(CONFIG, null, 2));
+  toast('success', '設定をエクスポートしました: app_config_export.json');
+}
+function importConfig() {
+  modal('prompt', { title: '設定インポート', message: 'インポートするJSONファイル名を入力:', defaultValue: 'app_config_export.json' }, function(r, v) {
+    if (r !== 'ok' || !v) return;
+    var path = resolvePath(v);
+    var text = readFileSync(path);
+    if (text) {
+      var newConfig = safeParseJSON(text);
+      if (newConfig && newConfig.app && newConfig.tabs) {
+        CONFIG = newConfig;
+        saveConfig();
+        toast('success', '設定をインポートしました。再描画します。');
+        initApp();
+      } else {
+        toast('error', '無効な設定ファイルです');
+      }
+    } else {
+      toast('error', 'ファイルが見つかりません');
+    }
+  });
+}
+function resetToDefault() {
+  modal('confirm', { title: '確認', message: '設定を初期状態に戻しますか？データは保持されます。', okLabel: 'リセット' }, function(r) {
+    if (r !== 'ok') return;
+    CONFIG = getDefaultConfig();
+    saveConfig();
+    toast('info', '設定を初期化しました。再描画します。');
+    initApp();
+  });
+}
+function applyRawConfig() {
+  var ta = document.getElementById('rawConfigEditor');
+  if (!ta) return;
+  var newConfig = safeParseJSON(ta.value);
+  if (newConfig && newConfig.app && newConfig.tabs) {
+    CONFIG = newConfig;
+    saveConfig();
+    toast('success', 'JSON設定を適用しました');
+    initApp();
+  } else {
+    toast('error', '無効なJSONです');
+  }
+}
+
+// ========================================================================
+// PANE LINKS
+// ========================================================================
+function triggerPaneLink(sourcePaneId, trigger, data) {
+  if (!CONFIG.paneLinks) return;
+  CONFIG.paneLinks.forEach(function(link) {
+    if (link.source === sourcePaneId && link.trigger === trigger) {
+      var targetPane = findPane(link.target);
+      if (!targetPane) return;
+      var targetEl = document.getElementById('pane_' + link.target);
+      if (!targetEl) return;
+      if (link.action === 'showDetail') {
+        SELECTED_ROW[link.target] = data;
+        renderPaneContent(targetPane);
+      } else if (link.action === 'loadFile') {
+        renderPaneContent(targetPane);
+      } else if (link.action === 'highlightTask') {
+        // highlight in gantt
+        SELECTED_ROW[link.target] = data;
+        renderPaneContent(targetPane);
+      }
+    }
+  });
+}
+
+// ========================================================================
+// DATE FILTER / NAVIGATION
+// ========================================================================
+function setDateScale(scale) {
+  DATE_SCALE = scale;
+  window._dateFilterActive = true;
+  updateDateFilter();
+  // update buttons
+  document.getElementById('btnScaleMonth').className = 'tool-btn' + (scale === 'month' ? ' active' : '');
+  document.getElementById('btnScaleWeek').className = 'tool-btn' + (scale === 'week' ? ' active' : '');
+  document.getElementById('btnScaleDay').className = 'tool-btn' + (scale === 'day' ? ' active' : '');
+  refreshCurrentTab();
+}
+function navDate(dir) {
+  if (dir === 0) { DATE_CURSOR = new Date(); }
+  else if (DATE_SCALE === 'month') { DATE_CURSOR.setMonth(DATE_CURSOR.getMonth() + dir); }
+  else if (DATE_SCALE === 'week') { DATE_CURSOR.setDate(DATE_CURSOR.getDate() + dir * 7); }
+  else { DATE_CURSOR.setDate(DATE_CURSOR.getDate() + dir); }
+  updateDateFilter();
+  refreshCurrentTab();
+}
+function updateDateFilter() {
+  var label = '';
+  if (DATE_SCALE === 'month') {
+    window._dateFilterStart = new Date(DATE_CURSOR.getFullYear(), DATE_CURSOR.getMonth(), 1);
+    window._dateFilterEnd = new Date(DATE_CURSOR.getFullYear(), DATE_CURSOR.getMonth() + 1, 0);
+    label = DATE_CURSOR.getFullYear() + '年' + (DATE_CURSOR.getMonth()+1) + '月';
+  } else if (DATE_SCALE === 'week') {
+    window._dateFilterStart = getWeekStart(DATE_CURSOR);
+    window._dateFilterEnd = new Date(window._dateFilterStart.getTime());
+    window._dateFilterEnd.setDate(window._dateFilterEnd.getDate() + 6);
+    label = formatDate(window._dateFilterStart) + ' 〜 ' + formatDate(window._dateFilterEnd);
+  } else {
+    window._dateFilterStart = new Date(DATE_CURSOR.getFullYear(), DATE_CURSOR.getMonth(), DATE_CURSOR.getDate());
+    window._dateFilterEnd = new Date(window._dateFilterStart.getTime());
+    label = formatDate(DATE_CURSOR);
+  }
+  window._dateFilterStart.setHours(0,0,0,0);
+  window._dateFilterEnd.setHours(23,59,59,999);
+  document.getElementById('dateNavLabel').innerText = label;
+}
+function updateToolbar() {
+  var tab = getTabById(ACTIVE_TAB);
+  var hasDateFilter = false;
+  if (tab) {
+    tab.layout.panes.forEach(function(p) {
+      if (p.config && p.config.dateFilter && p.config.dateFilter.enabled) hasDateFilter = true;
+      if (p.type === 'gantt') hasDateFilter = true;
+    });
+  }
+  document.getElementById('dateNavArea').style.display = hasDateFilter ? 'inline-block' : 'none';
+}
+function refreshCurrentTab() {
+  renderMainArea();
+}
+
+// ========================================================================
+// FILTER VIEWS
+// ========================================================================
+function updateFilterViews() {
+  var sel = document.getElementById('filterViewSelect');
+  var views = CONFIG.filterViews && CONFIG.filterViews['default'] ? CONFIG.filterViews['default'] : [];
+  sel.innerHTML = '';
+  views.forEach(function(v) {
+    var opt = document.createElement('option');
+    opt.value = v.filter ? v.id : '';
+    opt.innerText = v.label;
+    sel.appendChild(opt);
+  });
+}
+function applyFilterView(viewId) {
+  refreshCurrentTab();
+}
+
+// ========================================================================
+// KEYBOARD SHORTCUTS
+// ========================================================================
+function initKeyboard() {
+  document.onkeydown = function(e) {
+    e = e || window.event;
+    var key = e.keyCode;
+    var ctrl = e.ctrlKey;
+    var shift = e.shiftKey;
+
+    // ESC - close modal/context menu
+    if (key === 27) {
+      hideCtxMenu();
+      if (document.getElementById('modalOverlay').style.display === 'block') closeModal('cancel');
+      return;
+    }
+
+    // Ctrl+S - save
+    if (ctrl && key === 83) { e.preventDefault(); saveAllData(); return false; }
+
+    // Ctrl+Tab / Ctrl+Shift+Tab - switch tabs
+    if (ctrl && key === 9) {
+      e.preventDefault();
+      var visibleTabs = CONFIG.tabs.filter(function(t){ return t.visible !== false; });
+      visibleTabs.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+      var ci = -1;
+      for (var i = 0; i < visibleTabs.length; i++) { if (visibleTabs[i].id === ACTIVE_TAB) { ci = i; break; } }
+      if (shift) ci--; else ci++;
+      if (ci < 0) ci = visibleTabs.length - 1;
+      if (ci >= visibleTabs.length) ci = 0;
+      switchTab(visibleTabs[ci].id);
+      return false;
+    }
+
+    // Ctrl+1-9 - switch to tab by number
+    if (ctrl && key >= 49 && key <= 57) {
+      var n = key - 49;
+      var vt = CONFIG.tabs.filter(function(t){ return t.visible !== false; });
+      vt.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+      if (n < vt.length) switchTab(vt[n].id);
+      return false;
+    }
+
+    // Arrow keys for list navigation
+    if (ACTIVE_CELL && !ctrl && (key >= 37 && key <= 40)) {
+      // Check if we're in an input
+      var ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.tagName === 'SELECT')) return;
+
+      e.preventDefault();
+      var pane = findPane(ACTIVE_CELL.paneId);
+      if (!pane || !pane.config || !pane.config.columns) return;
+      var maxCol = pane.config.columns.length - 1;
+      var data = DATA_STORE[ACTIVE_CELL.paneId] || [];
+      var maxRow = data.length - 1;
+
+      if (key === 37) ACTIVE_CELL.col = Math.max(0, ACTIVE_CELL.col - 1);        // left
+      else if (key === 39) ACTIVE_CELL.col = Math.min(maxCol, ACTIVE_CELL.col + 1);  // right
+      else if (key === 38) ACTIVE_CELL.row = Math.max(0, ACTIVE_CELL.row - 1);     // up
+      else if (key === 40) ACTIVE_CELL.row = Math.min(maxRow, ACTIVE_CELL.row + 1); // down
+      selectListRow(ACTIVE_CELL.paneId, ACTIVE_CELL.row);
+      return false;
+    }
+
+    // Tab/Shift+Tab for WBS indent
+    if (key === 9 && ACTIVE_TAB) {
+      var ctab = getTabById(ACTIVE_TAB);
+      if (ctab) {
+        var wbsPane2 = null;
+        ctab.layout.panes.forEach(function(p) { if (p.type === 'wbs') wbsPane2 = p; });
+        if (wbsPane2 && SELECTED_ROW[wbsPane2.id] != null) {
+          e.preventDefault();
+          if (shift) wbsOutdent(wbsPane2.id, SELECTED_ROW[wbsPane2.id]);
+          else wbsIndent(wbsPane2.id, SELECTED_ROW[wbsPane2.id]);
+          return false;
+        }
+      }
+    }
+
+    // Enter - edit cell
+    if (key === 13 && ACTIVE_CELL) {
+      var ae2 = document.activeElement;
+      if (ae2 && (ae2.tagName === 'INPUT' || ae2.tagName === 'TEXTAREA' || ae2.tagName === 'SELECT')) return;
+      editListCell(ACTIVE_CELL.paneId, ACTIVE_CELL.row, ACTIVE_CELL.col);
+      return false;
+    }
+
+    // Delete - delete row
+    if (key === 46 && !ctrl) {
+      var ae3 = document.activeElement;
+      if (ae3 && (ae3.tagName === 'INPUT' || ae3.tagName === 'TEXTAREA')) return;
+      deleteListRow();
+    }
+
+    // F2 - edit cell
+    if (key === 113 && ACTIVE_CELL) {
+      editListCell(ACTIVE_CELL.paneId, ACTIVE_CELL.row, ACTIVE_CELL.col);
+      return false;
+    }
+  };
+}
+
+// ========================================================================
+// CSV EXPORT
+// ========================================================================
+function exportCSV() {
+  var tab = getTabById(ACTIVE_TAB);
+  if (!tab) return;
+  var listPane = null;
+  tab.layout.panes.forEach(function(p) { if (p.type === 'list' || p.type === 'wbs') listPane = p; });
+  if (!listPane || !DATA_STORE[listPane.id]) { toast('warning', 'エクスポートするデータがありません'); return; }
+
+  modal('prompt', { title: 'CSVエクスポート', message: 'ファイル名:', defaultValue: (listPane.config.dataFile || 'export.csv') }, function(r, v) {
+    if (r !== 'ok' || !v) return;
+    var data = DATA_STORE[listPane.id];
+    var headers = data._headers || (listPane.config.columns || []).map(function(c){ return c.key; });
+    var csv = generateCSV(headers, data);
+    var path = resolvePath(v);
+    writeFileSync(path, csv);
+    toast('success', 'エクスポートしました: ' + v);
+  });
+}
+
+// ========================================================================
+// HELPERS
+// ========================================================================
+function findPane(paneId) {
+  for (var i = 0; i < CONFIG.tabs.length; i++) {
+    for (var j = 0; j < CONFIG.tabs[i].layout.panes.length; j++) {
+      if (CONFIG.tabs[i].layout.panes[j].id === paneId) return CONFIG.tabs[i].layout.panes[j];
+    }
+  }
+  return null;
+}
+function updateStatusRows(paneId, count) {
+  document.getElementById('statusRows').innerText = '行: ' + count;
+}
+function showSettingsHelp() {
+  modal('alert', {
+    title: 'ヘルプ',
+    message: 'HTA Dynamic App v1.0\n\n' +
+      '■ Ctrl+S: 保存\n' +
+      '■ Ctrl+Tab: タブ切替\n' +
+      '■ 矢印キー: セル移動\n' +
+      '■ Enter/F2: セル編集\n' +
+      '■ Tab/Shift+Tab: WBSインデント\n' +
+      '■ Del: 行削除\n' +
+      '■ 右クリック: コンテキストメニュー\n\n' +
+      '設定タブでタブ・列・ルールを自由に編集できます。'
+  });
+}
+
+// ========================================================================
+// CLOSE HANDLER
+// ========================================================================
+window.onbeforeunload = function() {
+  var dirty = false;
+  for (var k in DIRTY_FLAGS) { if (DIRTY_FLAGS[k]) { dirty = true; break; } }
+  if (dirty) {
+    var r = confirm('未保存の変更があります。保存しますか？\n\nOK = 保存して閉じる\nキャンセル = 保存せず閉じる');
+    if (r) saveAllData();
+  }
+};
+
+// ========================================================================
+// CLICK HANDLER (close context menu)
+// ========================================================================
+document.onclick = function(e) {
+  hideCtxMenu();
+};
+
+// ========================================================================
+// INIT
+// ========================================================================
+function initApp() {
+  APP_DIR = '';
+  try {
+    window.execScript('document.getElementById("_vbs_result").value = getAppDir()', 'VBScript');
+    APP_DIR = document.getElementById('_vbs_result').value;
+  } catch(ex) {
+    APP_DIR = '';
+  }
+  if (!APP_DIR) APP_DIR = './';
+
+  loadConfig();
+  document.getElementById('appName').innerText = CONFIG.app.name || 'HTA Dynamic App';
+  document.getElementById('appVersion').innerText = 'v' + (CONFIG.app.version || '1.0.0');
+
+  renderTabs();
+  if (CONFIG.tabs.length > 0) {
+    var firstVisible = null;
+    CONFIG.tabs.sort(function(a,b){ return (a.order||0)-(b.order||0); });
+    for (var i = 0; i < CONFIG.tabs.length; i++) {
+      if (CONFIG.tabs[i].visible !== false) { firstVisible = CONFIG.tabs[i].id; break; }
+    }
+    if (firstVisible) switchTab(firstVisible);
+  }
+  initKeyboard();
+
+  // Setup date nav
+  updateDateFilter();
+  document.getElementById('dateNavLabel').innerText = formatDate(new Date());
+}
+
+// Start
+initApp();
+</script>
+</body>
+</html>
