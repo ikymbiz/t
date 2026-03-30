@@ -33,34 +33,34 @@ button { cursor:pointer; }
 #header .version { float:right; font-size:13px; color:#90caf9; }
 
 /* ===== TAB BAR (LEFT SIDEBAR) ===== */
-#app-body { position:absolute; top:42px; left:0; right:0; bottom:28px; display:table; width:100%; }
-#tab-sidebar { display:table-cell; width:180px; background:#1a237e; vertical-align:top; border-right:2px solid #0d1457; overflow-y:auto; overflow-x:hidden; }
-#content-col { display:table-cell; vertical-align:top; position:relative; }
-#tabbar { padding:8px 0; }
-.tab-btn { display:block; width:100%; height:auto; line-height:1.3; padding:10px 14px; color:#b0bec5; background:transparent; border:none; border-left:3px solid transparent; cursor:pointer; font-size:14px; text-align:left; margin:0; }
-.tab-btn:hover { color:#fff; background:rgba(255,255,255,0.08); }
+#app-body { position:absolute; top:42px; left:0; right:0; bottom:28px; overflow:hidden; }
+#tab-sidebar { position:absolute; left:0; top:0; bottom:0; width:170px; background:#1a237e; border-right:2px solid #0d1457; overflow-y:auto; overflow-x:hidden; }
+#content-col { position:absolute; left:172px; top:0; right:0; bottom:0; overflow:hidden; }
+#tabbar { padding:6px 0; }
+.tab-btn { display:block; width:auto; height:auto; line-height:1.3; padding:11px 14px; color:#b0bec5; background:transparent; border:none; border-left:3px solid transparent; cursor:pointer; font-size:14px; text-align:left; margin:0; }
+.tab-btn:hover { color:#fff; background:rgba(255,255,255,0.1); }
 .tab-btn.active { color:#fff; background:#3949ab; border-left:3px solid #ffab40; font-weight:bold; }
 
 /* ===== TOOLBAR ===== */
-#toolbar { height:44px; background:#e8eaf6; border-bottom:1px solid #c5cae9; padding:6px 12px; overflow:hidden; position:relative; }
-.tool-btn { display:inline-block; height:32px; line-height:32px; padding:0 14px; margin-right:4px; background:#fff; border:1px solid #9fa8da; color:#283593; cursor:pointer; font-size:14px; vertical-align:middle; }
+#toolbar { position:absolute; top:0; left:0; right:0; height:40px; background:#e8eaf6; border-bottom:1px solid #c5cae9; padding:5px 12px; overflow:hidden; }
+.tool-btn { display:inline-block; height:30px; line-height:30px; padding:0 12px; margin-right:3px; background:#fff; border:1px solid #9fa8da; color:#283593; cursor:pointer; font-size:13px; vertical-align:middle; }
 .tool-btn:hover { background:#c5cae9; }
 .tool-btn.active { background:#3949ab; color:#fff; border-color:#3949ab; }
-.tool-sep { display:inline-block; width:1px; height:20px; background:#9fa8da; margin:4px 8px; vertical-align:middle; }
-.tool-label { display:inline-block; font-size:14px; color:#455a64; margin-right:6px; vertical-align:middle; line-height:32px; }
-.tool-select { height:30px; border:1px solid #9fa8da; padding:0 4px; vertical-align:middle; font-size:14px; }
+.tool-sep { display:inline-block; width:1px; height:20px; background:#9fa8da; margin:4px 6px; vertical-align:middle; }
+.tool-label { display:inline-block; font-size:13px; color:#455a64; margin-right:6px; vertical-align:middle; line-height:30px; }
+.tool-select { height:28px; border:1px solid #9fa8da; padding:0 4px; vertical-align:middle; font-size:13px; }
 
 /* ===== DATE NAV ===== */
 .date-nav { display:inline-block; vertical-align:middle; }
-.date-nav .nav-btn { display:inline-block; width:30px; height:30px; line-height:30px; text-align:center; background:#fff; border:1px solid #9fa8da; cursor:pointer; vertical-align:middle; font-size:14px; }
+.date-nav .nav-btn { display:inline-block; width:28px; height:28px; line-height:28px; text-align:center; background:#fff; border:1px solid #9fa8da; cursor:pointer; vertical-align:middle; font-size:13px; }
 .date-nav .nav-btn:hover { background:#c5cae9; }
-.date-nav .nav-label { display:inline-block; min-width:120px; text-align:center; font-size:14px; color:#283593; font-weight:bold; vertical-align:middle; line-height:30px; }
+.date-nav .nav-label { display:inline-block; min-width:110px; text-align:center; font-size:13px; color:#283593; font-weight:bold; vertical-align:middle; line-height:28px; }
 
 /* ===== MAIN CONTENT ===== */
-#main-area { position:absolute; top:45px; left:0; right:0; bottom:0; overflow:hidden; }
-.pane-container { width:100%; height:100%; overflow:hidden; position:relative; }
-.pane { position:absolute; top:0; overflow:auto; background:#fff; border:1px solid #c5cae9; }
-.pane-header { height:32px; line-height:32px; background:#e8eaf6; padding:0 12px; font-size:14px; font-weight:bold; color:#283593; border-bottom:1px solid #c5cae9; overflow:hidden; }
+#main-area { position:absolute; top:41px; left:0; right:0; bottom:0; overflow:hidden; background:#f0f2f5; }
+.pane-container { position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden; }
+.pane { position:absolute; top:0; bottom:0; overflow:auto; background:#fff; border-right:1px solid #c5cae9; }
+.pane-header { height:30px; line-height:30px; background:#e8eaf6; padding:0 12px; font-size:14px; font-weight:bold; color:#283593; border-bottom:1px solid #c5cae9; overflow:hidden; }
 
 /* ===== LIST PANE ===== */
 .list-table { width:100%; border-collapse:collapse; table-layout:fixed; }
@@ -327,11 +327,11 @@ End Function
   <div id="content-col">
     <!-- ===== TOOLBAR ===== -->
     <div id="toolbar">
-      <span class="tool-btn" onclick="saveAllData()">&#128190; 保存</span>
-      <span class="tool-btn" onclick="exportCSV()">&#128196; CSV出力</span>
+      <span class="tool-btn" onclick="saveAllData()">[保存]</span>
+      <span class="tool-btn" onclick="exportCSV()">[CSV出力]</span>
       <span class="tool-sep"></span>
-      <span class="tool-btn" onclick="addListRow()">&#10010; 行追加</span>
-      <span class="tool-btn" onclick="deleteListRow()">&#10006; 行削除</span>
+      <span class="tool-btn" onclick="addListRow()">[+ 行追加]</span>
+      <span class="tool-btn" onclick="deleteListRow()">[- 行削除]</span>
       <span class="tool-sep"></span>
       <span id="dateNavArea" style="display:none;">
         <span class="tool-label">表示:</span>
@@ -340,10 +340,10 @@ End Function
         <span class="tool-btn" id="btnScaleDay" onclick="setDateScale('day')">日</span>
         <span class="tool-sep"></span>
         <span class="date-nav">
-          <span class="nav-btn" onclick="navDate(-1)">&#9664;</span>
+          <span class="nav-btn" onclick="navDate(-1)">&lt;</span>
           <span class="nav-label" id="dateNavLabel">-</span>
           <span class="nav-btn" onclick="navDate(0)">今日</span>
-          <span class="nav-btn" onclick="navDate(1)">&#9654;</span>
+          <span class="nav-btn" onclick="navDate(1)">&gt;</span>
         </span>
       </span>
       <span class="tool-sep"></span>
@@ -352,7 +352,7 @@ End Function
         <option value="">すべて</option>
       </select>
       <span style="float:right;">
-        <span class="tool-btn" onclick="showSettingsHelp()">&#9881; ヘルプ</span>
+        <span class="tool-btn" onclick="showSettingsHelp()">[ヘルプ]</span>
       </span>
     </div>
     <!-- ===== MAIN AREA ===== -->
@@ -1059,14 +1059,18 @@ function renderMainArea() {
 
   var panes = tab.layout.panes;
   var dir = tab.layout.direction || 'horizontal';
-  var h = '<div class="pane-container" style="display:table;width:100%;height:100%;">';
+  var h = '<div class="pane-container">';
 
+  // Calculate absolute positions
+  var leftPos = 0;
   panes.forEach(function(pane) {
     var w = pane.widthPercent || Math.floor(100 / panes.length);
     if (dir === 'horizontal') {
-      h += '<div class="pane" id="pane_' + pane.id + '" style="display:table-cell;width:' + w + '%;vertical-align:top;position:relative;height:100%;">';
+      h += '<div class="pane" id="pane_' + pane.id + '" style="left:' + leftPos + '%;width:' + w + '%;top:0;bottom:0;">';
+      leftPos += w;
     } else {
-      h += '<div class="pane" id="pane_' + pane.id + '" style="display:block;width:100%;height:' + w + '%;position:relative;">';
+      h += '<div class="pane" id="pane_' + pane.id + '" style="left:0;right:0;top:' + leftPos + '%;height:' + w + '%;position:absolute;">';
+      leftPos += w;
     }
     h += '</div>';
   });
@@ -1108,7 +1112,7 @@ function renderListPane(pane, el) {
   var cols = pane.config.columns || [];
   var filteredData = applyFilters(pane, data);
   var h = '<div class="pane-header">' + escapeHtml(getTabLabel(ACTIVE_TAB)) + ' (' + filteredData.length + '件)</div>';
-  h += '<div style="overflow:auto;position:absolute;top:32px;left:0;right:0;bottom:0;">';
+  h += '<div style="overflow:auto;position:absolute;top:30px;left:0;right:0;bottom:0;">';
   h += '<table class="list-table" id="lt_' + pane.id + '">';
 
   // header
@@ -1136,7 +1140,7 @@ function renderListPane(pane, el) {
       'onclick="selectListRow(\'' + pane.id + '\',' + actualIdx + ')" ' +
       'ondblclick="editListCell(\'' + pane.id + '\',' + actualIdx + ',1)" ' +
       'oncontextmenu="return onListRowCtxMenu(event,\'' + pane.id + '\',' + actualIdx + ')">';
-    h += '<td class="drag-handle">&#9776;</td>';
+    h += '<td class="drag-handle">=</td>';
     cols.forEach(function(col, ci) {
       var val = row[col.key] != null ? row[col.key] : '';
       var cellId = 'cell_' + pane.id + '_' + actualIdx + '_' + ci;
@@ -1449,7 +1453,7 @@ function renderDetailPane(pane, el) {
   var cols = linkedPane && linkedPane.config ? linkedPane.config.columns : [];
 
   var h = '<div class="pane-header">詳細 - ' + escapeHtml(row.task_name || row.title || row.id || '') + '</div>';
-  h += '<div class="detail-form" style="position:absolute;top:32px;left:0;right:0;bottom:0;overflow-y:auto;">';
+  h += '<div class="detail-form" style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow-y:auto;">';
   cols.forEach(function(col) {
     var val = row[col.key] || '';
     h += '<div class="detail-field"><label>' + escapeHtml(col.label) + '</label>';
@@ -1546,7 +1550,7 @@ function renderWbsPane(pane, el) {
   assignWbsNumbers(data);
 
   var h = '<div class="pane-header">WBS (' + data.length + '件)</div>';
-  h += '<div style="overflow:auto;position:absolute;top:32px;left:0;right:0;bottom:0;">';
+  h += '<div style="overflow:auto;position:absolute;top:30px;left:0;right:0;bottom:0;">';
   h += '<table class="wbs-table" id="wt_' + pane.id + '">';
   h += '<thead><tr>';
   cols.forEach(function(col) {
@@ -1697,7 +1701,7 @@ function renderGanttPane(pane, el) {
   var totalWidth = totalDays * dayWidth;
 
   var h = '<div class="pane-header">ガントチャート</div>';
-  h += '<div class="gantt-wrapper" style="position:absolute;top:32px;left:0;right:0;bottom:0;overflow:auto;">';
+  h += '<div class="gantt-wrapper" style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow:auto;">';
 
   // Header - months
   h += '<div class="gantt-header" style="width:' + totalWidth + 'px;">';
@@ -1781,7 +1785,7 @@ function renderTreePane(pane, el) {
   var baseDir = cfg.rootDir || cfg.dataFile || '';
   var fullPath = resolvePath((CONFIG.app.baseDir || '') + baseDir);
   var h = '<div class="pane-header">ツリー</div>';
-  h += '<div style="position:absolute;top:32px;left:0;right:0;bottom:0;overflow:auto;padding:4px;">';
+  h += '<div style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow:auto;padding:4px;">';
   try {
     h += buildTreeHTML(fullPath, pane.id, 0);
   } catch(ex) {
@@ -1803,7 +1807,7 @@ function buildTreeHTML(dirPath, paneId, depth) {
       var fid = 'tf_' + sf.Name.replace(/[^a-zA-Z0-9]/g,'_') + '_' + depth;
       h += '<div style="padding:2px 0 2px ' + indent + 'px;cursor:pointer;" onclick="toggleTreeFolder(\'' + fid + '\')" oncontextmenu="return onTreeCtxMenu(event,\'' + escapeHtml(sf.Path).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\',\'folder\')">';
       h += '<span class="wbs-toggle" id="ticon_' + fid + '">&#9660;</span> ';
-      h += '<span style="color:#e65100;font-weight:bold;">&#128193;</span> ' + escapeHtml(sf.Name);
+      h += '<span style="color:#e65100;font-weight:bold;">[+]</span> ' + escapeHtml(sf.Name);
       h += '</div>';
       h += '<div id="' + fid + '">';
       h += buildTreeHTML(sf.Path, paneId, depth + 1);
@@ -1815,7 +1819,7 @@ function buildTreeHTML(dirPath, paneId, depth) {
       var indent2 = depth * 18;
       h += '<div style="padding:2px 0 2px ' + indent2 + 'px;cursor:pointer;" onclick="onTreeFileClick(\'' + paneId + '\',\'' + escapeHtml(fi.Path).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" oncontextmenu="return onTreeCtxMenu(event,\'' + escapeHtml(fi.Path).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\',\'file\')">';
       h += '<span style="display:inline-block;width:18px;"></span> ';
-      h += '<span style="color:#1565c0;">&#128196;</span> ' + escapeHtml(fi.Name);
+      h += '<span style="color:#1565c0;">[-]</span> ' + escapeHtml(fi.Name);
       h += '</div>';
     }
   } catch(ex) {
@@ -1947,7 +1951,7 @@ function renderDashboardPane(pane, el) {
   });
 
   var h = '<div class="pane-header">ダッシュボード</div>';
-  h += '<div class="dashboard" style="position:absolute;top:32px;left:0;right:0;bottom:0;overflow-y:auto;padding:16px;">';
+  h += '<div class="dashboard" style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow-y:auto;padding:16px;">';
 
   // Cards
   h += '<div class="dash-card"><div class="dash-card-title">プロジェクト進捗</div><div class="dash-card-body">' +
@@ -2019,7 +2023,7 @@ function findDataByFile(fileName) {
 // ========================================================================
 function renderSettingsPane(pane, el) {
   var h = '<div class="pane-header">アプリケーション設定</div>';
-  h += '<div class="settings-panel" style="position:absolute;top:32px;left:0;right:0;bottom:0;overflow-y:auto;">';
+  h += '<div class="settings-panel" style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow-y:auto;">';
 
   // App settings
   h += '<div class="settings-section open">';
@@ -2048,7 +2052,7 @@ function renderSettingsPane(pane, el) {
       '<span class="settings-btn danger" onclick="removeTab(\'' + tab.id + '\')">削除</span></td></tr>';
   });
   h += '</tbody></table>';
-  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addNewTab()">&#10010; タブを追加</span></div>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addNewTab()">+ タブを追加</span></div>';
   h += '</div></div>';
 
   // Column / Data Source Management
@@ -2076,7 +2080,7 @@ function renderSettingsPane(pane, el) {
       '<td><span class="settings-btn danger" onclick="removeHighlightRule(' + ri + ')">削除</span></td></tr>';
   });
   h += '</tbody></table>';
-  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addHighlightRule()">&#10010; ルールを追加</span></div>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addHighlightRule()">+ ルールを追加</span></div>';
   h += '</div></div>';
 
   // Filter Views
@@ -2095,7 +2099,7 @@ function renderSettingsPane(pane, el) {
     h += '<td><span class="settings-btn danger" onclick="removeFilterView(' + vi + ')">削除</span></td></tr>';
   });
   h += '</tbody></table>';
-  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addFilterView()">&#10010; ビューを追加</span></div>';
+  h += '<div style="margin-top:8px;"><span class="settings-btn" onclick="addFilterView()">+ ビューを追加</span></div>';
   h += '</div></div>';
 
   // Import/Export
@@ -2256,7 +2260,7 @@ function onSettingsTabChange(tabId) {
           '<span class="settings-btn danger" onclick="removeColumn(\'' + tabId + '\',\'' + pane.id + '\',' + ci + ')">削除</span></td></tr>';
       });
       h += '</tbody></table>';
-      h += '<div style="margin-top:4px;"><span class="settings-btn" onclick="addColumn(\'' + tabId + '\',\'' + pane.id + '\')">&#10010; 列を追加</span></div>';
+      h += '<div style="margin-top:4px;"><span class="settings-btn" onclick="addColumn(\'' + tabId + '\',\'' + pane.id + '\')">+ 列を追加</span></div>';
     }
   });
   area.innerHTML = h;
