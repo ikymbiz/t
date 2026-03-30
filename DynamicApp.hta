@@ -225,30 +225,26 @@ Sub readUTF8(filePath)
     Err.Clear
   End If
   On Error GoTo 0
+  ' BOM文字が残っている場合は除去
+  If Len(result) > 0 Then
+    If AscW(Left(result, 1)) = 65279 Then
+      result = Mid(result, 2)
+    End If
+  End If
   document.getElementById("_vbs_result").value = result
 End Sub
 
 Sub writeUTF8(filePath, content)
-  Dim tmpStream, binaryData, outStream
+  Dim s
   On Error Resume Next
-  Set tmpStream = CreateObject("ADODB.Stream")
-  tmpStream.Type = 2
-  tmpStream.Charset = "UTF-8"
-  tmpStream.Open
-  tmpStream.WriteText content
-  tmpStream.Position = 0
-  tmpStream.Type = 1
-  tmpStream.Position = 3
-  binaryData = tmpStream.Read
-  tmpStream.Close
-  Set outStream = CreateObject("ADODB.Stream")
-  outStream.Type = 1
-  outStream.Open
-  outStream.Write binaryData
-  outStream.SaveToFile filePath, 2
-  outStream.Close
-  Set tmpStream = Nothing
-  Set outStream = Nothing
+  Set s = CreateObject("ADODB.Stream")
+  s.Type = 2
+  s.Charset = "UTF-8"
+  s.Open
+  s.WriteText content
+  s.SaveToFile filePath, 2
+  s.Close
+  Set s = Nothing
   If Err.Number <> 0 Then
     document.getElementById("_vbs_result").value = "ERROR:" & Err.Description
     Err.Clear
@@ -571,6 +567,7 @@ function getDefaultConfig() {
     app: {
       name: "プロジェクト管理",
       version: "1.0.0",
+      configVer: 2,
       theme: "light",
       autoSaveEnabled: false,
       autoSaveIntervalSec: 60,
@@ -767,7 +764,9 @@ function loadConfig() {
   if (text && text.trim()) {
     CONFIG = safeParseJSON(text);
   }
-  if (!CONFIG) {
+  // 設定が無い、またはバージョン不一致（旧版の文字化けデータ）の場合は再生成
+  var REQUIRED_CONFIG_VER = 2;
+  if (!CONFIG || !CONFIG.app || CONFIG.app.configVer !== REQUIRED_CONFIG_VER) {
     CONFIG = getDefaultConfig();
     saveConfig();
   }
