@@ -1,4 +1,4 @@
-id,registered_date,title,description,severity,assignee,due_date,status,resolution,resolved_date,related_task,related_risk
+﻿id,registered_date,title,description,severity,assignee,due_date,status,resolution,resolved_date,related_task,related_risk
 id_is001,2026-04-03,ヒアリング日程の再調整,顧客C社のヒアリング日程が確保できず調整が必要,中,田中,2026-04-09,完了,メール会議で代替実施,2026-04-08,id_002,
 id_is002,2026-04-07,開発環境のライセンス問題,開発ツールのライセンス数が不足している,高,佐藤,2026-04-14,対応中,,,id_015,
 id_is003,2026-04-10,要件の曖昧な箇所の特定,帳票出力の要件が曖昧で仕様確定できない,重大,田中,2026-04-16,未着手,,,id_003,

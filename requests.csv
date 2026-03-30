@@ -1,4 +1,4 @@
-id,request_date,requester,target,title,description,due_date,status,response,response_date,related_task
+﻿id,request_date,requester,target,title,description,due_date,status,response,response_date,related_task
 id_r001,2026-04-02,田中,顧客A社,業務フロー資料の提供依頼,現行業務フローの詳細資料を提供いただきたい,2026-04-10,回答済,資料を送付済み,2026-04-08,id_002
 id_r002,2026-04-05,佐藤,インフラチーム,開発環境構築依頼,開発用サーバーの構築を依頼,2026-04-15,依頼中,,,id_015
 id_r003,2026-04-07,田中,顧客B社,要件確認事項の回答依頼,画面遷移に関する確認事項5点への回答,2026-04-14,依頼中,,,id_003

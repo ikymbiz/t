@@ -32,14 +32,17 @@ button { cursor:pointer; }
 #header .dirty-mark { color:#ff9800; font-weight:bold; margin-left:8px; display:none; float:left; line-height:42px; }
 #header .version { float:right; font-size:13px; color:#90caf9; }
 
-/* ===== TAB BAR ===== */
-#tabbar { height:40px; background:#283593; overflow:hidden; padding:0 8px; border-bottom:2px solid #1a237e; white-space:nowrap; }
-.tab-btn { display:inline-block; height:38px; line-height:38px; padding:0 18px; color:#b0bec5; background:transparent; border:none; border-bottom:2px solid transparent; cursor:pointer; font-size:15px; margin-right:2px; vertical-align:top; }
+/* ===== TAB BAR (LEFT SIDEBAR) ===== */
+#app-body { position:absolute; top:42px; left:0; right:0; bottom:28px; display:table; width:100%; }
+#tab-sidebar { display:table-cell; width:180px; background:#1a237e; vertical-align:top; border-right:2px solid #0d1457; overflow-y:auto; overflow-x:hidden; }
+#content-col { display:table-cell; vertical-align:top; position:relative; }
+#tabbar { padding:8px 0; }
+.tab-btn { display:block; width:100%; height:auto; line-height:1.3; padding:10px 14px; color:#b0bec5; background:transparent; border:none; border-left:3px solid transparent; cursor:pointer; font-size:14px; text-align:left; margin:0; }
 .tab-btn:hover { color:#fff; background:rgba(255,255,255,0.08); }
-.tab-btn.active { color:#fff; background:#3949ab; border-bottom:2px solid #ffab40; font-weight:bold; }
+.tab-btn.active { color:#fff; background:#3949ab; border-left:3px solid #ffab40; font-weight:bold; }
 
 /* ===== TOOLBAR ===== */
-#toolbar { height:44px; background:#e8eaf6; border-bottom:1px solid #c5cae9; padding:6px 12px; overflow:hidden; }
+#toolbar { height:44px; background:#e8eaf6; border-bottom:1px solid #c5cae9; padding:6px 12px; overflow:hidden; position:relative; }
 .tool-btn { display:inline-block; height:32px; line-height:32px; padding:0 14px; margin-right:4px; background:#fff; border:1px solid #9fa8da; color:#283593; cursor:pointer; font-size:14px; vertical-align:middle; }
 .tool-btn:hover { background:#c5cae9; }
 .tool-btn.active { background:#3949ab; color:#fff; border-color:#3949ab; }
@@ -54,7 +57,7 @@ button { cursor:pointer; }
 .date-nav .nav-label { display:inline-block; min-width:120px; text-align:center; font-size:14px; color:#283593; font-weight:bold; vertical-align:middle; line-height:30px; }
 
 /* ===== MAIN CONTENT ===== */
-#main-area { position:absolute; top:130px; left:0; right:0; bottom:28px; overflow:hidden; }
+#main-area { position:absolute; top:45px; left:0; right:0; bottom:0; overflow:hidden; }
 .pane-container { width:100%; height:100%; overflow:hidden; position:relative; }
 .pane { position:absolute; top:0; overflow:auto; background:#fff; border:1px solid #c5cae9; }
 .pane-header { height:32px; line-height:32px; background:#e8eaf6; padding:0 12px; font-size:14px; font-weight:bold; color:#283593; border-bottom:1px solid #c5cae9; overflow:hidden; }
@@ -314,42 +317,48 @@ End Function
   <span class="version" id="appVersion">v1.0.0</span>
 </div>
 
-<!-- ===== TAB BAR ===== -->
-<div id="tabbar"></div>
-
-<!-- ===== TOOLBAR ===== -->
-<div id="toolbar">
-  <span class="tool-btn" onclick="saveAllData()">&#128190; 保存</span>
-  <span class="tool-btn" onclick="exportCSV()">&#128196; CSV出力</span>
-  <span class="tool-sep"></span>
-  <span class="tool-btn" onclick="addListRow()">&#10010; 行追加</span>
-  <span class="tool-btn" onclick="deleteListRow()">&#10006; 行削除</span>
-  <span class="tool-sep"></span>
-  <span id="dateNavArea" style="display:none;">
-    <span class="tool-label">表示:</span>
-    <span class="tool-btn" id="btnScaleMonth" onclick="setDateScale('month')">月</span>
-    <span class="tool-btn" id="btnScaleWeek" onclick="setDateScale('week')">週</span>
-    <span class="tool-btn" id="btnScaleDay" onclick="setDateScale('day')">日</span>
-    <span class="tool-sep"></span>
-    <span class="date-nav">
-      <span class="nav-btn" onclick="navDate(-1)">&#9664;</span>
-      <span class="nav-label" id="dateNavLabel">-</span>
-      <span class="nav-btn" onclick="navDate(0)">今日</span>
-      <span class="nav-btn" onclick="navDate(1)">&#9654;</span>
-    </span>
-  </span>
-  <span class="tool-sep"></span>
-  <span class="tool-label">ビュー:</span>
-  <select class="tool-select" id="filterViewSelect" onchange="applyFilterView(this.value)">
-    <option value="">すべて</option>
-  </select>
-  <span style="float:right;">
-    <span class="tool-btn" onclick="showSettingsHelp()">&#9881; ヘルプ</span>
-  </span>
+<!-- ===== APP BODY (table layout: left tabs + right content) ===== -->
+<div id="app-body">
+  <!-- LEFT: Tab Sidebar -->
+  <div id="tab-sidebar">
+    <div id="tabbar"></div>
+  </div>
+  <!-- RIGHT: Toolbar + Main -->
+  <div id="content-col">
+    <!-- ===== TOOLBAR ===== -->
+    <div id="toolbar">
+      <span class="tool-btn" onclick="saveAllData()">&#128190; 保存</span>
+      <span class="tool-btn" onclick="exportCSV()">&#128196; CSV出力</span>
+      <span class="tool-sep"></span>
+      <span class="tool-btn" onclick="addListRow()">&#10010; 行追加</span>
+      <span class="tool-btn" onclick="deleteListRow()">&#10006; 行削除</span>
+      <span class="tool-sep"></span>
+      <span id="dateNavArea" style="display:none;">
+        <span class="tool-label">表示:</span>
+        <span class="tool-btn" id="btnScaleMonth" onclick="setDateScale('month')">月</span>
+        <span class="tool-btn" id="btnScaleWeek" onclick="setDateScale('week')">週</span>
+        <span class="tool-btn" id="btnScaleDay" onclick="setDateScale('day')">日</span>
+        <span class="tool-sep"></span>
+        <span class="date-nav">
+          <span class="nav-btn" onclick="navDate(-1)">&#9664;</span>
+          <span class="nav-label" id="dateNavLabel">-</span>
+          <span class="nav-btn" onclick="navDate(0)">今日</span>
+          <span class="nav-btn" onclick="navDate(1)">&#9654;</span>
+        </span>
+      </span>
+      <span class="tool-sep"></span>
+      <span class="tool-label">ビュー:</span>
+      <select class="tool-select" id="filterViewSelect" onchange="applyFilterView(this.value)">
+        <option value="">すべて</option>
+      </select>
+      <span style="float:right;">
+        <span class="tool-btn" onclick="showSettingsHelp()">&#9881; ヘルプ</span>
+      </span>
+    </div>
+    <!-- ===== MAIN AREA ===== -->
+    <div id="main-area"></div>
+  </div>
 </div>
-
-<!-- ===== MAIN AREA ===== -->
-<div id="main-area"></div>
 
 <!-- ===== STATUSBAR ===== -->
 <div id="statusbar">
@@ -1011,8 +1020,8 @@ function onTabCtxMenu(e, tabId) {
     { label: 'タブ名を変更', action: 'function(){renameTab("' + tabId + '")}' },
     { separator: true },
     { label: 'タブを非表示', action: 'function(){hideTab("' + tabId + '")}' },
-    { label: '左へ移動', action: 'function(){moveTab("' + tabId + '",-1)}' },
-    { label: '右へ移動', action: 'function(){moveTab("' + tabId + '",1)}' }
+    { label: '上へ移動', action: 'function(){moveTab("' + tabId + '",-1)}' },
+    { label: '下へ移動', action: 'function(){moveTab("' + tabId + '",1)}' }
   ]);
 }
 function renameTab(tabId) {
@@ -1081,6 +1090,7 @@ function renderPaneContent(pane) {
     case 'list': renderListPane(pane, el); break;
     case 'detail': renderDetailPane(pane, el); break;
     case 'editor': renderEditorPane(pane, el); break;
+    case 'tree': renderTreePane(pane, el); break;
     case 'wbs': renderWbsPane(pane, el); break;
     case 'gantt': renderGanttPane(pane, el); break;
     case 'menu': renderMenuPane(pane, el); break;
@@ -1761,6 +1771,119 @@ function renderGanttPane(pane, el) {
 function onGanttBarClick(paneId, rowIdx) {
   SELECTED_ROW[paneId] = rowIdx;
   triggerPaneLink(paneId, 'clickBar', rowIdx);
+}
+
+// ========================================================================
+// TREE PANE (type: tree)
+// ========================================================================
+function renderTreePane(pane, el) {
+  var cfg = pane.config || {};
+  var baseDir = cfg.rootDir || cfg.dataFile || '';
+  var fullPath = resolvePath((CONFIG.app.baseDir || '') + baseDir);
+  var h = '<div class="pane-header">ツリー</div>';
+  h += '<div style="position:absolute;top:32px;left:0;right:0;bottom:0;overflow:auto;padding:4px;">';
+  try {
+    h += buildTreeHTML(fullPath, pane.id, 0);
+  } catch(ex) {
+    h += '<div style="padding:8px;color:#999;">フォルダを設定してください</div>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+}
+function buildTreeHTML(dirPath, paneId, depth) {
+  var h = '';
+  try {
+    var fso = new ActiveXObject('Scripting.FileSystemObject');
+    if (!fso.FolderExists(dirPath)) return '<div style="padding:8px;color:#999;">フォルダが見つかりません: ' + escapeHtml(dirPath) + '</div>';
+    var folder = fso.GetFolder(dirPath);
+    var subFolders = new Enumerator(folder.SubFolders);
+    for (; !subFolders.atEnd(); subFolders.moveNext()) {
+      var sf = subFolders.item();
+      var indent = depth * 18;
+      var fid = 'tf_' + sf.Name.replace(/[^a-zA-Z0-9]/g,'_') + '_' + depth;
+      h += '<div style="padding:2px 0 2px ' + indent + 'px;cursor:pointer;" onclick="toggleTreeFolder(\'' + fid + '\')" oncontextmenu="return onTreeCtxMenu(event,\'' + escapeHtml(sf.Path).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\',\'folder\')">';
+      h += '<span class="wbs-toggle" id="ticon_' + fid + '">&#9660;</span> ';
+      h += '<span style="color:#e65100;font-weight:bold;">&#128193;</span> ' + escapeHtml(sf.Name);
+      h += '</div>';
+      h += '<div id="' + fid + '">';
+      h += buildTreeHTML(sf.Path, paneId, depth + 1);
+      h += '</div>';
+    }
+    var files = new Enumerator(folder.Files);
+    for (; !files.atEnd(); files.moveNext()) {
+      var fi = files.item();
+      var indent2 = depth * 18;
+      h += '<div style="padding:2px 0 2px ' + indent2 + 'px;cursor:pointer;" onclick="onTreeFileClick(\'' + paneId + '\',\'' + escapeHtml(fi.Path).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\')" oncontextmenu="return onTreeCtxMenu(event,\'' + escapeHtml(fi.Path).replace(/\\/g,'\\\\').replace(/'/g,"\\'") + '\',\'file\')">';
+      h += '<span style="display:inline-block;width:18px;"></span> ';
+      h += '<span style="color:#1565c0;">&#128196;</span> ' + escapeHtml(fi.Name);
+      h += '</div>';
+    }
+  } catch(ex) {
+    h += '<div style="color:#c62828;padding:4px;">読込エラー</div>';
+  }
+  return h;
+}
+function toggleTreeFolder(fid) {
+  var el = document.getElementById(fid);
+  var icon = document.getElementById('ticon_' + fid);
+  if (!el) return;
+  if (el.style.display === 'none') { el.style.display = 'block'; if(icon) icon.innerHTML = '&#9660;'; }
+  else { el.style.display = 'none'; if(icon) icon.innerHTML = '&#9654;'; }
+}
+function onTreeFileClick(paneId, filePath) {
+  triggerPaneLink(paneId, 'selectFile', filePath);
+}
+function onTreeCtxMenu(e, path, type) {
+  var items = [];
+  if (type === 'folder') {
+    items = [
+      { label: '新規ファイル作成', action: 'function(){treeNewFile("' + path.replace(/"/g,'\\"') + '")}' },
+      { label: '新規フォルダ作成', action: 'function(){treeNewFolder("' + path.replace(/"/g,'\\"') + '")}' },
+      { separator: true },
+      { label: 'フォルダを削除', action: 'function(){treeDeleteFolder("' + path.replace(/"/g,'\\"') + '")}', danger: true }
+    ];
+  } else {
+    items = [
+      { label: '名前を変更', action: 'function(){treeRenameFile("' + path.replace(/"/g,'\\"') + '")}' },
+      { separator: true },
+      { label: 'ファイルを削除', action: 'function(){treeDeleteFile("' + path.replace(/"/g,'\\"') + '")}', danger: true }
+    ];
+  }
+  return showCtxMenu(e, items);
+}
+function treeNewFile(dirPath) {
+  modal('prompt', { title: '新規ファイル', message: 'ファイル名:', defaultValue: 'new_file.txt' }, function(r, v) {
+    if (r !== 'ok' || !v) return;
+    writeFileSync(dirPath + '\\' + v, '');
+    toast('success', 'ファイルを作成しました'); refreshCurrentTab();
+  });
+}
+function treeNewFolder(dirPath) {
+  modal('prompt', { title: '新規フォルダ', message: 'フォルダ名:', defaultValue: 'new_folder' }, function(r, v) {
+    if (r !== 'ok' || !v) return;
+    ensureDir(dirPath + '\\' + v);
+    toast('success', 'フォルダを作成しました'); refreshCurrentTab();
+  });
+}
+function treeDeleteFile(filePath) {
+  modal('confirm', { title: '確認', message: 'このファイルを削除しますか？\n' + filePath }, function(r) {
+    if (r !== 'ok') return;
+    try { var fso = new ActiveXObject('Scripting.FileSystemObject'); fso.DeleteFile(filePath, true); toast('success', '削除しました'); refreshCurrentTab(); } catch(e) { toast('error', '削除に失敗しました'); }
+  });
+}
+function treeDeleteFolder(dirPath) {
+  modal('confirm', { title: '確認', message: 'このフォルダを削除しますか？\n' + dirPath }, function(r) {
+    if (r !== 'ok') return;
+    try { var fso = new ActiveXObject('Scripting.FileSystemObject'); fso.DeleteFolder(dirPath, true); toast('success', '削除しました'); refreshCurrentTab(); } catch(e) { toast('error', '削除に失敗しました'); }
+  });
+}
+function treeRenameFile(filePath) {
+  var fso = new ActiveXObject('Scripting.FileSystemObject');
+  var oldName = fso.GetFileName(filePath);
+  modal('prompt', { title: '名前変更', message: '新しい名前:', defaultValue: oldName }, function(r, v) {
+    if (r !== 'ok' || !v || v === oldName) return;
+    try { var f = fso.GetFile(filePath); f.Name = v; toast('success', '名前を変更しました'); refreshCurrentTab(); } catch(e) { toast('error', '名前変更に失敗しました'); }
+  });
 }
 
 // ========================================================================

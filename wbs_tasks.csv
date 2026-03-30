@@ -1,4 +1,4 @@
-id,wbs_no,level,task_name,assignee,start_date,end_date,progress,status,priority,dependency,milestone,notes
+﻿id,wbs_no,level,task_name,assignee,start_date,end_date,progress,status,priority,dependency,milestone,notes
 id_001,1,0,要件定義,田中,2026-04-01,2026-04-18,80,進行中,高,,false,
 id_002,1.1,1,ヒアリング実施,田中,2026-04-01,2026-04-07,100,完了,高,,false,顧客3社へのヒアリング完了
 id_003,1.2,1,要件書作成,田中,2026-04-08,2026-04-15,70,進行中,高,id_002,false,V1.0作成中
