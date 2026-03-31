@@ -213,6 +213,7 @@ End Sub
   <div id="content">
     <div id="toolbar">
       <button class="tool-btn primary" onclick="openForm('new')">+ New</button>
+      <button class="tool-btn" onclick="editSelected()">Edit</button>
       <span class="tool-sep"></span>
       <button class="tool-btn" onclick="deleteSelected()">Delete</button>
       <span class="tool-sep"></span>
@@ -396,9 +397,9 @@ function restoreBackup(gen){
 function uid(){return'L'+(new Date().getTime())+'_'+Math.floor(Math.random()*10000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function pad(n){return n<10?'0'+n:''+n;}
-function dateStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function dateStr(){var d=new Date();return d.getFullYear()+'/'+pad(d.getMonth()+1)+'/'+pad(d.getDate());}
 function timeStr(){var d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());}
-function fmtDate(s){if(!s)return'';var m=String(s).match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(!m)return s;return parseInt(m[2],10)+'/'+parseInt(m[3],10);}
+function fmtDate(s){if(!s)return'';var m=String(s).match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);if(!m)return s;return m[1]+'/'+pad(parseInt(m[2],10))+'/'+pad(parseInt(m[3],10));}
 function toast(m,t){var c=document.getElementById('toastArea'),d=document.createElement('div');d.className='toast-msg'+(t?' '+t:'');d.innerText=m;d.onclick=function(){try{c.removeChild(d);}catch(e){}};c.appendChild(d);setTimeout(function(){try{c.removeChild(d);}catch(e){}},3000);}
 function parseCSV(text){if(!text||!text.trim())return[];var lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n'),result=[],row=[],field='',inQ=false;for(var i=0;i<lines.length;i++){var c=lines.charAt(i);if(inQ){if(c==='"'){if(i+1<lines.length&&lines.charAt(i+1)==='"'){field+='"';i++;}else{inQ=false;}}else{field+=c;}}else{if(c==='"'){inQ=true;}else if(c===','){row.push(field);field='';}else if(c==='\n'){row.push(field);field='';result.push(row);row=[];}else{field+=c;}}}if(field||row.length>0){row.push(field);result.push(row);}return result;}
 function csvQ(s){s=String(s==null?'':s);if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0)return'"'+s.replace(/"/g,'""')+'"';return s;}
@@ -452,7 +453,7 @@ function renderTable(){
   var cols=CFG().columns.filter(function(c){return c.show!==false;}),data=getFilteredData(),wrap=document.getElementById('table-wrap');
   var thead='<thead><tr><th style="width:28px;"><input type="checkbox" onclick="toggleAll(this)"></th><th style="width:55px;">Type</th>';
   for(var ci=0;ci<cols.length;ci++){var col=cols[ci];var ck=col.sortable?' onclick="doSort(\''+esc(col.key)+'\')"':'';thead+='<th style="width:'+col.width+'px;"'+ck+'>'+esc(col.label)+'</th>';}
-  thead+='<th style="width:80px;" onclick="doSort(\'created\')">Date</th></tr></thead>';
+  thead+='<th style="width:95px;" onclick="doSort(\'created\')">Date</th></tr></thead>';
   if(!data.length){wrap.innerHTML='<table class="data-table">'+thead+'<tbody></tbody></table><div class="empty-state"><div style="font-size:48px;opacity:0.3;margin-bottom:12px;">&#128218;</div><div style="font-size:14px;">No items found</div></div>';updateCounts();return;}
   var rows='';
   for(var i=0;i<data.length;i++){
@@ -515,6 +516,7 @@ function saveEntry(){
   saveData();closeForm();renderTable();renderSidebar();
 }
 function deleteSelected(){var ids=[];for(var k in SELECTED){if(SELECTED.hasOwnProperty(k)&&SELECTED[k])ids.push(k);}if(!ids.length){toast('No items selected');return;}if(!confirm(ids.length+' item(s) will be deleted?'))return;DB.entries=DB.entries.filter(function(e){return ids.indexOf(e.id)<0;});SELECTED={};saveData();renderTable();renderSidebar();toast(ids.length+' deleted','ok');}
+function editSelected(){var ids=[];for(var k in SELECTED){if(SELECTED.hasOwnProperty(k)&&SELECTED[k])ids.push(k);}if(ids.length!==1){toast('Select 1 item to edit');return;}openForm('edit',ids[0]);}
 
 // ====== DROP / BROWSE ======
 function dzOver(e){e=e||window.event;if(e.preventDefault)e.preventDefault();e.returnValue=false;document.getElementById('dropZone').className='drop-zone over';}
@@ -636,7 +638,7 @@ function importCsv(){
     toast('No valid rows found','err');
   }
 }
-function exportAllCSV(){var data=getFilteredData(),cols=CFG().columns;if(!data.length){toast('No data');return;}var hdr=['category'];for(var i=0;i<cols.length;i++)hdr.push(cols[i].key);hdr.push('created');var lines=[hdr.join(',')];for(var j=0;j<data.length;j++){var vals=[];vals.push(csvQ(data[j].category));for(var k=0;k<cols.length;k++)vals.push(csvQ(data[j][cols[k].key]||''));vals.push(csvQ(data[j].created));lines.push(vals.join(','));}var csv=lines.join('\r\n'),fn='librarian_export_'+dateStr().replace(/-/g,'')+'.csv';try{writeFile(resolvePath(fn),csv);toast('Exported: '+fn,'ok');}catch(e){try{if(window.clipboardData){window.clipboardData.setData('Text',csv);toast('CSV copied','ok');}}catch(e2){toast('Export failed','err');}}}
+function exportAllCSV(){var data=getFilteredData(),cols=CFG().columns;if(!data.length){toast('No data');return;}var hdr=['category'];for(var i=0;i<cols.length;i++)hdr.push(cols[i].key);hdr.push('created');var lines=[hdr.join(',')];for(var j=0;j<data.length;j++){var vals=[];vals.push(csvQ(data[j].category));for(var k=0;k<cols.length;k++)vals.push(csvQ(data[j][cols[k].key]||''));vals.push(csvQ(data[j].created));lines.push(vals.join(','));}var csv=lines.join('\r\n'),fn='librarian_export_'+dateStr().replace(/\//g,'')+'.csv';try{writeFile(resolvePath(fn),csv);toast('Exported: '+fn,'ok');}catch(e){try{if(window.clipboardData){window.clipboardData.setData('Text',csv);toast('CSV copied','ok');}}catch(e2){toast('Export failed','err');}}}
 
 // ====== SETTINGS ======
 function toggleSettings(){SETTINGS_OPEN=!SETTINGS_OPEN;var el=document.getElementById('settings-screen');el.style.display=SETTINGS_OPEN?'block':'none';if(SETTINGS_OPEN){closeForm();renderSettings();}}
