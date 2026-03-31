@@ -84,7 +84,7 @@ button { cursor:pointer; }
 .detail-form { padding:12px; overflow-y:auto; }
 .detail-field { margin-bottom:10px; }
 .detail-field label { display:block; font-size:13px; color:#455a64; font-weight:bold; margin-bottom:3px; }
-.detail-field input[type="text"], .detail-field input[type="date"], .detail-field select, .detail-field textarea { width:95%; border:1px solid #c5cae9; padding:5px 8px; font-size:15px; background:#fff; }
+.detail-field input[type="text"], .detail-field input[type="text"], .detail-field select, .detail-field textarea { width:95%; border:1px solid #c5cae9; padding:5px 8px; font-size:15px; background:#fff; }
 .detail-field textarea { height:60px; resize:vertical; }
 .detail-field input[type="checkbox"] { width:auto; }
 
@@ -93,8 +93,8 @@ button { cursor:pointer; }
 
 /* ===== WBS PANE ===== */
 .wbs-table { width:100%; border-collapse:collapse; table-layout:fixed; }
-.wbs-table th { background:#e8eaf6; color:#283593; font-size:14px; font-weight:bold; padding:6px 8px; border:1px solid #c5cae9; text-align:left; }
-.wbs-table td { padding:5px 8px; border:1px solid #e0e0e0; font-size:14px; white-space:nowrap; overflow:hidden; }
+.wbs-table th { background:#e8eaf6; color:#283593; font-size:14px; font-weight:bold; padding:6px 8px; border:1px solid #c5cae9; text-align:left; height:48px; }
+.wbs-table td { padding:5px 8px; border:1px solid #e0e0e0; font-size:14px; white-space:nowrap; overflow:hidden; height:30px; }
 .wbs-table tr:hover td { background:#e3f2fd; }
 .wbs-table tr.selected td { background:#bbdefb; }
 .wbs-toggle { cursor:pointer; display:inline-block; width:18px; text-align:center; color:#455a64; font-size:13px; }
@@ -102,13 +102,13 @@ button { cursor:pointer; }
 
 /* ===== GANTT PANE ===== */
 .gantt-wrapper { width:100%; height:100%; overflow:auto; position:relative; }
-.gantt-header { height:50px; position:relative; background:#e8eaf6; border-bottom:1px solid #c5cae9; }
-.gantt-header-month { position:absolute; top:0; height:25px; line-height:25px; text-align:center; font-size:13px; font-weight:bold; color:#283593; border-right:1px solid #c5cae9; border-bottom:1px solid #c5cae9; }
-.gantt-header-day { position:absolute; top:25px; height:25px; line-height:25px; text-align:center; font-size:12px; color:#455a64; border-right:1px solid #e0e0e0; }
+.gantt-header { height:48px; position:relative; background:#e8eaf6; border-bottom:1px solid #c5cae9; }
+.gantt-header-month { position:absolute; top:0; height:24px; line-height:24px; text-align:center; font-size:13px; font-weight:bold; color:#283593; border-right:1px solid #c5cae9; border-bottom:1px solid #c5cae9; }
+.gantt-header-day { position:absolute; top:24px; height:24px; line-height:24px; text-align:center; font-size:12px; color:#455a64; border-right:1px solid #e0e0e0; }
 .gantt-header-day.weekend { background:#fff3e0; }
 .gantt-header-day.today { background:#bbdefb; font-weight:bold; }
-.gantt-row { height:32px; position:relative; border-bottom:1px solid #f0f0f0; }
-.gantt-bar { position:absolute; height:22px; top:5px; border-radius:3px; min-width:4px; cursor:pointer; font-size:12px; color:#fff; line-height:22px; padding:0 4px; overflow:hidden; white-space:nowrap; }
+.gantt-row { height:30px; position:relative; border-bottom:1px solid #f0f0f0; }
+.gantt-bar { position:absolute; height:22px; top:4px; border-radius:3px; min-width:4px; cursor:pointer; font-size:12px; color:#fff; line-height:22px; padding:0 4px; overflow:hidden; white-space:nowrap; }
 .gantt-bar:hover { opacity:0.85; }
 .gantt-today-line { position:absolute; top:0; bottom:0; width:2px; background:#e53935; z-index:5; }
 .gantt-milestone { position:absolute; top:4px; width:0; height:0; border:10px solid transparent; border-bottom-color:#ff6f00; border-top:none; cursor:pointer; }
@@ -440,6 +440,8 @@ var REDO_STACKS = {};
 var EDITOR_CONTENTS = {};   // paneId -> string
 var EDIT_MODE = false;      // true = row move enabled
 var WBS_FOLDED = {};        // paneId -> { rowIdx: true }
+var SYNC_SCROLLING = false; // prevent scroll event loop
+var CELL_EDITING = false;   // true while cell input is active
 
 // ========================================================================
 // UTILITY
@@ -930,7 +932,7 @@ function modal(type, opts, callback) {
       } else if (f.type === 'number') {
         h += '<input type="text" id="mf_' + f.key + '" value="' + escapeHtml(f.value || '') + '" style="width:80px;">';
       } else if (f.type === 'date') {
-        h += '<input type="date" id="mf_' + f.key + '" value="' + escapeHtml(f.value || '') + '" style="width:160px;">';
+        h += '<input type="text" id="mf_' + f.key + '" value="' + escapeHtml(f.value || '') + '" style="width:160px;">';
       } else if (f.type === 'checkbox') {
         h += '<input type="checkbox" id="mf_' + f.key + '"' + (f.value ? ' checked' : '') + '>';
       }
@@ -1309,6 +1311,7 @@ function sortList(paneId, colKey) {
   if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
 }
 function selectListRow(paneId, idx) {
+  if (CELL_EDITING) return;
   var prevIdx = SELECTED_ROW[paneId];
   SELECTED_ROW[paneId] = idx;
   // Update selection highlight without full re-render
@@ -1336,6 +1339,7 @@ function selectListRow(paneId, idx) {
   triggerPaneLink(paneId, 'selectRow', idx);
 }
 function setActiveCell(paneId, row, col) {
+  if (CELL_EDITING) return;
   // Remove old active cell highlight
   if (ACTIVE_CELL) {
     var oldCell = document.getElementById('cell_' + ACTIVE_CELL.paneId + '_' + ACTIVE_CELL.row + '_' + ACTIVE_CELL.col);
@@ -1351,14 +1355,16 @@ function editListCell(paneId, rowIdx, colIdx) {
   var pane = findPane(paneId);
   if (!pane || !pane.config.columns) return;
   var col = pane.config.columns[colIdx];
-  if (!col || col.readonly) return;
+  if (!col || col.readonly || col.key === 'id') return;
   var data = DATA_STORE[paneId];
   if (!data || !data[rowIdx]) return;
   var cellId = 'cell_' + paneId + '_' + rowIdx + '_' + colIdx;
   var td = document.getElementById(cellId);
   if (!td) return;
   var val = data[rowIdx][col.key] || '';
-  if (col.type === 'checkbox') return; // handled inline
+  if (col.type === 'checkbox') return;
+
+  CELL_EDITING = true;
 
   if (col.type === 'select') {
     var h = '<select onchange="finishEditCell(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onblur="finishEditCell(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" style="width:100%;">';
@@ -1367,8 +1373,7 @@ function editListCell(paneId, rowIdx, colIdx) {
     td.innerHTML = h;
     td.firstChild.focus();
   } else if (col.type === 'date') {
-    td.innerHTML = '<input type="date" value="' + escapeHtml(val) + '" onblur="finishEditCell(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onchange="finishEditCell(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onkeydown="if(event.keyCode===13){this.blur();}" style="width:100%;">';
-    td.firstChild.focus();
+    showDatePicker(td, paneId, rowIdx, col.key, val);
   } else {
     td.innerHTML = '<input type="text" value="' + escapeHtml(val) + '" onblur="finishEditCell(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onkeydown="if(event.keyCode===13){this.blur();}if(event.keyCode===27){this.value=\'' + escapeHtml(val).replace(/'/g,"\\'") + '\';this.blur();}" style="width:100%;">';
     td.firstChild.focus();
@@ -1376,6 +1381,7 @@ function editListCell(paneId, rowIdx, colIdx) {
   }
 }
 function finishEditCell(paneId, rowIdx, colKey, val) {
+  CELL_EDITING = false;
   var data = DATA_STORE[paneId];
   if (!data || !data[rowIdx]) return;
   if (data[rowIdx][colKey] !== val) {
@@ -1412,6 +1418,69 @@ function updateCell(paneId, rowIdx, colKey, val) {
 function toggleCheckbox(paneId, rowIdx, colKey, cb) {
   updateCell(paneId, rowIdx, colKey, cb.checked ? 'true' : 'false');
 }
+
+// ===== CUSTOM DATE PICKER (IE9 compatible) =====
+function showDatePicker(td, paneId, rowIdx, colKey, currentVal) {
+  var d = parseDate(currentVal) || new Date();
+  var yr = d.getFullYear(), mn = d.getMonth();
+  var h = '<div style="position:relative;">';
+  h += '<input type="text" id="dp_input" value="' + escapeHtml(currentVal) + '" style="width:90px;font-size:12px;" onkeydown="if(event.keyCode===13){dpConfirm(\'' + paneId + '\',' + rowIdx + ',\'' + colKey + '\');}">';
+  h += ' <span style="cursor:pointer;color:#1565c0;font-size:11px;text-decoration:underline;" onclick="dpConfirm(\'' + paneId + '\',' + rowIdx + ',\'' + colKey + '\')">OK</span>';
+  h += '<div id="dp_cal" style="position:absolute;top:22px;left:0;z-index:100;background:#fff;border:2px solid #283593;padding:4px;width:210px;">';
+  h += buildCalHTML(yr, mn, paneId, rowIdx, colKey);
+  h += '</div></div>';
+  td.innerHTML = h;
+}
+function buildCalHTML(year, month, paneId, rowIdx, colKey) {
+  var args = '\'' + paneId + '\',' + rowIdx + ',\'' + colKey + '\'';
+  var h = '<div style="text-align:center;margin-bottom:3px;">';
+  h += '<span style="cursor:pointer;font-weight:bold;margin:0 6px;" onclick="dpNav(' + year + ',' + month + ',-1,' + args + ')">&lt;</span>';
+  h += '<b style="font-size:12px;">' + year + '/' + padZero(month + 1) + '</b>';
+  h += '<span style="cursor:pointer;font-weight:bold;margin:0 6px;" onclick="dpNav(' + year + ',' + month + ',1,' + args + ')">&gt;</span>';
+  h += '</div>';
+  h += '<table style="width:100%;border-collapse:collapse;text-align:center;font-size:11px;">';
+  h += '<tr style="background:#e8eaf6;"><th style="color:#c62828;width:30px;">日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th style="color:#1565c0;">土</th></tr>';
+  var firstDay = new Date(year, month, 1).getDay();
+  var lastDate = new Date(year, month + 1, 0).getDate();
+  var today = todayStr();
+  var day = 1;
+  for (var w = 0; w < 6; w++) {
+    if (day > lastDate) break;
+    h += '<tr>';
+    for (var wd = 0; wd < 7; wd++) {
+      if ((w === 0 && wd < firstDay) || day > lastDate) {
+        h += '<td style="padding:2px;"></td>';
+      } else {
+        var ds = year + '-' + padZero(month + 1) + '-' + padZero(day);
+        var isTd = (ds === today);
+        var bg = isTd ? '#bbdefb' : (wd === 0 ? '#fff5f5' : wd === 6 ? '#f0f4ff' : '#fff');
+        h += '<td style="padding:2px;cursor:pointer;background:' + bg + ';" onclick="dpSelect(\'' + ds + '\',' + args + ')" onmouseover="this.style.background=\'#ffe082\'" onmouseout="this.style.background=\'' + bg + '\'">' + day + '</td>';
+        day++;
+      }
+    }
+    h += '</tr>';
+  }
+  h += '</table>';
+  h += '<div style="text-align:center;margin-top:3px;"><span style="cursor:pointer;color:#1565c0;font-size:11px;text-decoration:underline;" onclick="dpSelect(\'' + today + '\',' + args + ')">今日</span></div>';
+  return h;
+}
+function dpNav(year, month, dir, paneId, rowIdx, colKey) {
+  month += dir;
+  if (month < 0) { month = 11; year--; }
+  if (month > 11) { month = 0; year++; }
+  var cal = document.getElementById('dp_cal');
+  if (cal) cal.innerHTML = buildCalHTML(year, month, paneId, rowIdx, colKey);
+}
+function dpSelect(dateStr, paneId, rowIdx, colKey) {
+  var inp = document.getElementById('dp_input');
+  if (inp) inp.value = dateStr;
+  finishEditCell(paneId, rowIdx, colKey, dateStr);
+}
+function dpConfirm(paneId, rowIdx, colKey) {
+  var inp = document.getElementById('dp_input');
+  finishEditCell(paneId, rowIdx, colKey, inp ? inp.value : '');
+}
+
 function addListRow() {
   var tab = getTabById(ACTIVE_TAB);
   if (!tab) return;
@@ -1611,7 +1680,7 @@ function renderDetailPane(pane, el) {
     } else if (col.type === 'checkbox') {
       h += '<input type="checkbox"' + (val === 'true' || val === '1' ? ' checked' : '') + ' onchange="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.checked?\'true\':\'false\')">';
     } else if (col.type === 'date') {
-      h += '<input type="date" value="' + escapeHtml(val) + '" onchange="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)" onblur="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">';
+      h += '<input type="text" placeholder="YYYY-MM-DD" value="' + escapeHtml(val) + '" onchange="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)" onblur="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">';
     } else if (col.key === 'description' || col.key === 'notes' || col.key === 'mitigation' || col.key === 'resolution' || col.key === 'response') {
       h += '<textarea onblur="updateDetailField(\'' + linkedPaneId + '\',' + selectedIdx + ',\'' + col.key + '\',this.value)">' + escapeHtml(val) + '</textarea>';
     } else {
@@ -1628,9 +1697,17 @@ function updateDetailField(paneId, rowIdx, colKey, val) {
   if (data[rowIdx][colKey] !== val) {
     data[rowIdx][colKey] = val;
     markDirty(paneId);
-    // re-render linked list
+    // Update list cell in-place (do NOT re-render the whole list)
     var pane = findPane(paneId);
-    if (pane) renderListPane(pane, document.getElementById('pane_' + paneId));
+    if (pane && pane.config && pane.config.columns) {
+      var colIdx = -1;
+      pane.config.columns.forEach(function(c, i) { if (c.key === colKey) colIdx = i; });
+      if (colIdx >= 0) {
+        var cellId = 'cell_' + paneId + '_' + rowIdx + '_' + colIdx;
+        var td = document.getElementById(cellId);
+        if (td) td.innerHTML = escapeHtml(val);
+      }
+    }
   }
 }
 
@@ -1833,7 +1910,7 @@ function editWbsCell(paneId, rowIdx, colIdx) {
     td.innerHTML = sh;
     td.firstChild.focus();
   } else if (col.type === 'date') {
-    td.innerHTML = '<input type="date" value="' + escapeHtml(val) + '" onblur="finishWbsEdit(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onchange="finishWbsEdit(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" style="width:100%;">';
+    td.innerHTML = '<input type="text" placeholder="YYYY-MM-DD" value="' + escapeHtml(val) + '" onblur="finishWbsEdit(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" onchange="finishWbsEdit(\'' + paneId + '\',' + rowIdx + ',\'' + col.key + '\',this.value)" style="width:100%;">';
     td.firstChild.focus();
   } else if (col.type === 'checkbox') {
     data[rowIdx][col.key] = val === 'true' ? 'false' : 'true';
@@ -1898,28 +1975,23 @@ function moveWbsRow(paneId, idx, dir) {
 
 // Sync scroll between WBS and Gantt
 function syncScroll(srcEl, srcPaneId) {
+  if (SYNC_SCROLLING) return;
+  SYNC_SCROLLING = true;
   var tab = getTabById(ACTIVE_TAB);
-  if (!tab) return;
-  tab.layout.panes.forEach(function(p) {
-    if (p.id !== srcPaneId) {
-      var targetScroll = null;
-      if (p.type === 'gantt') {
-        targetScroll = document.getElementById('pane_' + p.id);
-        if (targetScroll) {
-          var gw = targetScroll.getElementsByTagName('div');
-          for (var i = 0; i < gw.length; i++) {
-            if (gw[i].className === 'gantt-wrapper' || (gw[i].style && gw[i].style.overflow === 'auto')) {
-              gw[i].scrollTop = srcEl.scrollTop;
-              break;
-            }
-          }
+  if (tab) {
+    tab.layout.panes.forEach(function(p) {
+      if (p.id !== srcPaneId) {
+        if (p.type === 'gantt') {
+          var gs = document.getElementById('gantt_scroll_' + p.id);
+          if (gs) gs.scrollTop = srcEl.scrollTop;
+        } else if (p.type === 'wbs') {
+          var ws = document.getElementById('wbs_scroll_' + p.id);
+          if (ws) ws.scrollTop = srcEl.scrollTop;
         }
-      } else if (p.type === 'wbs') {
-        targetScroll = document.getElementById('wbs_scroll_' + p.id);
-        if (targetScroll) targetScroll.scrollTop = srcEl.scrollTop;
       }
-    }
-  });
+    });
+  }
+  SYNC_SCROLLING = false;
 }
 function assignWbsNumbers(data) {
   var counters = [0];
@@ -2060,7 +2132,7 @@ function renderGanttPane(pane, el) {
   // Today line
   var todayOffset = dateDiffDays(padStart, new Date());
   if (cfg.showTodayLine !== false && todayOffset >= 0 && todayOffset < totalDays) {
-    h += '<div class="gantt-today-line" style="left:' + (todayOffset * dayWidth + Math.floor(dayWidth/2)) + 'px;top:50px;"></div>';
+    h += '<div class="gantt-today-line" style="left:' + (todayOffset * dayWidth + Math.floor(dayWidth/2)) + 'px;top:48px;"></div>';
   }
 
   // Bars
@@ -2104,14 +2176,18 @@ function onGanttBarClick(paneId, rowIdx) {
   triggerPaneLink(paneId, 'clickBar', rowIdx);
 }
 function syncScrollGantt(srcEl, srcPaneId) {
+  if (SYNC_SCROLLING) return;
+  SYNC_SCROLLING = true;
   var tab = getTabById(ACTIVE_TAB);
-  if (!tab) return;
-  tab.layout.panes.forEach(function(p) {
-    if (p.id !== srcPaneId && p.type === 'wbs') {
-      var targetScroll = document.getElementById('wbs_scroll_' + p.id);
-      if (targetScroll) targetScroll.scrollTop = srcEl.scrollTop;
-    }
-  });
+  if (tab) {
+    tab.layout.panes.forEach(function(p) {
+      if (p.id !== srcPaneId && p.type === 'wbs') {
+        var ws = document.getElementById('wbs_scroll_' + p.id);
+        if (ws) ws.scrollTop = srcEl.scrollTop;
+      }
+    });
+  }
+  SYNC_SCROLLING = false;
 }
 
 // ========================================================================
