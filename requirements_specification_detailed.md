@@ -1338,6 +1338,7 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 | navigator.clipboard を使用しない | IE11以降のAPI。window.clipboardDataで代替 |
 | CSS transition / animation を使用しない | IE9未対応 |
 | `addEventListener` を使用しない | `onclick`属性 or `element.onclick = fn` で代替 |
+| `<select>` のinnerHTMLに直接代入しない | IE9で選択肢が表示されない場合がある。親divごと再構築する |
 
 ---
 
@@ -1489,16 +1490,27 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 | ファイルドロップ | エクスプローラからファイルをドロップゾーンにドロップ → Filename欄セット |
 | ファイル参照 | VBScript `UserAccounts.CommonDialog` でファイル選択 |
 
-### M15-05: CSV取り込み（News専用）
+### M15-05: CSV取り込み
 
-**フォーマット:** `title,link,source,tags,summary`（5列）
+**フロー（ファイル選択主体）:**
+1. サイドバーまたは設定画面の「CSV Import」ボタンでモーダルを開く
+2. **Step 1:** Type選択ドロップダウンで取り込み先カテゴリを選択（設定で定義した全Typeが表示）
+3. **Step 2:** 「Browse .csv」ボタンでファイル選択ダイアログ（VBScript `UserAccounts.CommonDialog`、フィルタ: CSV/TXT/All）
+4. 選択したCSVファイルをVBScript経由でUTF-8読み込み → テキストエリアにプレビュー表示
+5. ファイル名・行数を表示（例: `File: data.csv (25 rows)`）
+6. 「Import」ボタンで取り込み実行
 
-**取り込みフロー:**
-1. モーダルを開く
-2. テキストエリアにCSVを貼付け or .csvファイルをBrowseボタンで選択
-3. 1行目がヘッダー（"title" or "link" を含む）なら自動スキップ
-4. 各行を `category: "news"` で一括登録
-5. title も link も空の行はスキップ
+**代替手段:** テキストエリアに直接CSV貼付けも可能
+
+**Type選択のIE9対応:**
+- `<select>` 要素のinnerHTMLへの代入はIE9で不安定なため、親`<div>`のinnerHTMLで`<select>`タグごと再構築する方式を採用
+
+**CSVフォーマット:** `title,link,source,tags,summary`（5列、カラム数は可変）
+- 1行目がヘッダー（"title" or "link" を含む）なら自動スキップ
+- ヘッダーのカラム名を `config.columns` のkey/labelと照合して自動マッピング
+- ヘッダーなしの場合はデフォルト順（title, link, source, tags, summary）で割当
+- title も link も空の行はスキップ
+- 取り込み完了時に件数とType名をトーストで表示（例: `12 items imported as [news]`）
 
 ### M15-06: 検索・フィルタ
 

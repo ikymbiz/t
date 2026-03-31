@@ -199,12 +199,29 @@ End Sub
 <div class="modal-bg" id="csvModal"><div class="modal-box">
   <div class="modal-hdr"><span class="form-title">CSV IMPORT</span><button class="form-close" onclick="closeCsvModal()">&#10005;</button></div>
   <div class="modal-body">
-    <p style="font-size:13px;color:#8892a6;margin-bottom:14px;">Columns auto-matched by header row.</p>
-    <div class="fg"><label>CSV Data</label><textarea id="csvText" style="height:180px;font-family:Consolas,monospace;font-size:12px;line-height:1.5;" placeholder="title,link,source,tags..."></textarea></div>
-    <div class="fg"><label>Import as type</label><select id="csvType" style="width:auto;"></select></div>
-    <button class="btn btn-cancel" onclick="csvBrowseFile()">Browse .csv</button>
+    <div class="fg">
+      <label>1. Import as type</label>
+      <div id="csvTypeWrap"></div>
+    </div>
+    <div class="fg">
+      <label>2. Select CSV file</label>
+      <div style="margin-bottom:8px;">
+        <input type="text" id="csvFilePath" readonly="readonly" placeholder="No file selected" style="width:68%;display:inline;background:#0a0c12;cursor:default;">
+        <button class="btn btn-cancel" onclick="csvBrowseFile()" style="padding:7px 14px;margin:0 0 0 4px;vertical-align:top;">Browse .csv</button>
+      </div>
+      <div style="font-size:12px;color:#6b7190;margin-bottom:8px;" id="csvFileInfo"></div>
+    </div>
+    <div class="fg">
+      <label>Preview / Paste CSV</label>
+      <textarea id="csvText" style="height:160px;font-family:Consolas,monospace;font-size:12px;line-height:1.5;" placeholder="CSV content will appear here after file selection...&#10;&#10;Or paste CSV directly:&#10;title,link,source,tags,summary"></textarea>
+    </div>
+    <p style="font-size:12px;color:#6b7190;">Header row auto-detected. Columns matched by name (title, link, source, tags, etc.).</p>
   </div>
-  <div class="modal-foot"><button class="btn btn-cancel" onclick="closeCsvModal()">Cancel</button><button class="btn btn-save" onclick="importCsv()">Import</button></div>
+  <div class="modal-foot">
+    <span id="csvPreviewCount" style="float:left;font-size:12px;color:#6b7190;line-height:36px;"></span>
+    <button class="btn btn-cancel" onclick="closeCsvModal()">Cancel</button>
+    <button class="btn btn-save" onclick="importCsv()">Import</button>
+  </div>
 </div></div>
 
 <script language="JavaScript">
@@ -360,10 +377,100 @@ function dzDrop(e){e=e||window.event;if(e.preventDefault)e.preventDefault();e.re
 function browseFile(colKey){try{var dlg=new ActiveXObject('UserAccounts.CommonDialog');dlg.Filter='All Files|*.*|Documents|*.doc;*.docx;*.pdf;*.ppt;*.pptx;*.xls;*.xlsx';dlg.FilterIndex=1;if(dlg.ShowOpen){var fp=dlg.FileName,fso=new ActiveXObject('Scripting.FileSystemObject'),name=fso.GetFileName(fp);var el=document.getElementById('f-'+colKey);if(el)el.value=fp;var ttEl=document.getElementById('f-title');if(ttEl&&!ttEl.value)ttEl.value=name;var info=document.getElementById('dropInfo');if(info)info.innerText='Path: '+fp;}}catch(e){toast('File dialog not available');var el2=document.getElementById('f-'+colKey);if(el2)el2.removeAttribute('readonly');}}
 
 // ====== CSV ======
-function openCsvModal(){document.getElementById('csvModal').className='modal-bg open';document.getElementById('csvText').value='';var sel=document.getElementById('csvType'),types=CFG().types;sel.innerHTML='';for(var i=0;i<types.length;i++){sel.innerHTML+='<option value="'+esc(types[i].id)+'">'+esc(types[i].label)+'</option>';}}
+function openCsvModal(){
+  document.getElementById('csvModal').className='modal-bg open';
+  document.getElementById('csvText').value='';
+  document.getElementById('csvFilePath').value='';
+  document.getElementById('csvFileInfo').innerText='';
+  document.getElementById('csvPreviewCount').innerText='';
+  // Build type select via DOM (IE9: innerHTML on select is unreliable)
+  var wrap=document.getElementById('csvTypeWrap');
+  var types=CFG().types;
+  var h='<select id="csvType" style="width:auto;background:#0f1117;border:1px solid #363b52;padding:8px 12px;color:#e0e4ef;font-size:14px;">';
+  for(var i=0;i<types.length;i++){
+    h+='<option value="'+esc(types[i].id)+'">'+esc(types[i].label)+'</option>';
+  }
+  h+='</select>';
+  wrap.innerHTML=h;
+}
 function closeCsvModal(){document.getElementById('csvModal').className='modal-bg';}
-function csvBrowseFile(){try{var dlg=new ActiveXObject('UserAccounts.CommonDialog');dlg.Filter='CSV|*.csv|All|*.*';dlg.FilterIndex=1;if(dlg.ShowOpen){var text=readFile(dlg.FileName);if(text){document.getElementById('csvText').value=text;toast('CSV loaded','ok');}}}catch(e){toast('Browse not available');}}
-function importCsv(){var text=document.getElementById('csvText').value;if(!text||!text.trim()){toast('No CSV data','err');return;}var cat=document.getElementById('csvType').value||'news';var rows=parseCSV(text);if(!rows.length){toast('No data','err');return;}var headerMap=null,start=0;if(rows[0]){var fj=rows[0].join(',').toLowerCase();if(fj.indexOf('title')>=0||fj.indexOf('link')>=0){headerMap=[];for(var hi=0;hi<rows[0].length;hi++){headerMap.push(rows[0][hi].trim().toLowerCase());}start=1;}}var added=0;for(var i=start;i<rows.length;i++){var r=rows[i],empty=true;for(var j=0;j<r.length;j++){if(r[j].trim())empty=false;}if(empty)continue;var entry={id:uid(),category:cat,created:dateStr()};if(headerMap){for(var ci=0;ci<headerMap.length;ci++){var mKey=headerMap[ci];for(var ck=0;ck<CFG().columns.length;ck++){if(CFG().columns[ck].key.toLowerCase()===mKey||CFG().columns[ck].label.toLowerCase()===mKey){entry[CFG().columns[ck].key]=(r[ci]||'').trim();break;}}}}else{var defaults=['title','link','source','tags','summary'];for(var di=0;di<defaults.length&&di<r.length;di++){entry[defaults[di]]=(r[di]||'').trim();}}if(!entry.title&&!entry.link)continue;if(!entry.title)entry.title=entry.link;DB.entries.push(entry);added++;}if(added>0){saveData();renderTable();renderSidebar();toast(added+' imported','ok');closeCsvModal();}else{toast('No valid rows','err');}}
+function csvBrowseFile(){
+  try{
+    var dlg=new ActiveXObject('UserAccounts.CommonDialog');
+    dlg.Filter='CSV Files (*.csv)|*.csv|Text Files (*.txt)|*.txt|All Files (*.*)|*.*';
+    dlg.FilterIndex=1;
+    if(dlg.ShowOpen){
+      var fp=dlg.FileName;
+      document.getElementById('csvFilePath').value=fp;
+      var text=readFile(fp);
+      if(text){
+        document.getElementById('csvText').value=text;
+        // Count rows for preview
+        var lines=text.replace(/\r\n/g,'\n').split('\n');
+        var nonEmpty=0;
+        for(var i=0;i<lines.length;i++){if(lines[i].trim())nonEmpty++;}
+        var fso=new ActiveXObject('Scripting.FileSystemObject');
+        var fname=fso.GetFileName(fp);
+        document.getElementById('csvFileInfo').innerText='File: '+fname+' ('+nonEmpty+' rows)';
+        document.getElementById('csvPreviewCount').innerText=nonEmpty+' rows detected';
+        toast('CSV loaded: '+fname,'ok');
+      }else{
+        toast('File is empty or cannot be read','err');
+      }
+    }
+  }catch(e){
+    toast('File dialog not available. Paste CSV text directly.','err');
+  }
+}
+function importCsv(){
+  var text=document.getElementById('csvText').value;
+  if(!text||!text.trim()){toast('No CSV data. Select a file first.','err');return;}
+  var catEl=document.getElementById('csvType');
+  var cat=catEl?catEl.value:'';
+  if(!cat){toast('Select a Type first','err');return;}
+  var rows=parseCSV(text);
+  if(!rows.length){toast('No data found','err');return;}
+  // Detect header
+  var headerMap=null,start=0;
+  if(rows[0]){
+    var fj=rows[0].join(',').toLowerCase();
+    if(fj.indexOf('title')>=0||fj.indexOf('link')>=0){
+      headerMap=[];
+      for(var hi=0;hi<rows[0].length;hi++){headerMap.push(rows[0][hi].trim().toLowerCase());}
+      start=1;
+    }
+  }
+  var added=0;
+  for(var i=start;i<rows.length;i++){
+    var r=rows[i],empty=true;
+    for(var j=0;j<r.length;j++){if(r[j].trim())empty=false;}
+    if(empty)continue;
+    var entry={id:uid(),category:cat,created:dateStr()};
+    if(headerMap){
+      for(var ci=0;ci<headerMap.length;ci++){
+        var mKey=headerMap[ci];
+        for(var ck=0;ck<CFG().columns.length;ck++){
+          if(CFG().columns[ck].key.toLowerCase()===mKey||CFG().columns[ck].label.toLowerCase()===mKey){
+            entry[CFG().columns[ck].key]=(r[ci]||'').trim();break;
+          }
+        }
+      }
+    }else{
+      var defaults=['title','link','source','tags','summary'];
+      for(var di=0;di<defaults.length&&di<r.length;di++){entry[defaults[di]]=(r[di]||'').trim();}
+    }
+    if(!entry.title&&!entry.link)continue;
+    if(!entry.title)entry.title=entry.link;
+    DB.entries.push(entry);added++;
+  }
+  if(added>0){
+    saveData();renderTable();renderSidebar();
+    toast(added+' items imported as ['+cat+']','ok');
+    closeCsvModal();
+  }else{
+    toast('No valid rows found','err');
+  }
+}
 function exportAllCSV(){var data=getFilteredData(),cols=CFG().columns;if(!data.length){toast('No data');return;}var hdr=['category'];for(var i=0;i<cols.length;i++)hdr.push(cols[i].key);hdr.push('created');var lines=[hdr.join(',')];for(var j=0;j<data.length;j++){var vals=[];vals.push(csvQ(data[j].category));for(var k=0;k<cols.length;k++)vals.push(csvQ(data[j][cols[k].key]||''));vals.push(csvQ(data[j].created));lines.push(vals.join(','));}var csv=lines.join('\r\n'),fn='librarian_export_'+dateStr().replace(/-/g,'')+'.csv';try{writeFile(resolvePath(fn),csv);toast('Exported: '+fn,'ok');}catch(e){try{if(window.clipboardData){window.clipboardData.setData('Text',csv);toast('CSV copied','ok');}}catch(e2){toast('Export failed','err');}}}
 
 // ====== SETTINGS ======
