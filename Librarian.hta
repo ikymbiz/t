@@ -154,6 +154,19 @@ Sub writeUTF8(filePath, content)
   If Err.Number <> 0 Then Err.Clear
   On Error GoTo 0
 End Sub
+Sub vbsRotateBackup(basePath)
+  Dim bak1, bak2, bak3
+  bak1 = basePath & ".bak1"
+  bak2 = basePath & ".bak2"
+  bak3 = basePath & ".bak3"
+  On Error Resume Next
+  If gFSO.FileExists(bak3) Then gFSO.DeleteFile bak3, True
+  If gFSO.FileExists(bak2) Then gFSO.MoveFile bak2, bak3
+  If gFSO.FileExists(bak1) Then gFSO.MoveFile bak1, bak2
+  If gFSO.FileExists(basePath) Then gFSO.CopyFile basePath, bak1, True
+  Err.Clear
+  On Error GoTo 0
+End Sub
 </script>
 </head>
 <body>
@@ -247,7 +260,49 @@ function readFile(p){document.getElementById('_vbs_r').value='';try{window.execS
 function writeFile(p,c){document.getElementById('_vbs_r').value=c;try{window.execScript('Call writeUTF8("'+p.replace(/"/g,'""')+'", document.getElementById("_vbs_r").value)','VBScript');}catch(e){}}
 function resolvePath(r){if(!r)return'';if(r.indexOf(':')>0)return r;var s=r.replace(/\//g,'\\');if(s.indexOf('.\\')===0)s=s.substring(2);return APP_DIR+s;}
 function loadData(){var text=readFile(resolvePath(DATA_FILE));if(text&&text.trim()){try{DB=JSON.parse(text);}catch(e){DB={};}}if(!DB||typeof DB!=='object')DB={};if(!DB.config||!DB.config.configVer)DB.config=getDefaultConfig();if(!DB.entries||!Array.isArray(DB.entries))DB.entries=[];}
-function saveData(){writeFile(resolvePath(DATA_FILE),JSON.stringify(DB,null,2));document.getElementById('st-saved').innerText='Saved: '+timeStr();}
+function saveData(){
+  var path=resolvePath(DATA_FILE);
+  // Rotate backups: .bak3→delete, .bak2→.bak3, .bak1→.bak2, current→.bak1
+  try{window.execScript('vbsRotateBackup "'+path.replace(/"/g,'""')+'"','VBScript');}catch(e){}
+  // Write new data
+  writeFile(path,JSON.stringify(DB,null,2));
+  document.getElementById('st-saved').innerText='Saved: '+timeStr();
+}
+function fileExists(path){
+  try{window.execScript('document.getElementById("_vbs_r").value=CStr(gFSO.FileExists("'+path.replace(/"/g,'""')+'"))','VBScript');return document.getElementById('_vbs_r').value==='True';}catch(e){return false;}
+}
+function getBackupInfo(){
+  var base=resolvePath(DATA_FILE);
+  return{bak1:fileExists(base+'.bak1'),bak2:fileExists(base+'.bak2'),bak3:fileExists(base+'.bak3')};
+}
+function restoreBackup(gen){
+  var base=resolvePath(DATA_FILE);
+  var bakPath=base+'.bak'+gen;
+  if(!fileExists(bakPath)){toast('Backup file not found','err');return;}
+  if(!confirm('Restore from backup '+gen+'? Current data will be overwritten.\n(Current data will be backed up first)'))return;
+  // Save current as emergency backup before restore
+  try{
+    var emergPath=base+'.pre-restore';
+    document.getElementById('_vbs_r').value='';
+    window.execScript('If gFSO.FileExists("'+base.replace(/"/g,'""')+'") Then gFSO.CopyFile "'+base.replace(/"/g,'""')+'", "'+emergPath.replace(/"/g,'""')+'", True','VBScript');
+  }catch(e){}
+  // Read backup and load
+  var text=readFile(bakPath);
+  if(text&&text.trim()){
+    try{
+      var restored=JSON.parse(text);
+      if(restored&&typeof restored==='object'){
+        DB=restored;
+        if(!DB.config||!DB.config.configVer)DB.config=getDefaultConfig();
+        if(!DB.entries||!Array.isArray(DB.entries))DB.entries=[];
+        writeFile(base,text);
+        renderSidebar();renderTable();
+        if(SETTINGS_OPEN)renderSettings();
+        toast('Restored from backup '+gen+' ('+DB.entries.length+' entries)','ok');
+      }else{toast('Invalid backup data','err');}
+    }catch(e){toast('Failed to parse backup','err');}
+  }else{toast('Backup file is empty','err');}
+}
 
 function uid(){return'L'+(new Date().getTime())+'_'+Math.floor(Math.random()*10000);}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -526,7 +581,21 @@ function renderSettings(){
   h+='<div style="margin-top:8px;"><input class="s-inline" id="sc-new-key" placeholder="key" style="width:80px;margin-right:4px;"><input class="s-inline" id="sc-new-label" placeholder="Label" style="width:100px;margin-right:4px;"><select class="s-inline" id="sc-new-type" style="width:90px;margin-right:4px;background:#0f1117;border:1px solid #363b52;"><option>text</option><option>textarea</option><option>url</option><option>file</option><option>tags</option><option>select</option><option>date</option></select><input class="s-inline" id="sc-new-width" placeholder="width" value="120" style="width:50px;margin-right:4px;"><button class="s-btn" onclick="addCol()">+ Add Column</button></div>';
   h+='</div></div>';
   // DATA
-  h+='<div class="s-section"><div class="s-section-hdr">DATA</div><div class="s-section-body"><button class="s-btn" onclick="exportAllCSV()">CSV Export</button> <button class="s-btn" onclick="openCsvModal()">CSV Import</button> <button class="s-btn danger" onclick="resetConfig()">Reset Config</button><div style="margin-top:12px;font-size:12px;color:#6b7190;">Entries: '+DB.entries.length+' | Types: '+types.length+' | Columns: '+cols.length+'</div></div></div>';
+  // DATA + BACKUP
+  var bakInfo=getBackupInfo();
+  h+='<div class="s-section"><div class="s-section-hdr">DATA &amp; BACKUP</div><div class="s-section-body">';
+  h+='<button class="s-btn" onclick="exportAllCSV()">CSV Export</button> ';
+  h+='<button class="s-btn" onclick="openCsvModal()">CSV Import</button> ';
+  h+='<button class="s-btn danger" onclick="resetConfig()">Reset Config</button>';
+  h+='<div style="margin-top:12px;font-size:12px;color:#6b7190;">Entries: '+DB.entries.length+' | Types: '+types.length+' | Columns: '+cols.length+'</div>';
+  h+='<div style="margin-top:14px;font-size:13px;font-weight:700;color:#c8a44e;margin-bottom:6px;">BACKUP (3 Generations)</div>';
+  h+='<table class="s-table"><thead><tr><th>File</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+  h+='<tr><td style="color:#a0a6bc;">'+esc(DATA_FILE)+'.bak1</td><td>'+(bakInfo.bak1?'<span style="color:#4eca7a;">Exists</span>':'<span style="color:#6b7190;">None</span>')+'</td><td>'+(bakInfo.bak1?'<button class="s-btn" onclick="restoreBackup(1)">Restore</button>':'')+'</td></tr>';
+  h+='<tr><td style="color:#a0a6bc;">'+esc(DATA_FILE)+'.bak2</td><td>'+(bakInfo.bak2?'<span style="color:#4eca7a;">Exists</span>':'<span style="color:#6b7190;">None</span>')+'</td><td>'+(bakInfo.bak2?'<button class="s-btn" onclick="restoreBackup(2)">Restore</button>':'')+'</td></tr>';
+  h+='<tr><td style="color:#a0a6bc;">'+esc(DATA_FILE)+'.bak3</td><td>'+(bakInfo.bak3?'<span style="color:#4eca7a;">Exists</span>':'<span style="color:#6b7190;">None</span>')+'</td><td>'+(bakInfo.bak3?'<button class="s-btn" onclick="restoreBackup(3)">Restore</button>':'')+'</td></tr>';
+  h+='</tbody></table>';
+  h+='<div style="font-size:11px;color:#4a4e62;margin-top:6px;">Backups rotate automatically on every save. bak1=latest, bak3=oldest.</div>';
+  h+='</div></div>';
   document.getElementById('settings-screen').innerHTML=h;
 }
 function addType(){var id=document.getElementById('st-new-id').value.trim(),label=document.getElementById('st-new-label').value.trim(),color=document.getElementById('st-new-color').value.trim()||'#c8a44e';if(!id||!label){toast('ID and Label required','err');return;}for(var i=0;i<CFG().types.length;i++){if(CFG().types[i].id===id){toast('ID exists','err');return;}}CFG().types.push({id:id,label:label,color:color});saveData();renderSettings();renderSidebar();toast('Type added','ok');}

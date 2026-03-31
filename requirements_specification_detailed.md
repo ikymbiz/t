@@ -1560,7 +1560,44 @@ function onFileSelected(inp) {
 - ファイル名: `librarian_export_YYYYMMDD.csv`
 - 出力列: category, title, link, source, filename, tags, summary, created
 
-### M15-08: キーボードショートカット
+### M15-08: 三世代バックアップ
+
+**保存時の自動ローテーション:**
+
+毎回 `saveData()` 実行時に、VBScript `vbsRotateBackup` で以下のローテーションを実行:
+
+```
+librarian_data.json.bak3 → 削除
+librarian_data.json.bak2 → .bak3 にリネーム
+librarian_data.json.bak1 → .bak2 にリネーム
+librarian_data.json      → .bak1 にコピー
+librarian_data.json      ← 新データで上書き
+```
+
+| ファイル | 内容 |
+|---------|------|
+| `librarian_data.json` | 最新（現在のデータ） |
+| `librarian_data.json.bak1` | 1世代前（直前の保存） |
+| `librarian_data.json.bak2` | 2世代前 |
+| `librarian_data.json.bak3` | 3世代前（最古） |
+
+**VBScript実装:**
+- `gFSO.DeleteFile` — bak3の削除
+- `gFSO.MoveFile` — bak2→bak3, bak1→bak2 のリネーム
+- `gFSO.CopyFile` — 現行→bak1 のコピー
+- 全操作を `On Error Resume Next` で囲み、ファイル不在時はスキップ
+
+**リストア機能:**
+- 設定画面の「DATA & BACKUP」セクションに各世代の存在状況を表示
+- 「Restore」ボタンで指定世代から復元
+- 復元前に現行データを `.pre-restore` として緊急バックアップ
+- 復元後はJSON解析→DB反映→画面再描画
+
+**fileExists確認:**
+- VBScript `gFSO.FileExists` を `execScript` 経由でJS側から呼び出し
+- 結果を `_vbs_r` hidden inputで受け取り `"True"` / `"False"` で判定
+
+### M15-09: キーボードショートカット
 
 | キー | 動作 |
 |------|------|
