@@ -1,11 +1,11 @@
-﻿<html>
+<html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>HTA Dynamic App</title>
+<title>📚 ライブラリアン</title>
 <meta http-equiv="X-UA-Compatible" content="IE=9">
 <HTA:APPLICATION
   ID="DynamicApp"
-  APPLICATIONNAME="HTA Dynamic App"
+  APPLICATIONNAME="ライブラリアン"
   BORDER="thick"
   BORDERSTYLE="normal"
   CAPTION="yes"
@@ -195,6 +195,46 @@ button { cursor:pointer; }
 
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar { width:8px; height:8px; }
+
+/* ===== LIBRARIAN: TAG PILLS ===== */
+.tag-pill { display:inline-block; padding:3px 10px; margin:3px; background:#e8eaf6; color:#283593;
+  border:1px solid #9fa8da; cursor:pointer; font-size:13px; border-radius:10px; }
+.tag-pill:hover { background:#c5cae9; }
+.tag-pill.selected { background:#3949ab; color:#fff; border-color:#3949ab; }
+.tag-count { font-size:11px; color:#78909c; margin-left:3px; }
+
+/* ===== LIBRARIAN: LIB DETAIL PANE ===== */
+.lib-section { padding:10px 14px; border-bottom:1px solid #e8eaf6; }
+.lib-url-row { display:flex; align-items:center; gap:6px; }
+.lib-url-row input { flex:1; }
+.lib-open-btn { padding:5px 10px; background:#1565c0; color:#fff; border:none; cursor:pointer; font-size:13px; white-space:nowrap; }
+.lib-open-btn:hover { background:#0d47a1; }
+.ai-btn { display:inline-block; padding:5px 12px; margin:3px 3px 0 0; background:#4a148c; color:#fff; border:none; cursor:pointer; font-size:13px; }
+.ai-btn:hover { background:#38006b; }
+.ai-btn.loading { background:#9e9e9e !important; cursor:wait; }
+.lib-textarea { width:97%; border:1px solid #c5cae9; padding:6px 8px; font-size:14px;
+  background:#fff; resize:vertical; min-height:70px; font-family:inherit; }
+.star-sel span { font-size:22px; cursor:pointer; color:#ddd; }
+.star-sel span.on { color:#ff9800; }
+
+/* ===== SIMILAR DOCS ===== */
+.sim-card { border:1px solid #c5cae9; padding:8px 10px; margin-bottom:5px; background:#fafafa; cursor:pointer; }
+.sim-card:hover { background:#e8eaf6; }
+.sim-card .sc-title { font-weight:bold; color:#283593; font-size:14px; }
+.sim-card .sc-meta  { color:#78909c; font-size:12px; margin-top:2px; }
+.sim-card .sc-reason { color:#455a64; font-size:12px; font-style:italic; margin-top:3px; }
+
+/* ===== AI SPINNER ===== */
+#aiSpinner { display:none; position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%); background:#1a237e; color:#fff;
+  padding:18px 30px; z-index:3000; font-size:15px; box-shadow:0 4px 16px rgba(0,0,0,0.4); }
+
+/* ===== TAG CLOUD VIEW ===== */
+.tagcloud-wrap { padding:20px; overflow-y:auto; }
+.tagcloud-filter { margin-bottom:14px; }
+.tagcloud-filter input { width:240px; border:1px solid #c5cae9; padding:5px 8px; font-size:14px; }
+.tagcloud-list-area { margin-top:16px; }
+
 </style>
 
 <!-- ===== VBSCRIPT LAYER ===== -->
@@ -295,6 +335,14 @@ Function vbsFileExists(fp)
   vbsFileExists = gFSO.FileExists(fp)
 End Function
 
+
+Sub openURL(url)
+  Dim sh
+  Set sh = CreateObject("WScript.Shell")
+  sh.Run url, 1, False
+  Set sh = Nothing
+End Sub
+
 Function vbsFolderExists(fp)
   vbsFolderExists = gFSO.FolderExists(fp)
 End Function
@@ -310,10 +358,13 @@ End Function
 
 <!-- ===== HEADER ===== -->
 <div id="header">
-  <span class="app-name" id="appName">HTA Dynamic App</span>
+  <span class="app-name" id="appName">📚 ライブラリアン</span>
   <span class="dirty-mark" id="dirtyMark">● 未保存</span>
   <span class="version" id="appVersion">v1.0.0</span>
 </div>
+
+<!-- AI SPINNER -->
+<div id="aiSpinner">🤖 AI 処理中...</div>
 
 <!-- ===== APP BODY (table layout: left tabs + right content) ===== -->
 <div id="app-body">
@@ -325,35 +376,22 @@ End Function
   <div id="content-col">
     <!-- ===== TOOLBAR ===== -->
     <div id="toolbar">
-      <span class="tool-btn" onclick="saveAllData()">[保存]</span>
+      <span class="tool-btn" onclick="saveAllData()">[💾 保存]</span>
       <span class="tool-btn" onclick="exportCSV()">[CSV出力]</span>
       <span class="tool-sep"></span>
-      <span class="tool-btn" onclick="addListRow()">[+ 行追加]</span>
-      <span class="tool-btn" onclick="deleteListRow()">[- 行削除]</span>
+      <span class="tool-btn" onclick="addLibraryItem()">[＋ 追加]</span>
+      <span class="tool-btn" onclick="deleteListRow()">[－ 削除]</span>
       <span class="tool-sep"></span>
-      <span class="tool-btn" id="btnEditMode" onclick="toggleEditMode()">[編集モード]</span>
-      <span id="btnExtractTasks" style="display:none;"><span class="tool-btn" onclick="extractTasksFromMinutes()">[タスク起票]</span></span>
+      <span class="tool-btn" id="btnEditMode" onclick="toggleEditMode()">[並替モード]</span>
       <span class="tool-sep"></span>
-      <span id="dateNavArea" style="display:none;">
-        <span class="tool-label">表示:</span>
-        <span class="tool-btn" id="btnScaleMonth" onclick="setDateScale('month')">月</span>
-        <span class="tool-btn" id="btnScaleWeek" onclick="setDateScale('week')">週</span>
-        <span class="tool-btn" id="btnScaleDay" onclick="setDateScale('day')">日</span>
-        <span class="tool-sep"></span>
-        <span class="date-nav">
-          <span class="nav-btn" onclick="navDate(-1)">&lt;</span>
-          <span class="nav-label" id="dateNavLabel">-</span>
-          <span class="nav-btn" onclick="navDate(0)">今日</span>
-          <span class="nav-btn" onclick="navDate(1)">&gt;</span>
-        </span>
-      </span>
+      <span class="tool-btn" style="background:#4a148c;color:#fff;border-color:#38006b;" onclick="aiAnalyzeSelected()">[🤖 AI一括分析]</span>
       <span class="tool-sep"></span>
       <span class="tool-label">ビュー:</span>
       <select class="tool-select" id="filterViewSelect" onchange="applyFilterView(this.value)">
         <option value="">すべて</option>
       </select>
       <span style="float:right;">
-        <span class="tool-btn" onclick="showSettingsHelp()">[ヘルプ]</span>
+        <span class="tool-btn" onclick="showLibHelp()">[ヘルプ]</span>
       </span>
     </div>
     <!-- ===== MAIN AREA ===== -->
@@ -570,12 +608,12 @@ function generateCSV(headers, rows) {
 }
 
 // ========================================================================
-// DEFAULT PROJECT MANAGEMENT TEMPLATE CONFIG
+// LIBRARIAN DEFAULT CONFIG
 // ========================================================================
 function getDefaultConfig() {
   return {
     app: {
-      name: "プロジェクト管理",
+      name: "📚 ライブラリアン",
       version: "1.0.0",
       configVer: 4,
       theme: "light",
@@ -583,184 +621,77 @@ function getDefaultConfig() {
       autoSaveIntervalSec: 60,
       baseDir: "./data/",
       undoLimit: 50,
-      toastDurationMs: 3000
+      toastDurationMs: 3000,
+      anthropicApiKey: "",
+      categories: ["技術","ビジネス","デザイン","参考","ツール","ドキュメント","その他"]
     },
     tabs: [
       {
-        id: "tab_dashboard", label: "ダッシュボード", icon: "dashboard", visible: true, order: 1,
+        id: "tab_dashboard", label: "🏠 ダッシュボード", visible: true, order: 1,
         layout: { direction: "horizontal", panes: [
-          { id: "pane_dashboard", type: "dashboard", widthPercent: 100, config: {} }
+          { id: "pane_lib_dash", type: "lib_dashboard", widthPercent: 100, config: {} }
         ]}
       },
       {
-        id: "tab_wbs", label: "WBS / スケジュール", icon: "gantt", visible: true, order: 2,
+        id: "tab_library", label: "📚 ライブラリ", visible: true, order: 2,
         layout: { direction: "horizontal", panes: [
-          { id: "pane_wbs_001", type: "wbs", widthPercent: 40, config: {
-            dataFile: "wbs_tasks.csv",
+          { id: "pane_lib_list", type: "list", widthPercent: 52, config: {
+            dataFile: "library.csv",
             columns: [
-              { key: "wbs_no", label: "WBS No", type: "text", width: 70, auto: true },
-              { key: "task_name", label: "タスク名", type: "text", width: 180 },
-              { key: "assignee", label: "担当者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
-              { key: "start_date", label: "開始日", type: "date", width: 100 },
-              { key: "end_date", label: "終了日", type: "date", width: 100 },
-              { key: "progress", label: "進捗%", type: "number", width: 55 },
-              { key: "status", label: "状態", type: "select", width: 75, options: ["未着手","進行中","完了","保留"] }
+              { key: "id",              label: "ID",       type: "text",   width: 55, readonly: true },
+              { key: "title",           label: "タイトル",  type: "text",   width: 200 },
+              { key: "category",        label: "カテゴリ",  type: "select", width: 85,
+                options: ["技術","ビジネス","デザイン","参考","ツール","ドキュメント","その他"] },
+              { key: "tags",            label: "タグ",      type: "text",   width: 160 },
+              { key: "status",          label: "状態",      type: "select", width: 65,
+                options: ["未読","読中","読了","保留"] },
+              { key: "rating",          label: "評価",      type: "select", width: 70,
+                options: ["","★","★★","★★★","★★★★","★★★★★"] },
+              { key: "registered_date", label: "登録日",    type: "date",   width: 95 }
             ]
           }},
-          { id: "pane_gantt_001", type: "gantt", widthPercent: 60, config: {
-            dataFile: "wbs_tasks.csv",
-            taskNameColumn: "task_name",
-            startDateColumn: "start_date",
-            endDateColumn: "end_date",
-            progressColumn: "progress",
-            statusColumn: "status",
-            dependencyColumn: "dependency",
-            defaultScale: "week",
-            showTodayLine: true,
-            barColors: { "未着手":"#B0BEC5", "進行中":"#42A5F5", "完了":"#66BB6A", "保留":"#FFA726", "遅延":"#EF5350" }
+          { id: "pane_lib_detail", type: "lib_detail", widthPercent: 48, config: {
+            linkedPane: "pane_lib_list",
+            dataFile: "library.csv"
           }}
         ]}
       },
       {
-        id: "tab_tasks", label: "タスク一覧", icon: "list", visible: true, order: 3,
+        id: "tab_tags", label: "🏷️ タグ管理", visible: true, order: 3,
         layout: { direction: "horizontal", panes: [
-          { id: "pane_task_list", type: "list", widthPercent: 55, config: {
-            dataFile: "wbs_tasks.csv",
-            columns: [
-              { key: "id", label: "ID", type: "text", width: 60, readonly: true },
-              { key: "wbs_no", label: "WBS No", type: "text", width: 70 },
-              { key: "task_name", label: "タスク名", type: "text", width: 200 },
-              { key: "assignee", label: "担当者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
-              { key: "start_date", label: "開始日", type: "date", width: 100 },
-              { key: "end_date", label: "終了日", type: "date", width: 100 },
-              { key: "progress", label: "進捗%", type: "number", width: 55 },
-              { key: "status", label: "状態", type: "select", width: 75, options: ["未着手","進行中","完了","保留"] },
-              { key: "priority", label: "優先度", type: "select", width: 65, options: ["高","中","低"] },
-              { key: "milestone", label: "MS", type: "checkbox", width: 30 },
-              { key: "notes", label: "備考", type: "text", width: 150 }
-            ],
-            dateFilter: { enabled: true, column: "end_date", defaultScale: "week" }
-          }},
-          { id: "pane_task_detail", type: "detail", widthPercent: 45, config: {
-            linkedPane: "pane_task_list",
-            dataFile: "wbs_tasks.csv"
+          { id: "pane_tagcloud", type: "tagcloud", widthPercent: 100, config: {
+            dataFile: "library.csv",
+            tagColumn: "tags"
           }}
         ]}
       },
       {
-        id: "tab_minutes", label: "議事録", icon: "edit", visible: true, order: 4,
-        layout: { direction: "horizontal", panes: [
-          { id: "pane_minutes_list", type: "list", widthPercent: 40, config: {
-            dataFile: "minutes.csv",
-            columns: [
-              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
-              { key: "date", label: "日付", type: "date", width: 100 },
-              { key: "title", label: "会議名", type: "text", width: 180 },
-              { key: "attendees", label: "参加者", type: "text", width: 120 },
-              { key: "status", label: "状態", type: "select", width: 70, options: ["作成中","確定"] }
-            ]
-          }},
-          { id: "pane_minutes_editor", type: "editor", widthPercent: 60, config: {
-            dataFile: "",
-            linkedPane: "pane_minutes_list",
-            fileColumn: "file_path",
-            baseDir: "minutes/"
-          }}
-        ]}
-      },
-      {
-        id: "tab_requests", label: "依頼事項", icon: "request", visible: true, order: 5,
-        layout: { direction: "horizontal", panes: [
-          { id: "pane_req_list", type: "list", widthPercent: 55, config: {
-            dataFile: "requests.csv",
-            columns: [
-              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
-              { key: "request_date", label: "依頼日", type: "date", width: 95 },
-              { key: "requester", label: "依頼者", type: "text", width: 80 },
-              { key: "target", label: "依頼先", type: "text", width: 80 },
-              { key: "title", label: "件名", type: "text", width: 180 },
-              { key: "due_date", label: "期限", type: "date", width: 95 },
-              { key: "status", label: "状態", type: "select", width: 75, options: ["依頼中","回答済","完了","取下げ"] }
-            ],
-            dateFilter: { enabled: true, column: "due_date", defaultScale: "month" }
-          }},
-          { id: "pane_req_detail", type: "detail", widthPercent: 45, config: {
-            linkedPane: "pane_req_list",
-            dataFile: "requests.csv"
-          }}
-        ]}
-      },
-      {
-        id: "tab_risks", label: "リスク管理", icon: "warning", visible: true, order: 6,
-        layout: { direction: "horizontal", panes: [
-          { id: "pane_risk_list", type: "list", widthPercent: 55, config: {
-            dataFile: "risks.csv",
-            columns: [
-              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
-              { key: "registered_date", label: "登録日", type: "date", width: 95 },
-              { key: "category", label: "分類", type: "select", width: 80, options: ["技術","スケジュール","コスト","品質","外部","その他"] },
-              { key: "description", label: "リスク内容", type: "text", width: 200 },
-              { key: "probability", label: "発生確率", type: "select", width: 70, options: ["高","中","低"] },
-              { key: "impact", label: "影響度", type: "select", width: 70, options: ["高","中","低"] },
-              { key: "owner", label: "責任者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
-              { key: "status", label: "状態", type: "select", width: 75, options: ["監視中","対策中","顕在化","クローズ"] }
-            ]
-          }},
-          { id: "pane_risk_detail", type: "detail", widthPercent: 45, config: {
-            linkedPane: "pane_risk_list",
-            dataFile: "risks.csv"
-          }}
-        ]}
-      },
-      {
-        id: "tab_issues", label: "課題管理", icon: "issue", visible: true, order: 7,
-        layout: { direction: "horizontal", panes: [
-          { id: "pane_issue_list", type: "list", widthPercent: 55, config: {
-            dataFile: "issues.csv",
-            columns: [
-              { key: "id", label: "ID", type: "text", width: 50, readonly: true },
-              { key: "registered_date", label: "起票日", type: "date", width: 95 },
-              { key: "title", label: "課題名", type: "text", width: 180 },
-              { key: "severity", label: "重要度", type: "select", width: 65, options: ["重大","高","中","低"] },
-              { key: "assignee", label: "対応者", type: "select", width: 80, options: ["","田中","佐藤","鈴木","山田","高橋"] },
-              { key: "due_date", label: "期限", type: "date", width: 95 },
-              { key: "status", label: "状態", type: "select", width: 75, options: ["未着手","対応中","完了","保留"] }
-            ],
-            dateFilter: { enabled: true, column: "due_date", defaultScale: "month" }
-          }},
-          { id: "pane_issue_detail", type: "detail", widthPercent: 45, config: {
-            linkedPane: "pane_issue_list",
-            dataFile: "issues.csv"
-          }}
-        ]}
-      },
-      {
-        id: "tab_settings", label: "⚙ 設定", icon: "settings", visible: true, order: 99,
+        id: "tab_settings", label: "⚙ 設定", visible: true, order: 99,
         layout: { direction: "horizontal", panes: [
           { id: "pane_settings", type: "settings", widthPercent: 100, config: {} }
         ]}
       }
     ],
     highlightRules: {
-      global: [
-        { id: "hl_overdue", label: "期限超過", condition: { column: "end_date,due_date", operator: "before", value: "TODAY" }, statusCheck: { column: "status", notEquals: "完了" }, style: { className: "hl-overdue" }, enabled: true, priority: 1 },
-        { id: "hl_due_soon", label: "期限間近(3日)", condition: { column: "end_date,due_date", operator: "within_days", value: 3 }, statusCheck: { column: "status", notEquals: "完了" }, style: { className: "hl-due-soon" }, enabled: true, priority: 2 }
-      ],
-      panes: {}
+      global: [],
+      panes: {
+        "pane_lib_list": [
+          { id: "hl_unread",   label: "未読", condition: { column:"status", operator:"equals", value:"未読" }, style:{ className:"hl-due-soon"  }, enabled:true, priority:1 },
+          { id: "hl_reading",  label: "読中", condition: { column:"status", operator:"equals", value:"読中" }, style:{ className:"hl-milestone" }, enabled:true, priority:2 }
+        ]
+      }
     },
     filterViews: {
       "default": [
-        { id: "view_all", label: "すべて", filter: null },
-        { id: "view_incomplete", label: "未完了のみ", filter: { column: "status", operator: "notEquals", value: "完了" } },
-        { id: "view_high_priority", label: "高優先度", filter: { column: "priority", operator: "equals", value: "高" } }
+        { id: "view_all",     label: "すべて",    filter: null },
+        { id: "view_unread",  label: "未読",      filter: { column:"status", operator:"equals", value:"未読" } },
+        { id: "view_reading", label: "読中",      filter: { column:"status", operator:"equals", value:"読中" } },
+        { id: "view_done",    label: "読了",      filter: { column:"status", operator:"equals", value:"読了" } },
+        { id: "view_5star",   label: "★★★★★",   filter: { column:"rating", operator:"equals", value:"★★★★★" } }
       ]
     },
     paneLinks: [
-      { source: "pane_task_list", target: "pane_task_detail", trigger: "selectRow", action: "showDetail" },
-      { source: "pane_req_list", target: "pane_req_detail", trigger: "selectRow", action: "showDetail" },
-      { source: "pane_risk_list", target: "pane_risk_detail", trigger: "selectRow", action: "showDetail" },
-      { source: "pane_issue_list", target: "pane_issue_detail", trigger: "selectRow", action: "showDetail" },
-      { source: "pane_minutes_list", target: "pane_minutes_editor", trigger: "selectRow", action: "loadFile" }
+      { source:"pane_lib_list", target:"pane_lib_detail", trigger:"selectRow", action:"showDetail" }
     ]
   };
 }
@@ -1147,18 +1078,562 @@ function renderPaneContent(pane) {
   var el = document.getElementById('pane_' + pane.id);
   if (!el) return;
   switch(pane.type) {
-    case 'list': renderListPane(pane, el); break;
-    case 'detail': renderDetailPane(pane, el); break;
-    case 'editor': renderEditorPane(pane, el); break;
-    case 'tree': renderTreePane(pane, el); break;
-    case 'wbs': renderWbsPane(pane, el); break;
-    case 'gantt': renderGanttPane(pane, el); break;
-    case 'menu': renderMenuPane(pane, el); break;
-    case 'settings': renderSettingsPane(pane, el); break;
-    case 'dashboard': renderDashboardPane(pane, el); break;
+    case 'list':         renderListPane(pane, el); break;
+    case 'detail':       renderDetailPane(pane, el); break;
+    case 'editor':       renderEditorPane(pane, el); break;
+    case 'tree':         renderTreePane(pane, el); break;
+    case 'wbs':          renderWbsPane(pane, el); break;
+    case 'gantt':        renderGanttPane(pane, el); break;
+    case 'menu':         renderMenuPane(pane, el); break;
+    case 'settings':     renderSettingsPane(pane, el); break;
+    case 'dashboard':    renderDashboardPane(pane, el); break;
+    case 'lib_detail':   renderLibDetailPane(pane, el); break;
+    case 'lib_dashboard':renderLibDashboardPane(pane, el); break;
+    case 'tagcloud':     renderTagCloudPane(pane, el); break;
     default: el.innerHTML = '<div style="padding:20px;color:#999;">未実装のペインタイプ: ' + escapeHtml(pane.type) + '</div>';
   }
 }
+
+// ========================================================================
+// LIBRARY: ADD ITEM DIALOG
+// ========================================================================
+function addLibraryItem() {
+  var cats = (CONFIG.app && CONFIG.app.categories) || ["技術","ビジネス","デザイン","参考","ツール","ドキュメント","その他"];
+  modal('form', {
+    title: '📚 ドキュメントを追加',
+    width: 520,
+    fields: [
+      { key: 'title',    label: 'タイトル',               type: 'text' },
+      { key: 'url',      label: 'URL / ファイルパス',     type: 'text' },
+      { key: 'category', label: 'カテゴリ',               type: 'select', options: cats },
+      { key: 'tags',     label: 'タグ（カンマ区切り）',   type: 'text' },
+      { key: 'status',   label: '状態',                   type: 'select', options: ['未読','読中','読了','保留'] },
+      { key: 'notes',    label: 'メモ',                   type: 'textarea' }
+    ]
+  }, function(r, data) {
+    if (r !== 'ok' || !data.title) return;
+    var tab = getTabById('tab_library');
+    if (!tab) return;
+    var listPane = null;
+    tab.layout.panes.forEach(function(p){ if(p.type==='list') listPane=p; });
+    if (!listPane) return;
+    loadDataForPane(listPane);
+    var ds = DATA_STORE[listPane.id];
+    if (!ds) { DATA_STORE[listPane.id]=[]; ds=DATA_STORE[listPane.id]; ds._headers=listPane.config.columns.map(function(c){return c.key;}); ds._file=listPane.config.dataFile; }
+    var maxNum=0;
+    ds.forEach(function(r2){ var n=parseInt(String(r2.id||'').replace(/\D/g,''),10)||0; if(n>maxNum)maxNum=n; });
+    ds.push({
+      id: 'LIB-'+padZero3(maxNum+1),
+      title: data.title||'',
+      url: data.url||'',
+      category: data.category||'その他',
+      tags: data.tags||'',
+      status: data.status||'未読',
+      rating: '',
+      summary: '',
+      notes: data.notes||'',
+      registered_date: todayStr(),
+      updated_date: todayStr()
+    });
+    markDirty(listPane.id);
+    switchTab('tab_library');
+    var el=document.getElementById('pane_'+listPane.id);
+    if(el) renderListPane(listPane,el);
+    selectListRow(listPane.id, ds.length-1);
+    toast('success','ドキュメントを追加しました');
+  });
+}
+
+// ========================================================================
+// LIBRARY: LIB DETAIL PANE
+// ========================================================================
+function renderLibDetailPane(pane, el) {
+  var linkedPaneId = pane.config ? pane.config.linkedPane : null;
+  var idx = linkedPaneId ? SELECTED_ROW[linkedPaneId] : null;
+  if (idx == null || idx < 0) {
+    el.innerHTML = '<div class="pane-header">詳細</div><div style="padding:20px;color:#999;">左のリストからドキュメントを選択してください</div>';
+    return;
+  }
+  var data = DATA_STORE[linkedPaneId];
+  if (!data || !data[idx]) { el.innerHTML='<div class="pane-header">詳細</div>'; return; }
+  var row = data[idx];
+  var cats = (CONFIG.app && CONFIG.app.categories) || [];
+  var statuses = ['未読','読中','読了','保留'];
+  var ratings = ['','★','★★','★★★','★★★★','★★★★★'];
+
+  function opt(arr, cur) {
+    return arr.map(function(o){ return '<option'+(o===cur?' selected':'')+'>'+escapeHtml(o)+'</option>'; }).join('');
+  }
+
+  var h = '<div class="pane-header">📄 ' + escapeHtml(row.title||'詳細') + '</div>';
+  h += '<div style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow-y:auto;">';
+
+  // ── URL / 開く ──
+  h += '<div class="lib-section">';
+  h += '<label style="font-size:13px;font-weight:bold;color:#455a64;display:block;margin-bottom:4px;">URL / ファイルパス</label>';
+  h += '<div class="lib-url-row">';
+  h += '<input type="text" id="ld_url" value="'+escapeHtml(row.url||'')+'" onblur="libUpdateField(\''+linkedPaneId+'\','+idx+',\'url\',this.value)" style="border:1px solid #c5cae9;padding:5px 8px;font-size:14px;">';
+  h += '<button class="lib-open-btn" onclick="libOpenURL(\''+linkedPaneId+'\','+idx+')">🔗 開く</button>';
+  h += '</div></div>';
+
+  // ── 基本情報 ──
+  h += '<div class="lib-section">';
+  h += '<label style="font-size:13px;font-weight:bold;color:#455a64;display:block;margin-bottom:4px;">タイトル</label>';
+  h += '<input type="text" id="ld_title" value="'+escapeHtml(row.title||'')+'" onblur="libUpdateField(\''+linkedPaneId+'\','+idx+',\'title\',this.value)" style="width:97%;border:1px solid #c5cae9;padding:5px 8px;font-size:14px;">';
+
+  h += '<div style="display:flex;gap:12px;margin-top:8px;">';
+  h += '<div style="flex:1;"><label style="font-size:12px;color:#78909c;font-weight:bold;">カテゴリ</label><br>';
+  h += '<select onchange="libUpdateField(\''+linkedPaneId+'\','+idx+',\'category\',this.value)" style="width:100%;border:1px solid #c5cae9;padding:4px;">'+opt(cats,row.category)+'</select></div>';
+  h += '<div style="flex:1;"><label style="font-size:12px;color:#78909c;font-weight:bold;">状態</label><br>';
+  h += '<select onchange="libUpdateField(\''+linkedPaneId+'\','+idx+',\'status\',this.value)" style="width:100%;border:1px solid #c5cae9;padding:4px;">'+opt(statuses,row.status)+'</select></div>';
+  h += '<div style="flex:1;"><label style="font-size:12px;color:#78909c;font-weight:bold;">評価</label><br>';
+  h += '<select onchange="libUpdateField(\''+linkedPaneId+'\','+idx+',\'rating\',this.value)" style="width:100%;border:1px solid #c5cae9;padding:4px;">'+opt(ratings,row.rating)+'</select></div>';
+  h += '</div></div>';
+
+  // ── タグ ──
+  h += '<div class="lib-section">';
+  h += '<label style="font-size:13px;font-weight:bold;color:#455a64;display:block;margin-bottom:4px;">タグ <span style="font-size:11px;color:#9e9e9e;font-weight:normal;">（カンマ区切り）</span></label>';
+  h += '<input type="text" id="ld_tags" value="'+escapeHtml(row.tags||'')+'" onblur="libUpdateField(\''+linkedPaneId+'\','+idx+',\'tags\',this.value)" style="width:97%;border:1px solid #c5cae9;padding:5px 8px;font-size:14px;">';
+  h += '</div>';
+
+  // ── 概要（AI） ──
+  h += '<div class="lib-section">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">';
+  h += '<label style="font-size:13px;font-weight:bold;color:#455a64;">概要</label>';
+  h += '<span>';
+  h += '<button class="ai-btn" id="btnAiSummary" onclick="aiGenerateSummary(\''+linkedPaneId+'\','+idx+')">🤖 概要を生成</button>';
+  h += '<button class="ai-btn" id="btnAiTags" onclick="aiSuggestTags(\''+linkedPaneId+'\','+idx+')">🏷️ タグ提案</button>';
+  h += '</span></div>';
+  h += '<textarea class="lib-textarea" id="ld_summary" onblur="libUpdateField(\''+linkedPaneId+'\','+idx+',\'summary\',this.value)">'+escapeHtml(row.summary||'')+'</textarea>';
+  h += '</div>';
+
+  // ── メモ ──
+  h += '<div class="lib-section">';
+  h += '<label style="font-size:13px;font-weight:bold;color:#455a64;display:block;margin-bottom:4px;">メモ</label>';
+  h += '<textarea class="lib-textarea" id="ld_notes" onblur="libUpdateField(\''+linkedPaneId+'\','+idx+',\'notes\',this.value)">'+escapeHtml(row.notes||'')+'</textarea>';
+  h += '</div>';
+
+  // ── 類似ドキュメント ──
+  h += '<div class="lib-section">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">';
+  h += '<label style="font-size:13px;font-weight:bold;color:#455a64;">類似ドキュメント</label>';
+  h += '<button class="ai-btn" id="btnAiSimilar" onclick="aiSimilarDocs(\''+linkedPaneId+'\','+idx+')">🔍 AI で探す</button>';
+  h += '</div>';
+  h += '<div id="similar_docs_area" style="min-height:40px;color:#9e9e9e;font-size:13px;">AI ボタンを押すと候補を表示します</div>';
+  h += '</div>';
+
+  // ── 登録日 ──
+  h += '<div class="lib-section" style="color:#9e9e9e;font-size:12px;">登録日: '+escapeHtml(row.registered_date||'')+' ／ ID: '+escapeHtml(row.id||'')+'</div>';
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function libUpdateField(paneId, idx, key, val) {
+  var data = DATA_STORE[paneId];
+  if (!data || !data[idx]) return;
+  if (data[idx][key] !== val) {
+    data[idx][key] = val;
+    data[idx]['updated_date'] = todayStr();
+    markDirty(paneId);
+    var pane = findPane(paneId);
+    if (pane) renderListPane(pane, document.getElementById('pane_'+paneId));
+  }
+}
+
+function libOpenURL(paneId, idx) {
+  var data = DATA_STORE[paneId];
+  if (!data || !data[idx]) return;
+  var url = data[idx].url || '';
+  if (!url) { toast('warning','URLが未設定です'); return; }
+  try {
+    window.execScript('openURL("'+url.replace(/"/g,'""')+'")', 'VBScript');
+  } catch(e) { toast('error','URLを開けませんでした'); }
+}
+
+// ========================================================================
+// LIBRARY: TAG CLOUD PANE
+// ========================================================================
+function renderTagCloudPane(pane, el) {
+  var data = DATA_STORE[pane.id] || [];
+  loadDataForPane(pane);
+  data = DATA_STORE[pane.id] || [];
+
+  // Count tags
+  var tagMap = {};
+  data.forEach(function(row) {
+    var tags = String(row.tags||'').split(',');
+    tags.forEach(function(t){
+      t = t.trim();
+      if (t) { tagMap[t] = (tagMap[t]||0)+1; }
+    });
+  });
+  var tagList = [];
+  for (var k in tagMap) tagList.push({ tag:k, count:tagMap[k] });
+  tagList.sort(function(a,b){ return b.count - a.count; });
+
+  var maxCount = tagList.length > 0 ? tagList[0].count : 1;
+
+  var h = '<div class="pane-header">🏷️ タグ管理 ('+tagList.length+'種類)</div>';
+  h += '<div style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow-y:auto;padding:16px;">';
+
+  // Tag cloud
+  h += '<div style="margin-bottom:16px;">';
+  tagList.forEach(function(ti){
+    var sz = 12 + Math.round((ti.count / maxCount) * 14);
+    h += '<span class="tag-pill" style="font-size:'+sz+'px;" onclick="filterByTag(\''+escapeHtml(ti.tag)+'\')" title="'+ti.count+'件">';
+    h += escapeHtml(ti.tag)+'<span class="tag-count">'+ti.count+'</span></span>';
+  });
+  h += '</div>';
+
+  // Tag table
+  h += '<hr style="border:none;border-top:1px solid #e8eaf6;margin:10px 0;">';
+  h += '<h4 style="font-size:13px;color:#283593;margin-bottom:8px;">タグ一覧</h4>';
+  h += '<table class="list-table" style="width:auto;">';
+  h += '<thead><tr><th style="width:200px;">タグ</th><th style="width:60px;">件数</th><th style="width:120px;">操作</th></tr></thead><tbody>';
+  tagList.forEach(function(ti){
+    h += '<tr><td>'+escapeHtml(ti.tag)+'</td><td style="text-align:center;">'+ti.count+'</td>';
+    h += '<td><span class="tool-btn" style="font-size:12px;" onclick="filterByTag(\''+escapeHtml(ti.tag)+'\')">絞り込み</span> ';
+    h += '<span class="tool-btn" style="font-size:12px;" onclick="renameTagAll(\''+escapeHtml(ti.tag)+'\')">リネーム</span></td></tr>';
+  });
+  h += '</tbody></table></div>';
+  el.innerHTML = h;
+}
+
+function filterByTag(tag) {
+  // switch to library tab and apply filter
+  switchTab('tab_library');
+  var listPane = findPane('pane_lib_list');
+  if (!listPane) return;
+  if (!LIST_FILTERS['pane_lib_list']) LIST_FILTERS['pane_lib_list'] = {};
+  LIST_FILTERS['pane_lib_list']['tags'] = tag.toLowerCase();
+  var el = document.getElementById('pane_pane_lib_list');
+  if (el) renderListPane(listPane, el);
+  toast('info', 'タグ「'+tag+'」で絞り込みました');
+}
+
+function renameTagAll(oldTag) {
+  modal('prompt',{title:'タグをリネーム',message:'新しいタグ名:',defaultValue:oldTag},function(r,v){
+    if(r!=='ok'||!v||v===oldTag) return;
+    var listPane=findPane('pane_lib_list');
+    if(!listPane) return;
+    var data=DATA_STORE[listPane.id]||[];
+    data.forEach(function(row){
+      var tags=String(row.tags||'').split(',').map(function(t){return t.trim();});
+      var idx2=tags.indexOf(oldTag);
+      if(idx2>=0){ tags[idx2]=v; row.tags=tags.join(','); markDirty(listPane.id); }
+    });
+    toast('success','「'+oldTag+'」→「'+v+'」にリネームしました');
+    var tcPane=findPane('pane_tagcloud');
+    if(tcPane){ loadDataForPane(tcPane); renderTagCloudPane(tcPane,document.getElementById('pane_pane_tagcloud')); }
+  });
+}
+
+// ========================================================================
+// LIBRARY: DASHBOARD PANE
+// ========================================================================
+function renderLibDashboardPane(pane, el) {
+  var listPane = findPane('pane_lib_list');
+  if (listPane) loadDataForPane(listPane);
+  var data = (listPane && DATA_STORE[listPane.id]) ? DATA_STORE[listPane.id] : [];
+
+  var total   = data.length;
+  var unread  = data.filter(function(r){ return r.status==='未読'; }).length;
+  var reading = data.filter(function(r){ return r.status==='読中'; }).length;
+  var done    = data.filter(function(r){ return r.status==='読了'; }).length;
+
+  // Tag cloud (top 10)
+  var tagMap={};
+  data.forEach(function(row){
+    String(row.tags||'').split(',').forEach(function(t){
+      t=t.trim(); if(t) tagMap[t]=(tagMap[t]||0)+1;
+    });
+  });
+  var tagArr=[];
+  for(var k in tagMap) tagArr.push({tag:k,count:tagMap[k]});
+  tagArr.sort(function(a,b){return b.count-a.count;});
+  var topTags=tagArr.slice(0,12);
+
+  // Recent 5
+  var sorted=data.slice(0).sort(function(a,b){
+    return String(b.registered_date||'').localeCompare(String(a.registered_date||''));
+  }).slice(0,5);
+
+  // Category breakdown
+  var catMap={};
+  data.forEach(function(r){ var c=r.category||'その他'; catMap[c]=(catMap[c]||0)+1; });
+
+  var h='<div class="pane-header">🏠 ダッシュボード</div>';
+  h+='<div style="position:absolute;top:30px;left:0;right:0;bottom:0;overflow-y:auto;padding:16px;background:#f0f2f5;">';
+
+  // KPI cards
+  h+='<div>';
+  function card(title,num,sub,color){
+    return '<div class="dash-card"><div class="dash-card-title">'+title+'</div><div class="dash-card-body">'+
+      '<div class="dash-card-num" style="color:'+(color||'#1a237e')+';">'+num+'</div>'+
+      '<div class="dash-card-sub">'+sub+'</div></div></div>';
+  }
+  h+=card('📚 総登録数',total,'件のドキュメント');
+  h+=card('📖 未読',unread,'件が未読','#e65100');
+  h+=card('🔖 読中',reading,'件を読んでいる最中','#1565c0');
+  h+=card('✅ 読了',done,'件を読了','#2e7d32');
+  h+='</div>';
+
+  // Tag cloud
+  if(topTags.length>0){
+    h+='<div style="clear:both;margin-top:16px;border:1px solid #c5cae9;background:#fff;padding:14px;">';
+    h+='<h3 style="font-size:14px;color:#283593;margin-bottom:10px;">🏷️ よく使うタグ</h3>';
+    var maxC=topTags[0].count;
+    topTags.forEach(function(ti){
+      var sz=13+Math.round((ti.count/maxC)*10);
+      h+='<span class="tag-pill" style="font-size:'+sz+'px;" onclick="filterByTag(\''+escapeHtml(ti.tag)+'\')">'+escapeHtml(ti.tag)+'<span class="tag-count">'+ti.count+'</span></span>';
+    });
+    h+='</div>';
+  }
+
+  // Recent registrations
+  if(sorted.length>0){
+    h+='<div style="margin-top:14px;border:1px solid #c5cae9;background:#fff;padding:14px;">';
+    h+='<h3 style="font-size:14px;color:#283593;margin-bottom:8px;">🕐 最近追加したドキュメント</h3>';
+    h+='<table class="list-table" style="width:100%;"><thead><tr><th>タイトル</th><th style="width:90px;">カテゴリ</th><th style="width:70px;">状態</th><th style="width:95px;">登録日</th></tr></thead><tbody>';
+    sorted.forEach(function(r){
+      h+='<tr onclick="jumpToItem(\''+escapeHtml(r.id)+'\')" style="cursor:pointer;">';
+      h+='<td>'+escapeHtml(r.title||'')+'</td><td>'+escapeHtml(r.category||'')+'</td>';
+      h+='<td>'+escapeHtml(r.status||'')+'</td><td>'+escapeHtml(r.registered_date||'')+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }
+
+  // Category breakdown
+  var catKeys=Object.keys(catMap);
+  if(catKeys.length>0){
+    h+='<div style="margin-top:14px;border:1px solid #c5cae9;background:#fff;padding:14px;">';
+    h+='<h3 style="font-size:14px;color:#283593;margin-bottom:8px;">📂 カテゴリ別</h3>';
+    catKeys.sort(function(a,b){return catMap[b]-catMap[a];}).forEach(function(c){
+      var pct=total>0?Math.round(catMap[c]/total*100):0;
+      h+='<div style="margin-bottom:6px;"><span style="display:inline-block;width:110px;font-size:13px;">'+escapeHtml(c)+'</span>';
+      h+='<div class="progress-bar" style="width:160px;display:inline-block;vertical-align:middle;"><div class="progress-fill" style="width:'+pct+'%;background:#42a5f5;"></div></div>';
+      h+='<span style="font-size:13px;margin-left:6px;">'+catMap[c]+'件</span></div>';
+    });
+    h+='</div>';
+  }
+
+  h+='</div>';
+  el.innerHTML=h;
+}
+
+function jumpToItem(id) {
+  switchTab('tab_library');
+  var listPane=findPane('pane_lib_list');
+  if(!listPane) return;
+  var data=DATA_STORE[listPane.id]||[];
+  for(var i=0;i<data.length;i++){
+    if(data[i].id===id){ selectListRow(listPane.id,i); break; }
+  }
+}
+
+// ========================================================================
+// AI FEATURES (Anthropic API)
+// ========================================================================
+function getApiKey() {
+  return (CONFIG.app && CONFIG.app.anthropicApiKey) || '';
+}
+
+function aiShowSpinner(show) {
+  var sp = document.getElementById('aiSpinner');
+  if (sp) sp.style.display = show ? 'block' : 'none';
+}
+
+function aiFetch(prompt, callback) {
+  var key = getApiKey();
+  if (!key) {
+    modal('prompt',{title:'APIキー設定',message:'Anthropic APIキーを入力してください:',defaultValue:''},function(r,v){
+      if(r!=='ok'||!v) return;
+      CONFIG.app.anthropicApiKey=v; saveConfig();
+      aiFetch(prompt, callback);
+    });
+    return;
+  }
+  aiShowSpinner(true);
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST','https://api.anthropic.com/v1/messages',true);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.setRequestHeader('x-api-key', key);
+  xhr.setRequestHeader('anthropic-version','2023-06-01');
+  xhr.onreadystatechange = function(){
+    if(xhr.readyState===4){
+      aiShowSpinner(false);
+      if(xhr.status===200){
+        try{
+          var res=JSON.parse(xhr.responseText);
+          var text=res.content&&res.content[0]?res.content[0].text:'';
+          callback(null,text);
+        }catch(e){ callback('パースエラー: '+e,null); }
+      } else {
+        callback('APIエラー: '+xhr.status+' '+xhr.responseText,null);
+      }
+    }
+  };
+  xhr.send(JSON.stringify({
+    model:'claude-sonnet-4-20250514',
+    max_tokens:1000,
+    messages:[{role:'user',content:prompt}]
+  }));
+}
+
+function aiGenerateSummary(paneId, idx) {
+  var data=DATA_STORE[paneId];
+  if(!data||!data[idx]) return;
+  var row=data[idx];
+  var title=row.title||'';
+  var url=row.url||'';
+  var tags=row.tags||'';
+  if(!title&&!url){ toast('warning','タイトルまたはURLを入力してください'); return; }
+
+  var btn=document.getElementById('btnAiSummary');
+  if(btn){ btn.className='ai-btn loading'; btn.innerText='生成中...'; }
+
+  var prompt='以下のドキュメントについて、日本語で2〜4文の簡潔な概要を書いてください。\n'
+    +'タイトル: '+title+'\nURL: '+url+'\nタグ: '+tags+'\n\n'
+    +'概要のみを出力してください（前置き・説明不要）。';
+
+  aiFetch(prompt, function(err, text){
+    if(btn){ btn.className='ai-btn'; btn.innerText='🤖 概要を生成'; }
+    if(err){ toast('error','AI エラー: '+err); return; }
+    data[idx].summary=text.trim();
+    data[idx].updated_date=todayStr();
+    markDirty(paneId);
+    var ta=document.getElementById('ld_summary');
+    if(ta) ta.value=data[idx].summary;
+    toast('success','概要を生成しました');
+  });
+}
+
+function aiSuggestTags(paneId, idx) {
+  var data=DATA_STORE[paneId];
+  if(!data||!data[idx]) return;
+  var row=data[idx];
+  var title=row.title||'';
+  var summary=row.summary||'';
+  var url=row.url||'';
+  if(!title){ toast('warning','タイトルを入力してください'); return; }
+
+  var btn=document.getElementById('btnAiTags');
+  if(btn){ btn.className='ai-btn loading'; btn.innerText='提案中...'; }
+
+  var prompt='以下のドキュメントに適したタグを5〜8個、日本語で提案してください。\n'
+    +'タイトル: '+title+'\nURL: '+url+'\n概要: '+summary+'\n\n'
+    +'タグはカンマ区切りで一行に出力してください（例: Python,機械学習,入門）。前置き不要。';
+
+  aiFetch(prompt, function(err, text){
+    if(btn){ btn.className='ai-btn'; btn.innerText='🏷️ タグ提案'; }
+    if(err){ toast('error','AI エラー: '+err); return; }
+    var suggested=text.trim().replace(/^[「『"]|[」』"]$/g,'');
+    modal('confirm',{title:'タグを適用しますか？',message:'提案タグ:\n'+suggested+'\n\n現在のタグ:「'+(row.tags||'なし')+'」に追加しますか？',okLabel:'追加',thirdLabel:'置き換え'},function(r){
+      if(r==='ok'){
+        var cur=row.tags?row.tags+','+suggested:suggested;
+        // dedupe
+        var merged=[]; cur.split(',').forEach(function(t){ t=t.trim(); if(t&&merged.indexOf(t)<0) merged.push(t); });
+        data[idx].tags=merged.join(',');
+      } else if(r==='third'){
+        data[idx].tags=suggested;
+      } else { return; }
+      data[idx].updated_date=todayStr();
+      markDirty(paneId);
+      var tf=document.getElementById('ld_tags');
+      if(tf) tf.value=data[idx].tags;
+      toast('success','タグを更新しました');
+    });
+  });
+}
+
+function aiSimilarDocs(paneId, idx) {
+  var data=DATA_STORE[paneId];
+  if(!data||!data[idx]) return;
+  var row=data[idx];
+  var title=row.title||'';
+  var tags=row.tags||'';
+  var summary=row.summary||'';
+  var category=row.category||'';
+
+  // Build library list for AI
+  var others=[];
+  data.forEach(function(r,i){
+    if(i!==idx) others.push(i+'. タイトル:'+r.title+' タグ:'+r.tags+' カテゴリ:'+r.category);
+  });
+  if(others.length===0){ toast('info','他にドキュメントがありません'); return; }
+
+  var btn=document.getElementById('btnAiSimilar');
+  if(btn){ btn.className='ai-btn loading'; btn.innerText='検索中...'; }
+
+  var prompt='以下のドキュメントと内容・テーマが類似するドキュメントをリストから最大3件選んでください。\n\n'
+    +'【対象】タイトル: '+title+' / タグ: '+tags+' / カテゴリ: '+category+' / 概要: '+summary+'\n\n'
+    +'【ライブラリ一覧】\n'+others.slice(0,50).join('\n')+'\n\n'
+    +'以下のJSON配列のみ出力してください（前置き不要）:\n'
+    +'[{"index":番号,"reason":"類似理由（日本語20字以内）"},...]\n'
+    +'類似するものがなければ空配列[]を返してください。';
+
+  aiFetch(prompt, function(err, text){
+    if(btn){ btn.className='ai-btn'; btn.innerText='🔍 AI で探す'; }
+    var area=document.getElementById('similar_docs_area');
+    if(!area) return;
+    if(err){ area.innerHTML='<span style="color:#c62828;">エラー: '+escapeHtml(err)+'</span>'; return; }
+    try {
+      var clean=text.replace(/```json|```/g,'').trim();
+      var results=JSON.parse(clean);
+      if(!results||results.length===0){ area.innerHTML='<span style="color:#9e9e9e;">類似ドキュメントが見つかりませんでした</span>'; return; }
+      var h='';
+      results.forEach(function(r){
+        var i=parseInt(r.index,10)-1;
+        if(i<0||i>=data.length||i===idx) return;
+        var d=data[i];
+        h+='<div class="sim-card" onclick="jumpToItem(\''+escapeHtml(d.id)+'\')">';
+        h+='<div class="sc-title">'+escapeHtml(d.title||'')+'</div>';
+        h+='<div class="sc-meta">'+escapeHtml(d.category||'')+(d.tags?' ・ '+escapeHtml(d.tags):'')+'</div>';
+        h+='<div class="sc-reason">💡 '+escapeHtml(r.reason||'')+'</div>';
+        h+='</div>';
+      });
+      area.innerHTML=h||'<span style="color:#9e9e9e;">類似ドキュメントが見つかりませんでした</span>';
+    } catch(e){
+      area.innerHTML='<span style="color:#c62828;">解析エラー</span>';
+    }
+  });
+}
+
+function aiAnalyzeSelected() {
+  var listPane=findPane('pane_lib_list');
+  if(!listPane){ toast('warning','ライブラリタブを開いてください'); return; }
+  var idx=SELECTED_ROW['pane_lib_list'];
+  if(idx==null){ toast('warning','ドキュメントを選択してください'); return; }
+  switchTab('tab_library');
+  setTimeout(function(){
+    aiGenerateSummary('pane_lib_list',idx);
+  },300);
+}
+
+// ========================================================================
+// HELP
+// ========================================================================
+function showLibHelp() {
+  modal('alert',{
+    title:'📚 ライブラリアン ヘルプ',
+    message:'■ 基本操作\n'
+      +'  Ctrl+S: 保存\n'
+      +'  Ctrl+Tab: タブ切替\n'
+      +'  矢印キー: リスト移動\n'
+      +'  Enter/F2: セル編集\n'
+      +'  Del: 行削除\n\n'
+      +'■ AI 機能（要 Anthropic APIキー）\n'
+      +'  🤖 概要を生成: URLとタイトルから概要を自動生成\n'
+      +'  🏷️ タグ提案: 内容に合うタグをAIが提案\n'
+      +'  🔍 類似を探す: ライブラリ内の類似ドキュメントを推薦\n\n'
+      +'■ APIキーの設定\n'
+      +'  設定タブ → アプリケーション基本設定 → Anthropic API キー\n'
+      +'  または、AI ボタンを押すと入力ダイアログが出ます'
+  });
+}
+
+
 
 // ========================================================================
 // LIST PANE
@@ -2373,6 +2848,7 @@ function renderSettingsPane(pane, el) {
   h += settingsInput('自動保存間隔(秒)', 'app_autoSaveInterval', CONFIG.app.autoSaveIntervalSec);
   h += settingsInput('通知表示時間(ms)', 'app_toastDuration', CONFIG.app.toastDurationMs);
   h += settingsInput('Undo上限', 'app_undoLimit', CONFIG.app.undoLimit);
+  h += '<div class="settings-row"><label>Anthropic APIキー</label><input type="password" id="si_apikey" value="'+escapeHtml(CONFIG.app.anthropicApiKey||'')+'" style="width:280px;border:1px solid #c5cae9;padding:4px 8px;font-size:14px;"></div>';
   h += '<div class="settings-row"><label></label><span class="settings-btn" onclick="applyAppSettings()">適用</span></div>';
   h += '</div></div>';
 
@@ -2484,6 +2960,8 @@ function applyAppSettings() {
   CONFIG.app.autoSaveIntervalSec = parseInt(document.getElementById('si_app_autoSaveInterval').value, 10) || 60;
   CONFIG.app.toastDurationMs = parseInt(document.getElementById('si_app_toastDuration').value, 10) || 3000;
   CONFIG.app.undoLimit = parseInt(document.getElementById('si_app_undoLimit').value, 10) || 50;
+  var apikeyEl = document.getElementById('si_apikey');
+  if (apikeyEl) CONFIG.app.anthropicApiKey = apikeyEl.value;
   document.getElementById('appName').innerText = CONFIG.app.name;
   document.getElementById('appVersion').innerText = 'v' + CONFIG.app.version;
   saveConfig();
@@ -3227,7 +3705,7 @@ function initApp() {
   if (!APP_DIR) APP_DIR = './';
 
   loadConfig();
-  document.getElementById('appName').innerText = CONFIG.app.name || 'HTA Dynamic App';
+  document.getElementById('appName').innerText = CONFIG.app.name || '📚 ライブラリアン';
   document.getElementById('appVersion').innerText = 'v' + (CONFIG.app.version || '1.0.0');
 
   renderTabs();
@@ -3240,10 +3718,7 @@ function initApp() {
     if (firstVisible) switchTab(firstVisible);
   }
   initKeyboard();
-
-  // Setup date nav
-  updateDateFilter();
-  document.getElementById('dateNavLabel').innerText = formatDate(new Date());
+  updateFilterViews();
 }
 
 // Start
