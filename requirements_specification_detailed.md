@@ -1338,3 +1338,114 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 | navigator.clipboard を使用しない | IE11以降のAPI。window.clipboardDataで代替 |
 | CSS transition / animation を使用しない | IE9未対応 |
 | `addEventListener` を使用しない | `onclick`属性 or `element.onclick = fn` で代替 |
+
+---
+
+## Module-15: Librarian（リファレンス・リンク管理アプリ）
+
+### M15-00: 概要
+
+ニュース記事・ガイドライン等のリンクやファイルを一元管理するライブラリアンアプリ。HTAとして単体動作する。
+
+### M15-01: データ構造
+
+**保存先:** `librarian_data.json`（HTAと同階層、UTF-8）
+
+**1エントリの構造:**
+
+| フィールド | キー | 型 | 説明 |
+|-----------|------|-----|------|
+| ID | `id` | string | `"L" + timestamp + "_" + random` で自動生成 |
+| カテゴリ | `category` | string | `"news"` or `"guide"` |
+| リンク | `link` | string | URL文字列 |
+| タイトル | `title` | string | エントリの見出し |
+| ソース元 | `source` | string | 情報源（例: Nikkei, Internal, Gov） |
+| ファイル名 | `filename` | string | 添付ファイルの表示名 |
+| ファイルパス | `filepath` | string | ファイルのフルパス（クリック時にWScript.Shell.Runで開く） |
+| タグ | `tags` | string | カンマ or セミコロン区切りのタグ文字列 |
+| 概要 | `summary` | string | 内容の要約・メモ |
+| 作成日 | `created` | string | `YYYY-MM-DD` 形式 |
+
+### M15-02: テーブル表示列
+
+| # | 列名 | 幅 | 内容 |
+|---|------|-----|------|
+| 1 | (checkbox) | 28px | 全選択/個別選択チェックボックス |
+| 2 | Type | 55px | NEWS（青バッジ）/ GUIDE（緑バッジ） |
+| 3 | Title | 200px | タイトル文字列 |
+| 4 | Summary | 200px | 概要（60文字で切詰め、全文はツールチップ表示） |
+| 5 | Link | 170px | URL（35文字で切詰め、クリックで外部ブラウザ起動） |
+| 6 | Source | 100px | ソース元 |
+| 7 | Document | 150px | ファイル種別アイコン + ファイル名（クリックでファイルを開く） |
+| 8 | Tags | 150px | タグをバッジ表示（複数対応） |
+| 9 | Date | 80px | `M/D` 形式の作成日 |
+
+### M15-02a: ファイル種別アイコン仕様
+
+拡張子に基づく色分けバッジを表示し、クリックで `WScript.Shell.Run` によりファイルを開く。
+
+| アイコン | 対象拡張子 | 色 |
+|---------|-----------|-----|
+| DOC | .doc, .docx, .docm | 青 (#4285f4) |
+| XLS | .xls, .xlsx, .xlsm | 緑 (#34a853) |
+| CSV | .csv | 緑 (#34a853) |
+| PPT | .ppt, .pptx, .pptm | 橙 (#ea8600) |
+| PDF | .pdf | 赤 (#ea4335) |
+| IMG | .png, .jpg, .jpeg, .gif, .bmp | 紫 (#a064f0) |
+| TXT | .txt, .md, .log | 灰 (#808ba0) |
+| MAIL | .msg, .eml | 灰 |
+| ZIP | .zip, .rar, .7z | 灰 |
+| (拡張子) | その他 | 灰 (#6b7190) |
+
+**クリック動作:** `openFile(filepath)` → `new ActiveXObject('WScript.Shell').Run('"' + filepath + '"')` で関連アプリケーション起動
+
+### M15-03: カテゴリ分離表示
+
+- サイドバーに3つのナビゲーションボタン: All / News / Guidelines
+- 各ボタンに件数バッジ表示
+- 切替時はテーブルをフィルタ再描画
+
+### M15-04: 入力方法
+
+| 方法 | 動作 |
+|------|------|
+| フォーム手入力 | サイドパネルのフォームで全フィールド入力 |
+| リンクドロップ | ブラウザからURLをウィンドウ上にドロップ → フォーム自動起動 + Link欄セット + ドメインをSource欄に自動抽出 |
+| ファイルドロップ | エクスプローラからファイルをドロップゾーンにドロップ → Filename欄セット |
+| ファイル参照 | VBScript `UserAccounts.CommonDialog` でファイル選択 |
+
+### M15-05: CSV取り込み（News専用）
+
+**フォーマット:** `title,link,source,tags,summary`（5列）
+
+**取り込みフロー:**
+1. モーダルを開く
+2. テキストエリアにCSVを貼付け or .csvファイルをBrowseボタンで選択
+3. 1行目がヘッダー（"title" or "link" を含む）なら自動スキップ
+4. 各行を `category: "news"` で一括登録
+5. title も link も空の行はスキップ
+
+### M15-06: 検索・フィルタ
+
+| 機能 | 対象 |
+|------|------|
+| テキスト検索 | title, tags, source, link, summary, filename を横断部分一致 |
+| カテゴリフィルタ | news / guide |
+| タグフィルタ | サイドバーのタグボタンクリックでトグル（上位20タグ表示） |
+| ソート | 日付新→旧 / 旧→新 / Title A-Z / Source A-Z |
+
+### M15-07: CSV出力
+
+- 現在のフィルタ結果をCSVファイルとしてHTAフォルダに出力
+- ファイル名: `librarian_export_YYYYMMDD.csv`
+- 出力列: category, title, link, source, filename, tags, summary, created
+
+### M15-08: キーボードショートカット
+
+| キー | 動作 |
+|------|------|
+| Ctrl+S | データ保存 |
+| Ctrl+N | 新規エントリフォーム表示 |
+| Esc | フォーム/モーダルを閉じる |
+| Delete | 選択行を削除 |
+

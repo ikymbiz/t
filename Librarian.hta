@@ -125,6 +125,19 @@ button{cursor:pointer;}
 .empty-state{text-align:center;padding:60px 20px;color:#4a4e62;}
 .empty-icon{font-size:48px;margin-bottom:12px;opacity:0.3;}
 .empty-text{font-size:14px;letter-spacing:1px;}
+
+/* === FILE TYPE ICONS === */
+.ficon{display:inline-block;font-size:11px;font-weight:800;padding:3px 6px;margin-right:5px;cursor:pointer;vertical-align:middle;text-align:center;min-width:32px;letter-spacing:0.5px;}
+.ficon:hover{opacity:0.75;}
+.ficon-doc{background:rgba(66,133,244,0.15);border:1px solid rgba(66,133,244,0.35);color:#4285f4;}
+.ficon-xls{background:rgba(52,168,83,0.15);border:1px solid rgba(52,168,83,0.35);color:#34a853;}
+.ficon-ppt{background:rgba(234,134,0,0.15);border:1px solid rgba(234,134,0,0.35);color:#ea8600;}
+.ficon-pdf{background:rgba(234,67,53,0.15);border:1px solid rgba(234,67,53,0.35);color:#ea4335;}
+.ficon-img{background:rgba(160,100,240,0.15);border:1px solid rgba(160,100,240,0.35);color:#a064f0;}
+.ficon-txt{background:rgba(128,139,160,0.15);border:1px solid rgba(128,139,160,0.35);color:#808ba0;}
+.ficon-file{background:rgba(107,113,144,0.15);border:1px solid rgba(107,113,144,0.35);color:#6b7190;}
+.file-name{display:inline-block;vertical-align:middle;font-size:13px;color:#a0a6bc;cursor:pointer;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-name:hover{color:#c8a44e;text-decoration:underline;}
 </style>
 
 <!-- ===== VBSCRIPT ===== -->
@@ -245,13 +258,14 @@ End Function
           <thead>
             <tr>
               <th style="width:28px;"><input type="checkbox" id="chkAll" onclick="toggleAll(this)"></th>
-              <th style="width:60px;" onclick="doSort('category')">Type</th>
-              <th style="width:260px;" onclick="doSort('title')">Title / Summary</th>
-              <th style="width:200px;" onclick="doSort('link')">Link</th>
-              <th style="width:120px;" onclick="doSort('source')">Source</th>
-              <th style="width:120px;">Filename</th>
-              <th style="width:180px;">Tags</th>
-              <th style="width:100px;" onclick="doSort('created')">Date</th>
+              <th style="width:55px;" onclick="doSort('category')">Type</th>
+              <th style="width:200px;" onclick="doSort('title')">Title</th>
+              <th style="width:200px;">Summary</th>
+              <th style="width:170px;" onclick="doSort('link')">Link</th>
+              <th style="width:100px;" onclick="doSort('source')">Source</th>
+              <th style="width:150px;">Document</th>
+              <th style="width:150px;">Tags</th>
+              <th style="width:80px;" onclick="doSort('created')">Date</th>
             </tr>
           </thead>
           <tbody id="tableBody"></tbody>
@@ -289,8 +303,10 @@ End Function
             <input type="text" id="f-source" placeholder="e.g. Nikkei, Internal, Gov...">
           </div>
           <div class="fg">
-            <label>Filename</label>
-            <input type="text" id="f-file" placeholder="attached file name">
+            <label>Document File</label>
+            <input type="text" id="f-file" placeholder="file name" readonly="readonly" style="background:#0a0c12;cursor:default;width:70%;display:inline;" onclick="browseFile()">
+            <button class="btn btn-cancel" onclick="browseFile()" style="padding:7px 12px;margin:0 0 0 4px;vertical-align:top;">Browse</button>
+            <input type="hidden" id="f-filepath" value="">
           </div>
           <div class="fg">
             <label>Tags (comma separated)</label>
@@ -553,13 +569,14 @@ function getFilteredData() {
 function buildTableHead() {
   return '<thead><tr>' +
     '<th style="width:28px;"><input type="checkbox" id="chkAll" onclick="toggleAll(this)"></th>' +
-    '<th style="width:60px;" onclick="doSort(\'category\')">Type</th>' +
-    '<th style="width:260px;" onclick="doSort(\'title\')">Title / Summary</th>' +
-    '<th style="width:200px;" onclick="doSort(\'link\')">Link</th>' +
-    '<th style="width:120px;" onclick="doSort(\'source\')">Source</th>' +
-    '<th style="width:120px;">Filename</th>' +
-    '<th style="width:180px;">Tags</th>' +
-    '<th style="width:100px;" onclick="doSort(\'created\')">Date</th>' +
+    '<th style="width:55px;" onclick="doSort(\'category\')">Type</th>' +
+    '<th style="width:200px;" onclick="doSort(\'title\')">Title</th>' +
+    '<th style="width:200px;">Summary</th>' +
+    '<th style="width:170px;" onclick="doSort(\'link\')">Link</th>' +
+    '<th style="width:100px;" onclick="doSort(\'source\')">Source</th>' +
+    '<th style="width:150px;">Document</th>' +
+    '<th style="width:150px;">Tags</th>' +
+    '<th style="width:80px;" onclick="doSort(\'created\')">Date</th>' +
     '</tr></thead>';
 }
 
@@ -599,19 +616,32 @@ function renderTable() {
       linkHtml = '<span class="link-cell" onclick="openLink(\'' + esc(e.link).replace(/'/g, "\\'") + '\')" title="' + esc(e.link) + '">' + esc(displayLink) + '</span>';
     }
 
-    // summary tooltip
+    // title
     var titleHtml = esc(e.title || '(No title)');
+
+    // summary - show truncated with full text as tooltip
+    var summaryHtml = '';
     if (e.summary) {
-      titleHtml = '<span title="' + esc(e.summary) + '">' + titleHtml + '</span>';
+      var shortSummary = e.summary.length > 60 ? e.summary.substring(0, 60) + '...' : e.summary;
+      summaryHtml = '<span title="' + esc(e.summary) + '" style="color:#a0a6bc;font-size:13px;">' + esc(shortSummary) + '</span>';
     }
 
     rows += '<tr class="' + sel + '" onclick="selectRow(\'' + e.id + '\', event)" ondblclick="openForm(\'edit\',\'' + e.id + '\')">';
     rows += '<td style="text-align:center;"><input type="checkbox" ' + (SELECTED[e.id] ? 'checked' : '') + ' onclick="toggleCheck(\'' + e.id + '\', this, event)"></td>';
     rows += '<td><span class="' + catClass + '">' + catLabel + '</span></td>';
     rows += '<td style="white-space:normal;overflow:visible;">' + titleHtml + '</td>';
+    rows += '<td style="white-space:normal;overflow:visible;">' + summaryHtml + '</td>';
     rows += '<td>' + linkHtml + '</td>';
     rows += '<td>' + esc(e.source || '') + '</td>';
-    rows += '<td title="' + esc(e.filename || '') + '">' + esc(e.filename || '') + '</td>';
+    // Document column: file type icon + clickable name
+    var fileHtml = '';
+    if (e.filename) {
+      var fpath = e.filepath || e.filename;
+      var escapedPath = esc(fpath).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      fileHtml = '<span class="ficon ' + getFileIconClass(e.filename) + '" onclick="openFile(\'' + escapedPath + '\')" title="Open: ' + esc(fpath) + '">' + getFileLabel(e.filename) + '</span>';
+      fileHtml += '<span class="file-name" onclick="openFile(\'' + escapedPath + '\')" title="' + esc(fpath) + '">' + esc(e.filename) + '</span>';
+    }
+    rows += '<td>' + fileHtml + '</td>';
     rows += '<td style="white-space:normal;overflow:visible;">' + tagsHtml + '</td>';
     rows += '<td>' + fmtDate(e.created) + '</td>';
     rows += '</tr>';
@@ -711,8 +741,10 @@ function openForm(mode, editId) {
       document.getElementById('f-title').value = entry.title || '';
       document.getElementById('f-source').value = entry.source || '';
       document.getElementById('f-file').value = entry.filename || '';
+      document.getElementById('f-filepath').value = entry.filepath || '';
       document.getElementById('f-tags').value = entry.tags || '';
       document.getElementById('f-summary').value = entry.summary || '';
+      document.getElementById('dropInfo').innerText = entry.filepath ? 'Path: ' + entry.filepath : '';
     }
   } else {
     document.getElementById('formTitle').innerText = 'NEW ENTRY';
@@ -722,6 +754,7 @@ function openForm(mode, editId) {
     document.getElementById('f-title').value = '';
     document.getElementById('f-source').value = '';
     document.getElementById('f-file').value = '';
+    document.getElementById('f-filepath').value = '';
     document.getElementById('f-tags').value = '';
     document.getElementById('f-summary').value = '';
     document.getElementById('dropInfo').innerText = '';
@@ -746,6 +779,7 @@ function saveEntry() {
         ENTRIES[i].title = title || link;
         ENTRIES[i].source = document.getElementById('f-source').value.trim();
         ENTRIES[i].filename = document.getElementById('f-file').value.trim();
+        ENTRIES[i].filepath = document.getElementById('f-filepath').value.trim() || ENTRIES[i].filepath || '';
         ENTRIES[i].tags = document.getElementById('f-tags').value.trim();
         ENTRIES[i].summary = document.getElementById('f-summary').value.trim();
         break;
@@ -761,6 +795,7 @@ function saveEntry() {
       title: title || link,
       source: document.getElementById('f-source').value.trim(),
       filename: document.getElementById('f-file').value.trim(),
+      filepath: document.getElementById('f-filepath').value.trim(),
       tags: document.getElementById('f-tags').value.trim(),
       summary: document.getElementById('f-summary').value.trim(),
       created: dateStr()
@@ -830,6 +865,50 @@ function openLink(url) {
   }
 }
 
+// ===================== FILE OPEN & ICONS =====================
+function openFile(filepath) {
+  if (!filepath) return;
+  try {
+    var shell = new ActiveXObject('WScript.Shell');
+    shell.Run('"' + filepath + '"');
+  } catch(e) {
+    toast('Cannot open file: ' + filepath, 'err');
+  }
+}
+function getFileExt(filename) {
+  if (!filename) return '';
+  var dot = filename.lastIndexOf('.');
+  if (dot < 0) return '';
+  return filename.substring(dot + 1).toLowerCase();
+}
+function getFileIconClass(filename) {
+  var ext = getFileExt(filename);
+  if (ext === 'doc' || ext === 'docx' || ext === 'docm') return 'ficon-doc';
+  if (ext === 'xls' || ext === 'xlsx' || ext === 'xlsm' || ext === 'csv') return 'ficon-xls';
+  if (ext === 'ppt' || ext === 'pptx' || ext === 'pptm') return 'ficon-ppt';
+  if (ext === 'pdf') return 'ficon-pdf';
+  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'gif' || ext === 'bmp' || ext === 'svg') return 'ficon-img';
+  if (ext === 'txt' || ext === 'md' || ext === 'log') return 'ficon-txt';
+  return 'ficon-file';
+}
+function getFileLabel(filename) {
+  var ext = getFileExt(filename);
+  if (ext === 'doc' || ext === 'docx' || ext === 'docm') return 'DOC';
+  if (ext === 'xls' || ext === 'xlsx' || ext === 'xlsm') return 'XLS';
+  if (ext === 'csv') return 'CSV';
+  if (ext === 'ppt' || ext === 'pptx' || ext === 'pptm') return 'PPT';
+  if (ext === 'pdf') return 'PDF';
+  if (ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'gif' || ext === 'bmp') return 'IMG';
+  if (ext === 'svg') return 'SVG';
+  if (ext === 'txt') return 'TXT';
+  if (ext === 'md') return 'MD';
+  if (ext === 'html' || ext === 'htm') return 'HTML';
+  if (ext === 'zip' || ext === 'rar' || ext === '7z') return 'ZIP';
+  if (ext === 'msg' || ext === 'eml') return 'MAIL';
+  if (ext) return ext.toUpperCase().substring(0, 4);
+  return 'FILE';
+}
+
 // ===================== FILE DROP =====================
 function dzOver(e) {
   e = e || window.event;
@@ -845,49 +924,59 @@ function dzDrop(e) {
   if (e.preventDefault) e.preventDefault();
   e.returnValue = false;
   document.getElementById('dropZone').className = 'drop-zone';
-  // HTA file drop - get file path from dataTransfer
+  // HTA file drop - try to get file path
   try {
-    var data = e.dataTransfer;
-    if (data && data.files && data.files.length > 0) {
-      var file = data.files[0];
-      var name = file.name || '';
-      document.getElementById('f-file').value = name;
-      if (!document.getElementById('f-title').value) {
-        document.getElementById('f-title').value = name;
-      }
-      document.getElementById('dropInfo').innerText = 'File: ' + name;
-    }
-  } catch(ex) {
-    // Fallback for HTA
-    try {
-      var dt = e.dataTransfer;
-      var text = dt.getData('Text') || dt.getData('URL') || '';
-      if (text) {
+    var dt = e.dataTransfer;
+    var text = '';
+    try { text = dt.getData('Text') || ''; } catch(ex) {}
+    if (!text) { try { text = dt.getData('URL') || ''; } catch(ex2) {} }
+
+    if (text) {
+      // Check if it looks like a file path
+      var path = text;
+      if (path.indexOf('file:///') === 0) path = path.substring(8).replace(/\//g, '\\');
+      path = path.replace(/%20/g, ' ');
+
+      if (path.match(/\.[a-zA-Z0-9]{1,5}$/)) {
+        // Looks like a file path
+        var name = path;
+        var lastSlash = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'));
+        if (lastSlash >= 0) name = path.substring(lastSlash + 1);
+        document.getElementById('f-file').value = name;
+        document.getElementById('f-filepath').value = path;
+        if (!document.getElementById('f-title').value) {
+          document.getElementById('f-title').value = name;
+        }
+        document.getElementById('dropInfo').innerText = 'Path: ' + path;
+      } else if (text.indexOf('http') === 0) {
+        // URL
         document.getElementById('f-link').value = text;
         document.getElementById('dropInfo').innerText = 'Link: ' + text;
       }
-    } catch(ex2) {}
-  }
+    }
+  } catch(ex3) {}
 }
 function browseFile() {
-  // HTA file browse
+  // HTA file browse - store both filename and full path
   try {
     var dlg = new ActiveXObject('UserAccounts.CommonDialog');
-    dlg.Filter = 'All Files|*.*';
+    dlg.Filter = 'All Files|*.*|Documents|*.doc;*.docx;*.pdf;*.ppt;*.pptx;*.xls;*.xlsx|Images|*.png;*.jpg;*.gif';
     dlg.FilterIndex = 1;
     if (dlg.ShowOpen) {
       var fp = dlg.FileName;
       var fso = new ActiveXObject('Scripting.FileSystemObject');
       var name = fso.GetFileName(fp);
       document.getElementById('f-file').value = name;
+      document.getElementById('f-filepath').value = fp;
       if (!document.getElementById('f-title').value) {
         document.getElementById('f-title').value = name;
       }
-      document.getElementById('dropInfo').innerText = 'File: ' + fp;
+      document.getElementById('dropInfo').innerText = 'Path: ' + fp;
     }
   } catch(e) {
-    // CommonDialog may not be available
-    toast('File dialog not available on this system');
+    // CommonDialog not available — allow manual path input
+    toast('File dialog not available. Enter path manually in the field.');
+    document.getElementById('f-file').removeAttribute('readonly');
   }
 }
 
@@ -1020,13 +1109,13 @@ function exportAllCSV() {
   var data = getFilteredData();
   if (data.length === 0) { toast('No data to export'); return; }
 
-  var lines = ['category,title,link,source,filename,tags,summary,created'];
+  var lines = ['category,title,link,source,filename,filepath,tags,summary,created'];
   for (var i = 0; i < data.length; i++) {
     var e = data[i];
     lines.push([
       csvQ(e.category), csvQ(e.title), csvQ(e.link),
-      csvQ(e.source), csvQ(e.filename), csvQ(e.tags),
-      csvQ(e.summary), csvQ(e.created)
+      csvQ(e.source), csvQ(e.filename), csvQ(e.filepath),
+      csvQ(e.tags), csvQ(e.summary), csvQ(e.created)
     ].join(','));
   }
   var csv = lines.join('\r\n');
@@ -1102,20 +1191,27 @@ document.ondrop = function(e) {
     if (text && (text.indexOf('http') === 0 || text.indexOf('ftp') === 0)) {
       if (!isOpen) openForm('new');
       document.getElementById('f-link').value = text;
-      // Try to extract domain as source
       var m = text.match(/^https?:\/\/([^\/]+)/);
       if (m && !document.getElementById('f-source').value) {
         document.getElementById('f-source').value = m[1];
       }
       toast('Link captured', 'ok');
-    } else if (dt && dt.files && dt.files.length > 0) {
+    } else if (text && text.match(/\.[a-zA-Z0-9]{1,5}$/)) {
+      // File path dropped on window
       if (!isOpen) openForm('new');
-      var file = dt.files[0];
-      document.getElementById('f-file').value = file.name || '';
+      var fpath = text;
+      if (fpath.indexOf('file:///') === 0) fpath = fpath.substring(8).replace(/\//g, '\\');
+      fpath = fpath.replace(/%20/g, ' ');
+      var fname = fpath;
+      var ls = Math.max(fpath.lastIndexOf('\\'), fpath.lastIndexOf('/'));
+      if (ls >= 0) fname = fpath.substring(ls + 1);
+      document.getElementById('f-file').value = fname;
+      document.getElementById('f-filepath').value = fpath;
       if (!document.getElementById('f-title').value) {
-        document.getElementById('f-title').value = file.name || '';
+        document.getElementById('f-title').value = fname;
       }
-      toast('File captured: ' + (file.name || ''), 'ok');
+      document.getElementById('dropInfo').innerText = 'Path: ' + fpath;
+      toast('File captured: ' + fname, 'ok');
     }
   } catch(ex3) {}
 };
