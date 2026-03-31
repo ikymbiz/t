@@ -1401,9 +1401,84 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 
 ### M15-03: カテゴリ分離表示
 
-- サイドバーに3つのナビゲーションボタン: All / News / Guidelines
+- サイドバーに動的なナビゲーションボタン: All + 設定で定義されたType数分
 - 各ボタンに件数バッジ表示
-- 切替時はテーブルをフィルタ再描画
+- Type追加・削除時にサイドバーが自動再構築される
+
+### M15-03a: 設定画面 — Type（カテゴリ）管理
+
+ヘッダーの「Settings」ボタンでメインエリアに設定画面をオーバーレイ表示。
+
+**Type定義のデータ構造:**
+```
+{ id: "news", label: "News", color: "#5b9cf5" }
+```
+
+**CRUD操作:**
+
+| 操作 | 入力 | 処理 |
+|------|------|------|
+| 追加 | ID, Label, Color(hex) | 重複IDチェック → `config.types.push()` → 保存 → サイドバー再描画 |
+| 編集 | ID, Label, Color | ID変更時は全entryのcategoryも追従変更 → 保存 |
+| 削除 | confirmダイアログ | `config.types.splice()` → 保存 |
+
+**色からバッジ生成:**
+- `hexToBg(color, 0.12)` → 背景のrgba
+- `hexToBg(color, 0.25)` → ボーダーのrgba
+- テーブル表示時に動的に `style` 属性でバッジ色を適用
+
+### M15-03b: 設定画面 — Column（フィールド）管理
+
+**Column定義のデータ構造:**
+```
+{ key: "title", label: "Title", type: "text", width: 200, show: true, sortable: true, options: "" }
+```
+
+**対応するtype値:**
+
+| type値 | フォーム表示 | テーブル表示 |
+|--------|------------|------------|
+| `text` | `<input type="text">` | テキスト表示 |
+| `textarea` | `<textarea>` | 60文字切詰め+ツールチップ |
+| `url` | `<input>` (placeholder: https://...) | 青リンク（クリックで外部ブラウザ） |
+| `file` | `<input readonly>` + Browseボタン | ファイルアイコン + ファイル名（クリックで開く） |
+| `tags` | `<input>` (カンマ区切り) | バッジ表示 |
+| `select` | `<select>` (optionsからドロップダウン生成) | テキスト表示 |
+| `date` | `<input type="text">` | テキスト表示 |
+
+**CRUD操作:**
+
+| 操作 | 入力 | 処理 |
+|------|------|------|
+| 追加 | Key, Label, Type, Width | 重複Keyチェック → `config.columns.push()` → 保存 → テーブル再描画 |
+| 編集 | Key, Label, Type, Width, Options, Show, Sortable | Key変更時は全entryの該当フィールド名も追従変更 → 保存 |
+| 削除 | confirmダイアログ | `config.columns.splice()` → 保存 |
+| 並べ替え | ▲▼ボタン | 隣接カラムとswap → 保存 → テーブル列順に即時反映 |
+
+**Show/Sortフラグ:**
+- `show: false` → テーブルに列を表示しない（データは保持）
+- `sortable: true` → ヘッダークリックでソート可能
+
+**Options（select型専用）:**
+- カンマ区切りの文字列（例: `"高,中,低"`）
+- フォーム表示時に`<select>`のoption要素として展開
+
+### M15-03c: 設定のデータ保存形式
+
+`librarian_data.json` に config と entries を統合保存:
+
+```json
+{
+  "config": {
+    "configVer": 1,
+    "types": [ ... ],
+    "columns": [ ... ]
+  },
+  "entries": [ ... ]
+}
+```
+
+設定変更は即時保存。`Reset Config` でtypes/columnsをデフォルトに戻す（entriesは保持）。
 
 ### M15-04: 入力方法
 
