@@ -295,8 +295,44 @@ function writeFile(path,content){
   try{window.execScript('vbsWriteFile()','VBScript');}catch(e){return'ERROR:execScript failed';}
   return document.getElementById('_vbs_result').value;
 }
-function resolvePath(r){if(!r)return'';if(r.indexOf(':')>0)return r;var s=r.replace(/\//g,'\\');if(s.indexOf('.\\')===0)s=s.substring(2);return APP_DIR+s;}
-function loadData(){var text=readFile(resolvePath(DATA_FILE));if(text&&text.trim()){try{DB=JSON.parse(text);}catch(e){DB={};}}if(!DB||typeof DB!=='object')DB={};if(!DB.config||!DB.config.configVer)DB.config=getDefaultConfig();if(!DB.entries||!Array.isArray(DB.entries))DB.entries=[];}
+function resolvePath(r){
+  if(!r)return'';
+  if(r.indexOf(':')>0)return r;  // already absolute
+  var s=r.replace(/\//g,'\\');
+  if(s.indexOf('.\\')===0)s=s.substring(2);
+  var result=APP_DIR+s;
+  // Safety: never return relative path
+  if(result.indexOf(':')<0){
+    toast('PATH ERROR: resolved to relative path: '+result,'err');
+  }
+  return result;
+}
+function loadData(){
+  var path=resolvePath(DATA_FILE);
+  var text=readFile(path);
+  if(text&&text.trim()){
+    try{
+      var parsed=JSON.parse(text);
+      if(parsed&&typeof parsed==='object'){
+        DB=parsed;
+      }
+    }catch(e){
+      // JSON parse error - file corrupted
+      toast('WARNING: Data file corrupted. Using defaults.','err');
+      DB={};
+    }
+  }else{
+    // File not found or empty - check if file physically exists
+    var exists=fileExists(path);
+    if(exists){
+      toast('WARNING: Data file exists but is empty: '+path,'err');
+    }
+    // First run or file missing - start fresh (this is OK)
+  }
+  if(!DB||typeof DB!=='object')DB={};
+  if(!DB.config||!DB.config.configVer)DB.config=getDefaultConfig();
+  if(!DB.entries||!Array.isArray(DB.entries))DB.entries=[];
+}
 function saveData(){
   var path=resolvePath(DATA_FILE);
   var json=JSON.stringify(DB,null,2);
@@ -755,19 +791,58 @@ document.ondragover=function(e){e=e||window.event;e.returnValue=false;if(e.preve
 document.ondrop=function(e){e=e||window.event;e.returnValue=false;if(e.preventDefault)e.preventDefault();var panel=document.getElementById('form-panel'),isOpen=panel.className.indexOf('open')>=0;try{var dt=e.dataTransfer,text='';try{text=dt.getData('URL')||'';}catch(ex){}if(!text){try{text=dt.getData('Text')||'';}catch(ex2){}}if(text&&(text.indexOf('http')===0||text.indexOf('ftp')===0)){if(!isOpen)openForm('new');var lnk=document.getElementById('f-link');if(lnk)lnk.value=text;var m=text.match(/^https?:\/\/([^\/]+)/);var src=document.getElementById('f-source');if(m&&src&&!src.value)src.value=m[1];toast('Link captured','ok');}else if(text&&text.match(/\.[a-zA-Z0-9]{1,5}$/)){if(!isOpen)openForm('new');var fp=text;if(fp.indexOf('file:///')===0)fp=fp.substring(8).replace(/\//g,'\\');fp=fp.replace(/%20/g,' ');var fn=fp,ls=Math.max(fp.lastIndexOf('\\'),fp.lastIndexOf('/'));if(ls>=0)fn=fp.substring(ls+1);var fpEl=document.getElementById('f-filepath');if(fpEl)fpEl.value=fp;var ttEl=document.getElementById('f-title');if(ttEl&&!ttEl.value)ttEl.value=fn;var info=document.getElementById('dropInfo');if(info)info.innerText='Path: '+fp;toast('File: '+fn,'ok');}}catch(ex3){}};
 
 // ====== INIT ======
+function getAppDirJS(){
+  // Parse HTA directory from location in pure JavaScript (no VBS dependency)
+  var href = '';
+  try { href = document.location.href || ''; } catch(e) {}
+  if (!href) try { href = document.location.pathname || ''; } catch(e) {}
+  if (!href) try { href = window.location.href || ''; } catch(e) {}
+
+  // file:///C:/Users/user/Desktop/Librarian.hta → C:\Users\user\Desktop\
+  var path = href;
+  // Remove file:/// prefix
+  if (path.indexOf('file:///') === 0) path = path.substring(8);
+  else if (path.indexOf('file://') === 0) path = path.substring(7);
+  // Remove leading slash if followed by drive letter (e.g. /C:/)
+  if (path.match(/^\/[A-Za-z][\:\/]/)) path = path.substring(1);
+  // Convert forward slashes to backslashes
+  path = path.replace(/\//g, '\\');
+  // Decode URI encoding (%20 → space, etc.)
+  try { path = decodeURIComponent(path); } catch(e) { path = path.replace(/%20/g, ' '); }
+  // Extract directory (remove filename)
+  var lastSlash = path.lastIndexOf('\\');
+  if (lastSlash >= 0) path = path.substring(0, lastSlash + 1);
+  return path;
+}
+
 function initApp(){
-  APP_DIR='';
+  APP_DIR = '';
+
+  // Method 1: VBScript getAppDir()
   try{
     document.getElementById('_vbs_result').value='';
     window.execScript('document.getElementById("_vbs_result").value=getAppDir()','VBScript');
     APP_DIR=document.getElementById('_vbs_result').value;
   }catch(e){}
-  if(!APP_DIR)APP_DIR='./';
+
+  // Method 2: JS fallback if VBS failed
+  if(!APP_DIR || APP_DIR.indexOf(':') < 0){
+    APP_DIR = getAppDirJS();
+  }
+
+  // Verify we have a real absolute path
+  if(!APP_DIR || APP_DIR.indexOf(':') < 0){
+    APP_DIR = getAppDirJS(); // try once more
+    if(!APP_DIR || APP_DIR.indexOf(':') < 0){
+      alert('ERROR: Cannot determine HTA directory.\n\nLocation: '+(document.location.href||'unknown')+'\n\nPlease place the HTA file in a local folder (e.g. Desktop).');
+      APP_DIR = 'C:\\';
+    }
+  }
+
   loadData();
   renderSidebar();
   renderTable();
-  // Show data path in status bar for verification
-  document.getElementById('st-saved').innerText='Data: '+resolvePath(DATA_FILE);
+  document.getElementById('st-saved').innerText='Dir: '+APP_DIR;
 }
 initApp();
 </script>

@@ -1336,6 +1336,29 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 | hidden inputをデータ受け渡しバッファとして使う | JS⇔VBS間の安全なデータ受渡パターン |
 | hidden inputは用途別に分離する（buffer/result/filepath） | 1つのinputを読み書きで共用するとデータ競合で書込失敗 |
 | `execScript` にはSub/Function名のみ渡す | データをexecScript引数に埋め込むとVBS評価タイミング問題で失敗する |
+| APP_DIRのフォールバックに `'./'` を使用しない | 相対パスはCWD依存で起動ごとに変わる。必ず絶対パスを確保する |
+
+---
+
+### BUG-07: APP_DIR フォールバック `'./'` による起動時データ消失（★致命的）
+
+**症状:** 保存は成功（トースト表示）するが、再起動すると全データが消える。
+
+**原因:**
+1. `initApp()` で VBScript `getAppDir()` を呼び出すが、`execScript` が失敗するケースがある
+2. 失敗時のフォールバックが `APP_DIR = './'`（相対パス）
+3. `resolvePath('librarian_data.json')` → `'./librarian_data.json'`（相対パス）
+4. ADODB.Stream は相対パスをカレントワーキングディレクトリ（CWD）基準で解決
+5. HTAのCWDはHTAフォルダとは限らない（`C:\Windows\System32\` の場合もある）
+6. 結果: 保存先と読込先が毎回異なる可能性がある
+7. 起動時にファイルが見つからない → `loadData` がデフォルト設定で初期化 → 保存済みデータ消失
+
+**修正方法:**
+- VBScript `getAppDir()` 失敗時に JavaScript で `document.location.href` からHTAパスをパース
+- `file:///C:/path/to/Librarian.hta` → `C:\path\to\` に変換
+- `decodeURIComponent` で `%20` 等のエンコーディングも解決
+- `APP_DIR` にドライブレター（`:`）が含まれない場合はエラーとし、`'./'` には絶対にフォールバックしない
+- `resolvePath` でも結果にドライブレターが含まれない場合は警告を表示
 | ドラッグ&ドロップは補助手段として扱う | IE9のdataTransfer実装が不安定 |
 | navigator.clipboard を使用しない | IE11以降のAPI。window.clipboardDataで代替 |
 | CSS transition / animation を使用しない | IE9未対応 |
