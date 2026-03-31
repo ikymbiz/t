@@ -1334,12 +1334,64 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 | FileReader / Blob / File API を使用しない | IE10以降のAPI |
 | VBSコード文字列にデータ本体を埋め込まない | 特殊文字・長さ制限で破綻する |
 | hidden inputをデータ受け渡しバッファとして使う | JS⇔VBS間の安全なデータ受渡パターン |
+| hidden inputは用途別に分離する（buffer/result/filepath） | 1つのinputを読み書きで共用するとデータ競合で書込失敗 |
+| `execScript` にはSub/Function名のみ渡す | データをexecScript引数に埋め込むとVBS評価タイミング問題で失敗する |
 | ドラッグ&ドロップは補助手段として扱う | IE9のdataTransfer実装が不安定 |
 | navigator.clipboard を使用しない | IE11以降のAPI。window.clipboardDataで代替 |
 | CSS transition / animation を使用しない | IE9未対応 |
 | `addEventListener` を使用しない | `onclick`属性 or `element.onclick = fn` で代替 |
 | `<select>` のinnerHTMLに直接代入しない | IE9で選択肢が表示されない場合がある。親divごと再構築する |
 | `UserAccounts.CommonDialog` を使用しない | Windows 10以降の多くのエディションで削除済み。`<input type="file">` で代替 |
+
+---
+
+### BUG-06: JS⇔VBS間のhidden input共用による書込み失敗（★致命的）
+
+**症状:** データの保存が一切行われず、再起動時に全データが消失する。
+
+**原因:** `_vbs_r` という1つのhidden inputを、ファイル読み込み（パス渡し+結果受取り）と書き込み（内容渡し+結果受取り）の両方に使い回していた。また `writeFile` 関数でVBScript関数を直接 `execScript` のインライン引数として呼び出すパターン（`Call writeUTF8("path", document.getElementById("_vbs_r").value)`）が、VBScript側でのDOM参照タイミングの問題でデータが正しく渡されないケースがあった。
+
+**修正方法:** DynamicApp.htaで実績のある**3つのhidden input + 専用ラッパーSub方式**に全面変更:
+
+```html
+<input type="hidden" id="_vbs_buffer" />    <!-- パス(読取時) or 内容(書込時) -->
+<input type="hidden" id="_vbs_result" />    <!-- 実行結果の格納先 -->
+<input type="hidden" id="_vbs_filepath" />  <!-- 書込先パス -->
+```
+
+```vbscript
+' 読込: JSが_vbs_bufferにパスをセット → vbsReadFile呼出 → _vbs_resultに結果
+Sub vbsReadFile()
+  Call readUTF8(document.getElementById("_vbs_buffer").value)
+End Sub
+
+' 書込: JSが_vbs_filepathにパス、_vbs_bufferに内容をセット → vbsWriteFile呼出
+Sub vbsWriteFile()
+  Call writeUTF8(document.getElementById("_vbs_filepath").value, _
+                 document.getElementById("_vbs_buffer").value)
+End Sub
+```
+
+```javascript
+// 読込
+function readFile(path) {
+  document.getElementById('_vbs_buffer').value = path;      // パスをセット
+  document.getElementById('_vbs_result').value = '';
+  window.execScript('vbsReadFile()', 'VBScript');            // Sub呼出のみ
+  return document.getElementById('_vbs_result').value;       // 結果を取得
+}
+
+// 書込
+function writeFile(path, content) {
+  document.getElementById('_vbs_filepath').value = path;     // パスをセット
+  document.getElementById('_vbs_buffer').value = content;    // 内容をセット
+  document.getElementById('_vbs_result').value = '';
+  window.execScript('vbsWriteFile()', 'VBScript');           // Sub呼出のみ
+  return document.getElementById('_vbs_result').value;       // "OK" or "ERROR:..."
+}
+```
+
+**鉄則:** `execScript` には**Sub/Function名だけ**を渡し、データは必ずhidden inputを介して受け渡す。`execScript` の引数文字列にデータを埋め込んではならない。
 
 ---
 

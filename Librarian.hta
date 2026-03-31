@@ -131,6 +131,7 @@ Function getAppDir()
   getAppDir = gFSO.GetParentFolderName(p)
   If Right(getAppDir, 1) <> "\" Then getAppDir = getAppDir & "\"
 End Function
+
 Sub readUTF8(filePath)
   Dim s, result
   On Error Resume Next
@@ -142,18 +143,41 @@ Sub readUTF8(filePath)
   If Len(result) > 0 Then
     If AscW(Left(result, 1)) = 65279 Then result = Mid(result, 2)
   End If
-  document.getElementById("_vbs_r").value = result
+  document.getElementById("_vbs_result").value = result
 End Sub
+
 Sub writeUTF8(filePath, content)
   Dim s
   On Error Resume Next
   Set s = CreateObject("ADODB.Stream")
   s.Type = 2 : s.Charset = "UTF-8" : s.Open
-  s.WriteText content : s.SaveToFile filePath, 2
+  s.WriteText content
+  s.SaveToFile filePath, 2
   s.Close : Set s = Nothing
-  If Err.Number <> 0 Then Err.Clear
+  If Err.Number <> 0 Then
+    document.getElementById("_vbs_result").value = "ERROR:" & Err.Description
+    Err.Clear
+  Else
+    document.getElementById("_vbs_result").value = "OK"
+  End If
   On Error GoTo 0
 End Sub
+
+' Wrapper: JS sets _vbs_buffer=filepath, calls this, reads _vbs_result
+Sub vbsReadFile()
+  Dim fp
+  fp = document.getElementById("_vbs_buffer").value
+  Call readUTF8(fp)
+End Sub
+
+' Wrapper: JS sets _vbs_filepath=path, _vbs_buffer=content, calls this
+Sub vbsWriteFile()
+  Dim fp, ct
+  fp = document.getElementById("_vbs_filepath").value
+  ct = document.getElementById("_vbs_buffer").value
+  Call writeUTF8(fp, ct)
+End Sub
+
 Sub vbsRotateBackup(basePath)
   Dim bak1, bak2, bak3
   bak1 = basePath & ".bak1"
@@ -170,7 +194,9 @@ End Sub
 </script>
 </head>
 <body>
-<input type="hidden" id="_vbs_r" />
+<input type="hidden" id="_vbs_buffer" />
+<input type="hidden" id="_vbs_result" />
+<input type="hidden" id="_vbs_filepath" />
 <input type="file" id="_fileInput" style="display:none;" onchange="onFileSelected(this)">
 <input type="file" id="_csvFileInput" style="display:none;" accept=".csv,.txt" onchange="onCsvFileSelected(this)">
 <div id="header">
@@ -256,20 +282,40 @@ function CFG(){return DB.config;}
 function findType(id){var t=CFG().types;for(var i=0;i<t.length;i++){if(t[i].id===id)return t[i];}return null;}
 function hexToBg(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];var r=parseInt(hex.substring(0,2),16)||0,g=parseInt(hex.substring(2,4),16)||0,b=parseInt(hex.substring(4,6),16)||0;return'rgba('+r+','+g+','+b+','+a+')';}
 
-function readFile(p){document.getElementById('_vbs_r').value='';try{window.execScript('readUTF8 "'+p.replace(/"/g,'""')+'"','VBScript');}catch(e){return'';}return document.getElementById('_vbs_r').value;}
-function writeFile(p,c){document.getElementById('_vbs_r').value=c;try{window.execScript('Call writeUTF8("'+p.replace(/"/g,'""')+'", document.getElementById("_vbs_r").value)','VBScript');}catch(e){}}
+function readFile(path){
+  document.getElementById('_vbs_buffer').value=path;
+  document.getElementById('_vbs_result').value='';
+  try{window.execScript('vbsReadFile()','VBScript');}catch(e){return'';}
+  return document.getElementById('_vbs_result').value;
+}
+function writeFile(path,content){
+  document.getElementById('_vbs_filepath').value=path;
+  document.getElementById('_vbs_buffer').value=content;
+  document.getElementById('_vbs_result').value='';
+  try{window.execScript('vbsWriteFile()','VBScript');}catch(e){return'ERROR:execScript failed';}
+  return document.getElementById('_vbs_result').value;
+}
 function resolvePath(r){if(!r)return'';if(r.indexOf(':')>0)return r;var s=r.replace(/\//g,'\\');if(s.indexOf('.\\')===0)s=s.substring(2);return APP_DIR+s;}
 function loadData(){var text=readFile(resolvePath(DATA_FILE));if(text&&text.trim()){try{DB=JSON.parse(text);}catch(e){DB={};}}if(!DB||typeof DB!=='object')DB={};if(!DB.config||!DB.config.configVer)DB.config=getDefaultConfig();if(!DB.entries||!Array.isArray(DB.entries))DB.entries=[];}
 function saveData(){
   var path=resolvePath(DATA_FILE);
-  // Rotate backups: .bak3→delete, .bak2→.bak3, .bak1→.bak2, current→.bak1
+  // Rotate backups
   try{window.execScript('vbsRotateBackup "'+path.replace(/"/g,'""')+'"','VBScript');}catch(e){}
   // Write new data
-  writeFile(path,JSON.stringify(DB,null,2));
-  document.getElementById('st-saved').innerText='Saved: '+timeStr();
+  var result=writeFile(path,JSON.stringify(DB,null,2));
+  if(result&&result.indexOf('ERROR')===0){
+    toast('Save FAILED: '+result,'err');
+    document.getElementById('st-saved').innerText='SAVE ERROR!';
+  }else{
+    document.getElementById('st-saved').innerText='Saved: '+timeStr();
+  }
 }
 function fileExists(path){
-  try{window.execScript('document.getElementById("_vbs_r").value=CStr(gFSO.FileExists("'+path.replace(/"/g,'""')+'"))','VBScript');return document.getElementById('_vbs_r').value==='True';}catch(e){return false;}
+  try{
+    document.getElementById('_vbs_result').value='';
+    window.execScript('document.getElementById("_vbs_result").value=CStr(gFSO.FileExists("'+path.replace(/"/g,'""')+'"))','VBScript');
+    return document.getElementById('_vbs_result').value==='True';
+  }catch(e){return false;}
 }
 function getBackupInfo(){
   var base=resolvePath(DATA_FILE);
@@ -283,7 +329,6 @@ function restoreBackup(gen){
   // Save current as emergency backup before restore
   try{
     var emergPath=base+'.pre-restore';
-    document.getElementById('_vbs_r').value='';
     window.execScript('If gFSO.FileExists("'+base.replace(/"/g,'""')+'") Then gFSO.CopyFile "'+base.replace(/"/g,'""')+'", "'+emergPath.replace(/"/g,'""')+'", True','VBScript');
   }catch(e){}
   // Read backup and load
@@ -615,7 +660,20 @@ document.ondragover=function(e){e=e||window.event;e.returnValue=false;if(e.preve
 document.ondrop=function(e){e=e||window.event;e.returnValue=false;if(e.preventDefault)e.preventDefault();var panel=document.getElementById('form-panel'),isOpen=panel.className.indexOf('open')>=0;try{var dt=e.dataTransfer,text='';try{text=dt.getData('URL')||'';}catch(ex){}if(!text){try{text=dt.getData('Text')||'';}catch(ex2){}}if(text&&(text.indexOf('http')===0||text.indexOf('ftp')===0)){if(!isOpen)openForm('new');var lnk=document.getElementById('f-link');if(lnk)lnk.value=text;var m=text.match(/^https?:\/\/([^\/]+)/);var src=document.getElementById('f-source');if(m&&src&&!src.value)src.value=m[1];toast('Link captured','ok');}else if(text&&text.match(/\.[a-zA-Z0-9]{1,5}$/)){if(!isOpen)openForm('new');var fp=text;if(fp.indexOf('file:///')===0)fp=fp.substring(8).replace(/\//g,'\\');fp=fp.replace(/%20/g,' ');var fn=fp,ls=Math.max(fp.lastIndexOf('\\'),fp.lastIndexOf('/'));if(ls>=0)fn=fp.substring(ls+1);var fpEl=document.getElementById('f-filepath');if(fpEl)fpEl.value=fp;var ttEl=document.getElementById('f-title');if(ttEl&&!ttEl.value)ttEl.value=fn;var info=document.getElementById('dropInfo');if(info)info.innerText='Path: '+fp;toast('File: '+fn,'ok');}}catch(ex3){}};
 
 // ====== INIT ======
-function initApp(){APP_DIR='';try{window.execScript('document.getElementById("_vbs_r").value=getAppDir()','VBScript');APP_DIR=document.getElementById('_vbs_r').value;}catch(e){}if(!APP_DIR)APP_DIR='./';loadData();renderSidebar();renderTable();}
+function initApp(){
+  APP_DIR='';
+  try{
+    document.getElementById('_vbs_result').value='';
+    window.execScript('document.getElementById("_vbs_result").value=getAppDir()','VBScript');
+    APP_DIR=document.getElementById('_vbs_result').value;
+  }catch(e){}
+  if(!APP_DIR)APP_DIR='./';
+  loadData();
+  renderSidebar();
+  renderTable();
+  // Show data path in status bar for verification
+  document.getElementById('st-saved').innerText='Data: '+resolvePath(DATA_FILE);
+}
 initApp();
 </script>
 </body>
