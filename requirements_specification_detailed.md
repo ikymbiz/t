@@ -1339,6 +1339,39 @@ window.execScript('Call writeUTF8("path", document.getElementById("_vbs_r").valu
 | CSS transition / animation を使用しない | IE9未対応 |
 | `addEventListener` を使用しない | `onclick`属性 or `element.onclick = fn` で代替 |
 | `<select>` のinnerHTMLに直接代入しない | IE9で選択肢が表示されない場合がある。親divごと再構築する |
+| `UserAccounts.CommonDialog` を使用しない | Windows 10以降の多くのエディションで削除済み。`<input type="file">` で代替 |
+
+---
+
+### BUG-05: `UserAccounts.CommonDialog` が Windows 10以降で利用不可（★致命的）
+
+**発生箇所:** `browseFile()`, `csvBrowseFile()` 内 `new ActiveXObject('UserAccounts.CommonDialog')`
+
+**原因:** `UserAccounts.CommonDialog` COM オブジェクトは Windows Vista/7 時代のもので、Windows 10 以降の多くのエディション（特にHome/Pro）では**コンポーネント自体が削除されている**。`CreateObject` 時点で「Automation server can't create object」エラーが発生する。
+
+**修正方法:** `<input type="file">` HTML要素を使用する。HTA はローカルマシンゾーンで実行されるため、`<input type="file">.value` でファイルのフルパスが取得できる（通常のブラウザではセキュリティ上ファイル名のみ）。
+
+```html
+<!-- hidden file input -->
+<input type="file" id="_fileInput" style="display:none;" onchange="onFileSelected(this)">
+```
+
+```javascript
+// Browse ボタン押下時
+function browseFile() {
+  document.getElementById('_fileInput').click();
+}
+// ファイル選択完了時
+function onFileSelected(inp) {
+  var fullPath = inp.value;  // HTA では C:\...\file.ext のフルパスが取得可能
+  // VBScript 経由でファイル読み込み
+  var content = readFile(fullPath);
+}
+```
+
+**注意点:**
+- `inp.value = ''` でリセットしないと同一ファイル再選択時に `onchange` が発火しない
+- `accept=".csv,.txt"` 属性でフィルタ可能だが、IE9では完全には機能しない（ユーザーが任意ファイルを選択可能）
 
 ---
 
