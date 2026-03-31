@@ -344,6 +344,9 @@ End Function
       <div class="drop-zone" id="csvDropZone" ondragover="csvDzOver(event)" ondragleave="csvDzLeave()" ondrop="csvDzDrop(event)">
         Drop .csv file here
       </div>
+      <div style="margin-top:8px;">
+        <button class="btn btn-cancel" onclick="csvBrowseFile()" style="margin-right:0;">Browse .csv file...</button>
+      </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-cancel" onclick="closeCsvModal()">Cancel</button>
@@ -414,25 +417,13 @@ function loadData() {
 }
 function saveData() {
   var path = resolvePath(DATA_FILE);
-  // Use the hidden field as buffer for writeUTF8
-  document.getElementById('_vbs_r').value = '';
   var json = JSON.stringify(ENTRIES, null, 2);
+  // Use hidden input as buffer — safe for any content (BUG-03 fix)
+  document.getElementById('_vbs_r').value = json;
   try {
-    // Write via VBS
-    var vbsCode = 'Call writeUTF8("' + path.replace(/"/g,'""') + '", "' + jsonEscapeVBS(json) + '")';
-    window.execScript(vbsCode, 'VBScript');
-  } catch(e) {
-    // Fallback: use hidden input
-    try {
-      document.getElementById('_vbs_r').value = json;
-      window.execScript('Call writeUTF8("' + path.replace(/"/g,'""') + '", document.getElementById("_vbs_r").value)', 'VBScript');
-    } catch(e2) {}
-  }
+    window.execScript('Call writeUTF8("' + path.replace(/"/g,'""') + '", document.getElementById("_vbs_r").value)', 'VBScript');
+  } catch(e) {}
   document.getElementById('st-saved').innerText = 'Saved: ' + timeStr();
-}
-function jsonEscapeVBS(s) {
-  // Escape for embedding in VBS string literal
-  return s.replace(/"/g, '""').replace(/\r?\n/g, '" & vbCrLf & "');
 }
 
 // ===================== UTILITIES =====================
@@ -559,20 +550,32 @@ function getFilteredData() {
 }
 
 // ===================== RENDER =====================
+function buildTableHead() {
+  return '<thead><tr>' +
+    '<th style="width:28px;"><input type="checkbox" id="chkAll" onclick="toggleAll(this)"></th>' +
+    '<th style="width:60px;" onclick="doSort(\'category\')">Type</th>' +
+    '<th style="width:260px;" onclick="doSort(\'title\')">Title / Summary</th>' +
+    '<th style="width:200px;" onclick="doSort(\'link\')">Link</th>' +
+    '<th style="width:120px;" onclick="doSort(\'source\')">Source</th>' +
+    '<th style="width:120px;">Filename</th>' +
+    '<th style="width:180px;">Tags</th>' +
+    '<th style="width:100px;" onclick="doSort(\'created\')">Date</th>' +
+    '</tr></thead>';
+}
+
 function renderTable() {
   var data = getFilteredData();
-  var tbody = document.getElementById('tableBody');
-  var empty = document.getElementById('emptyState');
+  var wrap = document.getElementById('table-wrap');
 
   if (data.length === 0) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
+    // IE9: tbody.innerHTML is read-only — rebuild entire table via parent div
+    wrap.innerHTML = '<table class="data-table" id="dataTable">' + buildTableHead() + '<tbody></tbody></table>' +
+      '<div id="emptyState" class="empty-state"><div class="empty-icon">&#128218;</div><div class="empty-text">No items found</div></div>';
     updateCounts();
     return;
   }
-  empty.style.display = 'none';
 
-  var h = '';
+  var rows = '';
   for (var i = 0; i < data.length; i++) {
     var e = data[i];
     var sel = SELECTED[e.id] ? ' selected' : '';
@@ -602,18 +605,20 @@ function renderTable() {
       titleHtml = '<span title="' + esc(e.summary) + '">' + titleHtml + '</span>';
     }
 
-    h += '<tr class="' + sel + '" onclick="selectRow(\'' + e.id + '\', event)" ondblclick="openForm(\'edit\',\'' + e.id + '\')">';
-    h += '<td style="text-align:center;"><input type="checkbox" ' + (SELECTED[e.id] ? 'checked' : '') + ' onclick="toggleCheck(\'' + e.id + '\', this, event)"></td>';
-    h += '<td><span class="' + catClass + '">' + catLabel + '</span></td>';
-    h += '<td style="white-space:normal;overflow:visible;">' + titleHtml + '</td>';
-    h += '<td>' + linkHtml + '</td>';
-    h += '<td>' + esc(e.source || '') + '</td>';
-    h += '<td title="' + esc(e.filename || '') + '">' + esc(e.filename || '') + '</td>';
-    h += '<td style="white-space:normal;overflow:visible;">' + tagsHtml + '</td>';
-    h += '<td>' + fmtDate(e.created) + '</td>';
-    h += '</tr>';
+    rows += '<tr class="' + sel + '" onclick="selectRow(\'' + e.id + '\', event)" ondblclick="openForm(\'edit\',\'' + e.id + '\')">';
+    rows += '<td style="text-align:center;"><input type="checkbox" ' + (SELECTED[e.id] ? 'checked' : '') + ' onclick="toggleCheck(\'' + e.id + '\', this, event)"></td>';
+    rows += '<td><span class="' + catClass + '">' + catLabel + '</span></td>';
+    rows += '<td style="white-space:normal;overflow:visible;">' + titleHtml + '</td>';
+    rows += '<td>' + linkHtml + '</td>';
+    rows += '<td>' + esc(e.source || '') + '</td>';
+    rows += '<td title="' + esc(e.filename || '') + '">' + esc(e.filename || '') + '</td>';
+    rows += '<td style="white-space:normal;overflow:visible;">' + tagsHtml + '</td>';
+    rows += '<td>' + fmtDate(e.created) + '</td>';
+    rows += '</tr>';
   }
-  tbody.innerHTML = h;
+
+  // IE9: tbody.innerHTML is READ-ONLY — must rebuild entire table via parent div innerHTML
+  wrap.innerHTML = '<table class="data-table" id="dataTable">' + buildTableHead() + '<tbody>' + rows + '</tbody></table>';
   updateCounts();
 }
 
@@ -908,30 +913,50 @@ function csvDzDrop(e) {
   if (e.preventDefault) e.preventDefault();
   e.returnValue = false;
   document.getElementById('csvDropZone').className = 'drop-zone';
+  // HTA: FileReader is NOT available (IE10+). Use dataTransfer text or VBS file dialog.
   try {
-    var data = e.dataTransfer;
-    if (data && data.files && data.files.length > 0) {
-      var file = data.files[0];
-      var reader = new FileReader();
-      reader.onload = function(ev) {
-        document.getElementById('csvText').value = ev.target.result;
-        toast('CSV file loaded', 'ok');
-      };
-      reader.readAsText(file);
-    }
-  } catch(ex) {
-    // HTA fallback: try to get file path
-    try {
-      var dt = e.dataTransfer;
-      var path = dt.getData('Text') || '';
-      if (path) {
-        var text = readFile(path);
-        if (text) {
-          document.getElementById('csvText').value = text;
-          toast('CSV loaded from file', 'ok');
-        }
+    var dt = e.dataTransfer;
+    var path = '';
+    try { path = dt.getData('Text') || ''; } catch(ex) {}
+    if (!path) { try { path = dt.getData('URL') || ''; } catch(ex2) {} }
+    if (path && path.indexOf('.csv') >= 0) {
+      // Try to read as local file path
+      var resolved = path;
+      // Strip file:/// prefix if present
+      if (resolved.indexOf('file:///') === 0) resolved = resolved.substring(8).replace(/\//g, '\\');
+      resolved = resolved.replace(/%20/g, ' ');
+      var text = readFile(resolved);
+      if (text) {
+        document.getElementById('csvText').value = text;
+        toast('CSV loaded', 'ok');
+        return;
       }
-    } catch(ex2) {}
+    }
+    // If drag text is CSV content itself
+    if (path && path.indexOf(',') >= 0 && path.indexOf('\n') >= 0) {
+      document.getElementById('csvText').value = path;
+      toast('CSV text pasted', 'ok');
+      return;
+    }
+    toast('Please paste CSV text or use file dialog');
+  } catch(ex3) {
+    toast('Drop not supported. Please paste CSV text directly.');
+  }
+}
+function csvBrowseFile() {
+  try {
+    var dlg = new ActiveXObject('UserAccounts.CommonDialog');
+    dlg.Filter = 'CSV Files|*.csv|All Files|*.*';
+    dlg.FilterIndex = 1;
+    if (dlg.ShowOpen) {
+      var text = readFile(dlg.FileName);
+      if (text) {
+        document.getElementById('csvText').value = text;
+        toast('CSV loaded: ' + dlg.FileName, 'ok');
+      }
+    }
+  } catch(e) {
+    toast('File dialog not available. Please paste CSV text.');
   }
 }
 function importCsv() {
