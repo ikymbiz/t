@@ -299,16 +299,24 @@ function resolvePath(r){if(!r)return'';if(r.indexOf(':')>0)return r;var s=r.repl
 function loadData(){var text=readFile(resolvePath(DATA_FILE));if(text&&text.trim()){try{DB=JSON.parse(text);}catch(e){DB={};}}if(!DB||typeof DB!=='object')DB={};if(!DB.config||!DB.config.configVer)DB.config=getDefaultConfig();if(!DB.entries||!Array.isArray(DB.entries))DB.entries=[];}
 function saveData(){
   var path=resolvePath(DATA_FILE);
+  var json=JSON.stringify(DB,null,2);
   // Rotate backups
   try{window.execScript('vbsRotateBackup "'+path.replace(/"/g,'""')+'"','VBScript');}catch(e){}
-  // Write new data
-  var result=writeFile(path,JSON.stringify(DB,null,2));
+  // Write
+  var result=writeFile(path,json);
   if(result&&result.indexOf('ERROR')===0){
-    toast('Save FAILED: '+result,'err');
+    toast('SAVE FAILED: '+result,'err');
     document.getElementById('st-saved').innerText='SAVE ERROR!';
-  }else{
-    document.getElementById('st-saved').innerText='Saved: '+timeStr();
+    return;
   }
+  // Verify by reading back
+  var verify=readFile(path);
+  if(!verify||verify.length<10){
+    toast('SAVE VERIFY FAILED: file empty after write. Path='+path,'err');
+    document.getElementById('st-saved').innerText='VERIFY FAIL!';
+    return;
+  }
+  document.getElementById('st-saved').innerText='Saved: '+timeStr()+' ('+json.length+'bytes)';
 }
 function fileExists(path){
   try{
@@ -641,7 +649,94 @@ function renderSettings(){
   h+='</tbody></table>';
   h+='<div style="font-size:11px;color:#4a4e62;margin-top:6px;">Backups rotate automatically on every save. bak1=latest, bak3=oldest.</div>';
   h+='</div></div>';
+  // DIAGNOSTICS
+  h+='<div class="s-section"><div class="s-section-hdr">DIAGNOSTICS</div><div class="s-section-body">';
+  h+='<button class="s-btn" onclick="runDiagnostics()">Run Diagnostics</button>';
+  h+='<div id="diagResult" style="margin-top:12px;font-family:Consolas,monospace;font-size:12px;color:#a0a6bc;white-space:pre-wrap;"></div>';
+  h+='</div></div>';
   document.getElementById('settings-screen').innerHTML=h;
+}
+function runDiagnostics(){
+  var out=[];
+  out.push('=== DIAGNOSTICS ===');
+  out.push('');
+  
+  // 1. APP_DIR
+  out.push('[1] APP_DIR = "'+APP_DIR+'"');
+  out.push('    Length  = '+APP_DIR.length);
+  
+  // 2. Resolved path
+  var dataPath=resolvePath(DATA_FILE);
+  out.push('');
+  out.push('[2] DATA_FILE = "'+DATA_FILE+'"');
+  out.push('    Resolved = "'+dataPath+'"');
+  
+  // 3. Check data file exists
+  var exists=fileExists(dataPath);
+  out.push('');
+  out.push('[3] File exists = '+exists);
+  
+  // 4. Try read data file
+  var readResult=readFile(dataPath);
+  out.push('');
+  out.push('[4] Read data file:');
+  out.push('    Length = '+(readResult?readResult.length:0));
+  out.push('    First 100 chars = "'+(readResult?readResult.substring(0,100):'(empty)')+'"');
+  
+  // 5. Write test file
+  var testPath=resolvePath('_diag_test.txt');
+  out.push('');
+  out.push('[5] Write test file: "'+testPath+'"');
+  var writeResult=writeFile(testPath,'DIAG_TEST_'+new Date().getTime());
+  out.push('    writeFile result = "'+writeResult+'"');
+  
+  // 6. Read test file back
+  var readBack=readFile(testPath);
+  out.push('');
+  out.push('[6] Read test file back:');
+  out.push('    Content = "'+(readBack||'(empty)')+'"');
+  out.push('    Match   = '+(readBack&&readBack.indexOf('DIAG_TEST_')===0?'YES':'NO <<<< PROBLEM'));
+  
+  // 7. Check VBScript bridge
+  out.push('');
+  out.push('[7] VBScript bridge:');
+  try{
+    document.getElementById('_vbs_result').value='';
+    window.execScript('document.getElementById("_vbs_result").value="VBS_OK"','VBScript');
+    var vbsResult=document.getElementById('_vbs_result').value;
+    out.push('    execScript = "'+vbsResult+'"');
+  }catch(e){
+    out.push('    execScript = ERROR: '+e.message);
+  }
+  
+  // 8. Check hidden inputs
+  out.push('');
+  out.push('[8] Hidden inputs:');
+  out.push('    _vbs_buffer   exists = '+(!!document.getElementById('_vbs_buffer')));
+  out.push('    _vbs_result   exists = '+(!!document.getElementById('_vbs_result')));
+  out.push('    _vbs_filepath exists = '+(!!document.getElementById('_vbs_filepath')));
+  
+  // 9. DB state
+  out.push('');
+  out.push('[9] DB state:');
+  out.push('    DB.config = '+(DB.config?'exists (configVer='+DB.config.configVer+')':'NULL'));
+  out.push('    DB.config.types  = '+(DB.config&&DB.config.types?DB.config.types.length+' types':'NULL'));
+  out.push('    DB.config.columns = '+(DB.config&&DB.config.columns?DB.config.columns.length+' columns':'NULL'));
+  out.push('    DB.entries = '+(DB.entries?DB.entries.length+' entries':'NULL'));
+  
+  // 10. Try save and verify
+  out.push('');
+  out.push('[10] Save + Verify test:');
+  var json=JSON.stringify(DB,null,2);
+  out.push('     JSON size = '+json.length+' chars');
+  var saveResult=writeFile(dataPath,json);
+  out.push('     writeFile result = "'+saveResult+'"');
+  var verifyRead=readFile(dataPath);
+  out.push('     Verify read size = '+(verifyRead?verifyRead.length:0)+' chars');
+  out.push('     Match = '+(verifyRead&&verifyRead.length===json.length?'YES':'NO <<<< PROBLEM'));
+  
+  var el=document.getElementById('diagResult');
+  if(el)el.innerText=out.join('\n');
 }
 function addType(){var id=document.getElementById('st-new-id').value.trim(),label=document.getElementById('st-new-label').value.trim(),color=document.getElementById('st-new-color').value.trim()||'#c8a44e';if(!id||!label){toast('ID and Label required','err');return;}for(var i=0;i<CFG().types.length;i++){if(CFG().types[i].id===id){toast('ID exists','err');return;}}CFG().types.push({id:id,label:label,color:color});saveData();renderSettings();renderSidebar();toast('Type added','ok');}
 function updateType(idx){var t=CFG().types[idx];if(!t)return;var oldId=t.id;t.id=document.getElementById('st-id-'+idx).value.trim()||t.id;t.label=document.getElementById('st-label-'+idx).value.trim()||t.label;t.color=document.getElementById('st-color-'+idx).value.trim()||t.color;if(oldId!==t.id){for(var i=0;i<DB.entries.length;i++){if(DB.entries[i].category===oldId)DB.entries[i].category=t.id;}}saveData();renderSettings();renderSidebar();toast('Updated','ok');}
