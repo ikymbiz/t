@@ -1,1 +1,90 @@
-<h1>Hello World</h1>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Incident Viewer</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; background-color: #f4f4f4; }
+        .incident-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        h2 { margin-top: 0; color: #0056b3; font-size: 1.1em; }
+        .date { color: #666; font-size: 0.9em; }
+        .description { color: #444; font-size: 0.95em; }
+        .error-msg { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>最新のAIインシデント一覧 (Reports)</h1>
+    <div id="incident-list">読み込み中...</div>
+
+    <script>
+        const GQL_URL = "https://incidentdatabase.ai/api/graphql";
+        
+        // 動作確認済みのクエリ
+        // ※引数(limit等)を外して、取得後にJavaScript側で件数制限をかけるのが最も安全です
+        const query = `
+        {
+          reports {
+            report_number
+            title
+            epoch_date_submitted
+            description
+          }
+        }`;
+
+        async function fetchIncidents() {
+            try {
+                const response = await fetch(GQL_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                const result = await response.json();
+
+                // GraphQLエラー（クエリ間違いなど）のチェック
+                if (result.errors) {
+                    throw new Error(result.errors[0].message);
+                }
+
+                if (result.data && result.data.reports) {
+                    // 最新5件のみ表示
+                    displayIncidents(result.data.reports.slice(0, 5));
+                } else {
+                    throw new Error("データ構造が想定外です。");
+                }
+            } catch (error) {
+                document.getElementById('incident-list').innerHTML = 
+                    `<p class="error-msg">エラー: ${error.message}</p>
+                     <p>ブラウザのコンソール(F12)で詳細を確認してください。</p>`;
+                console.error("Fetch error details:", error);
+            }
+        }
+
+        function displayIncidents(reports) {
+            const container = document.getElementById('incident-list');
+            container.innerHTML = ""; 
+
+            reports.forEach(inc => {
+                const card = document.createElement('div');
+                card.className = 'incident-card';
+                
+                // データが空（null）の場合の対策
+                const title = inc.title || "無題のレポート";
+                const date = inc.epoch_date_submitted || "日付不明";
+                const desc = inc.description ? inc.description.substring(0, 200) + "..." : "詳細説明はありません。";
+
+                card.innerHTML = `
+                    <h2>[No.${inc.report_number}] ${title}</h2>
+                    <div class="date">投稿日: ${date}</div>
+                    <p class="description">${desc}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        fetchIncidents();
+    </script>
+</body>
+</html>
