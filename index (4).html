@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>AI Incident Database - Local Viewer</title>
+    <link rel="shortcut icon" href="https://incidentdatabase.ai/favicon.ico">
+    
+    <hta:application 
+        id="oHTA"
+        applicationname="AIIncidentViewer"
+        border="thin"
+        caption="yes"
+        showintaskbar="yes"
+        singleinstance="yes"
+        sysmenu="yes"
+        windowstate="normal"
+        navigable="yes"
+    />
+
+    <style>
+        body { font-family: "Segoe UI", Meiryo, sans-serif; line-height: 1.6; padding: 20px; background-color: #f0f2f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { border-bottom: 3px solid #0056b3; padding-bottom: 10px; font-size: 1.5em; color: #0056b3; }
+        button { padding: 10px 20px; cursor: pointer; background: #0056b3; color: white; border: none; border-radius: 4px; margin-bottom: 20px; }
+        button:hover { background: #004494; }
+        .incident-card { background: white; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #0056b3; }
+        .date { color: #666; font-size: 0.85em; font-weight: bold; }
+        .title { font-size: 1.1em; font-weight: bold; margin: 5px 0; display: block; color: #111; }
+        .description { font-size: 0.9em; color: #444; }
+        #status { font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>AI Incident Database 最新レポート</h1>
+    <button onclick="fetchIncidents()">最新情報を取得</button>
+    <div id="status"></div>
+    <div id="incident-list"></div>
+</div>
+
+<script>
+    function fetchIncidents() {
+        var statusDiv = document.getElementById('status');
+        var listDiv = document.getElementById('incident-list');
+        
+        statusDiv.innerText = "読み込み中...";
+        listDiv.innerHTML = "";
+
+        var url = "https://incidentdatabase.ai/api/graphql";
+        
+        // GraphQLクエリ
+        var query = JSON.stringify({
+            query: "{\n  incidents(limit: 10, sort: DATE_DESC) {\n    incident_id\n    title\n    date\n    description\n  }\n}"
+        });
+
+        // HTA(IEエンジン)でも動作するように XMLHttpRequest を使用
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    statusDiv.innerText = "取得完了";
+                    var response = JSON.parse(xhr.responseText);
+                    displayIncidents(response.data.incidents);
+                } else {
+                    statusDiv.innerText = "エラーが発生しました (Status: " + xhr.status + ")";
+                }
+            }
+        };
+
+        xhr.send(query);
+    }
+
+    function displayIncidents(incidents) {
+        var listDiv = document.getElementById('incident-list');
+        var html = "";
+
+        for (var i = 0; i < incidents.length; i++) {
+            var inc = incidents[i];
+            html += '<div class="incident-card">';
+            html += '  <div class="date">' + inc.date + ' (ID: ' + inc.incident_id + ')</div>';
+            html += '  <div class="title">' + inc.title + '</div>';
+            html += '  <p class="description">' + inc.description.substring(0, 250) + '...</p>';
+            html += '</div>';
+        }
+        listDiv.innerHTML = html;
+    }
+
+    // 初回起動時に取得
+    window.onload = fetchIncidents;
+</script>
+
+</body>
+</html>
