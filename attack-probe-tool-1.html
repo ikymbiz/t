@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attack Probe CSV ジェネレーター</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@300;400;600;700&display=swap');
+:root{
+  --bg0:#090b0e;--bg1:#0f1318;--bg2:#161b23;--bg3:#1d2330;
+  --border:#242d3d;--border2:#334057;
+  --accent:#00e5a0;--accent2:#00b87a;--adim:rgba(0,229,160,.1);
+  --amber:#f5a623;--red:#ff4d6a;--blue:#5b9cf6;--violet:#9d7bd8;
+  --text:#c8d4e8;--text2:#7a8fa8;--text3:#3e5068;
+  --mono:'JetBrains Mono',monospace;--sans:'Sora',sans-serif;
+  --sc:#ff4d6a;--sh:#f5a623;--sm:#5b9cf6;--sl:#00e5a0;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg0);color:var(--text);font-family:var(--sans);font-size:13px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ── LOAD SCREEN ── */
+#load-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.drop-zone{
+  width:440px;border:2px dashed var(--border2);border-radius:14px;
+  padding:44px 36px;text-align:center;cursor:pointer;
+  transition:border-color .2s,background .2s;position:relative;
+}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--adim);}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-icon{font-size:40px;margin-bottom:14px;display:block;}
+.drop-title{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.drop-sub{font-size:11px;color:var(--text3);}
+.drop-fname{font-family:var(--mono);font-size:10px;color:var(--text2);margin-top:10px;}
+.load-error{font-family:var(--mono);font-size:11px;color:var(--red);background:rgba(255,77,106,.1);border:1px solid var(--red);border-radius:6px;padding:8px 14px;display:none;}
+
+/* ── APP ── */
+#app{display:none;flex:1;flex-direction:column;overflow:hidden;}
+#app.on{display:flex;}
+
+/* ── HEADER ── */
+header{
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  padding:8px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-hex{width:24px;height:24px;background:var(--accent);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;}
+.logo-text{font-family:var(--mono);font-weight:700;font-size:12px;color:var(--accent);letter-spacing:.06em;}
+.hd-sep{width:1px;height:18px;background:var(--border);flex-shrink:0;}
+.hd-meta{font-family:var(--mono);font-size:10px;color:var(--text3);}
+.hd-meta span{color:var(--text2);}
+.hd-chips{display:flex;gap:6px;flex-wrap:wrap;margin-left:4px;}
+.chip{font-family:var(--mono);font-size:9px;border-radius:3px;padding:2px 6px;border:1px solid var(--border);color:var(--text3);white-space:nowrap;}
+.chip-v{border-color:var(--accent);color:var(--accent);background:var(--adim);}
+.chip-atlas{border-color:var(--blue);color:var(--blue);background:rgba(91,156,246,.08);}
+.chip-nist{border-color:var(--violet);color:var(--violet);background:rgba(157,123,216,.08);}
+.reload-btn{margin-left:auto;font-family:var(--mono);font-size:9px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text3);border-radius:3px;padding:3px 8px;transition:all .15s;}
+.reload-btn:hover{border-color:var(--border2);color:var(--text2);}
+
+/* ── TOOLBAR ── */
+.toolbar{
+  background:var(--bg1);border-bottom:1px solid var(--border);
+  padding:7px 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;
+}
+.sb{display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:4px 8px;transition:border-color .15s;}
+.sb:focus-within{border-color:var(--accent);}
+.sb svg{color:var(--text3);flex-shrink:0;}
+.sb input{background:none;border:none;outline:none;color:var(--text);font-family:var(--mono);font-size:10px;width:150px;}
+.sb input::placeholder{color:var(--text3);}
+.sel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text2);font-family:var(--mono);font-size:10px;padding:4px 7px;outline:none;cursor:pointer;-webkit-appearance:none;}
+.sel:focus{border-color:var(--accent);}
+.tb-sep{width:1px;height:20px;background:var(--border);flex-shrink:0;}
+.btn{font-family:var(--mono);font-size:10px;font-weight:600;cursor:pointer;border-radius:4px;padding:4px 10px;transition:all .15s;border:1px solid;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;}
+.btn-ghost{border-color:var(--border);background:none;color:var(--text2);}
+.btn-ghost:hover{border-color:var(--border2);color:var(--text);background:var(--bg2);}
+.btn-accent{border-color:var(--accent);background:var(--accent);color:#000;font-weight:700;}
+.btn-accent:hover{background:var(--accent2);border-color:var(--accent2);}
+.btn-accent:disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.btn-outline{border-color:var(--accent);background:none;color:var(--accent);}
+.btn-outline:hover{background:var(--adim);}
+.btn-red{border-color:var(--red);background:none;color:var(--red);}
+.btn-red:hover{background:rgba(255,77,106,.1);}
+.btn-amber{border-color:var(--amber);background:none;color:var(--amber);}
+.btn-amber:hover{background:rgba(245,166,35,.1);}
+.conv-row{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--text3);}
+.conv-sel{background:var(--bg2);border:1px solid var(--border2);border-radius:4px;color:var(--amber);font-family:var(--mono);font-size:10px;padding:4px 7px;outline:none;cursor:pointer;-webkit-appearance:none;max-width:130px;}
+.conv-sel:focus{border-color:var(--amber);}
+
+/* ── CONTENT ── */
+.content{display:grid;grid-template-columns:272px 1fr;flex:1;overflow:hidden;}
+
+/* LEFT */
+.panel-left{background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.pl-head{padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.pl-title{font-family:var(--mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
+.probe-list{overflow-y:auto;flex:1;}
+
+.probe-item{
+  padding:6px 10px;cursor:pointer;
+  border-left:2px solid transparent;
+  transition:background .1s,border-color .1s;
+  display:flex;align-items:center;gap:7px;
+  user-select:none;
+}
+.probe-item:hover{background:var(--bg2);}
+.probe-item.active{background:var(--adim);border-left-color:var(--accent);}
+
+/* custom checkbox */
+.p-chk{
+  width:14px;height:14px;border:1.5px solid var(--border2);
+  border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .1s;position:relative;
+}
+.probe-item .p-chk:hover{border-color:var(--accent);}
+.p-chk.checked{background:var(--accent);border-color:var(--accent);}
+.p-chk.partial{background:rgba(0,229,160,.2);border-color:var(--accent);}
+.p-chk.checked::after{content:'✓';color:#000;font-size:9px;font-weight:800;}
+.p-chk.partial::after{content:'−';color:var(--accent);font-size:10px;font-weight:800;}
+
+.sev-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.s-critical .sev-dot{background:var(--sc);}
+.s-high     .sev-dot{background:var(--sh);}
+.s-medium   .sev-dot{background:var(--sm);}
+.s-low      .sev-dot{background:var(--sl);}
+.probe-info{min-width:0;flex:1;}
+.probe-name{font-family:var(--mono);font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.probe-item.active .probe-name{color:var(--accent);}
+.probe-sub{font-size:9px;color:var(--text3);margin-top:1px;}
+.p-badge{font-family:var(--mono);font-size:9px;background:var(--bg3);border-radius:2px;padding:1px 5px;color:var(--text3);flex-shrink:0;}
+.probe-item.active .p-badge{background:var(--adim);color:var(--accent);}
+.list-empty{padding:20px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--text3);}
+
+/* RIGHT */
+.panel-right{display:flex;flex-direction:column;overflow:hidden;background:var(--bg0);}
+.pr-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);gap:10px;}
+.pr-empty .icon{font-size:32px;opacity:.3;}
+.pr-empty .msg{font-family:var(--mono);font-size:11px;}
+
+.det-head{background:var(--bg1);border-bottom:1px solid var(--border);padding:12px 16px;flex-shrink:0;}
+.det-name{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.det-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;}
+.tag{font-family:var(--mono);font-size:9px;border-radius:3px;padding:1px 6px;border:1px solid;}
+.tag-sc{border-color:var(--sc);color:var(--sc);background:rgba(255,77,106,.08);}
+.tag-sh{border-color:var(--sh);color:var(--sh);background:rgba(245,166,35,.08);}
+.tag-sm{border-color:var(--sm);color:var(--sm);background:rgba(91,156,246,.08);}
+.tag-sl{border-color:var(--sl);color:var(--sl);background:rgba(0,229,160,.08);}
+.tag-cat{border-color:var(--border2);color:var(--text2);}
+.tag-owasp{border-color:var(--violet);color:var(--violet);background:rgba(157,123,216,.08);}
+.tag-mitre{border-color:var(--blue);color:var(--blue);background:rgba(91,156,246,.08);}
+.tag-src{border-color:var(--border);color:var(--text3);}
+.det-desc{font-size:11px;color:var(--text2);line-height:1.5;}
+
+.det-body{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:14px;}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.sec-lbl{font-family:var(--mono);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);}
+.btn-xs{font-family:var(--mono);font-size:9px;font-weight:600;cursor:pointer;border-radius:3px;padding:2px 6px;border:1px solid;transition:all .12s;display:inline-flex;align-items:center;gap:3px;}
+.bx-ghost{border-color:var(--border);background:none;color:var(--text3);}
+.bx-ghost:hover{border-color:var(--border2);color:var(--text2);}
+
+.attack-grid{display:flex;flex-direction:column;gap:4px;}
+.atk-card{
+  background:var(--bg1);border:1px solid var(--border);border-radius:5px;
+  padding:7px 10px;display:flex;align-items:flex-start;gap:8px;
+  cursor:pointer;transition:border-color .1s,background .1s;
+}
+.atk-card:hover{border-color:var(--border2);background:var(--bg2);}
+.atk-card.sel{border-color:var(--accent);background:var(--adim);}
+.a-chk{width:13px;height:13px;border:1.5px solid var(--border2);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.atk-card.sel .a-chk{background:var(--accent);border-color:var(--accent);}
+.a-chk-mark{color:#000;font-size:8px;font-weight:800;display:none;}
+.atk-card.sel .a-chk-mark{display:block;}
+.atk-text{font-family:var(--mono);font-size:10.5px;color:var(--text);line-height:1.55;word-break:break-all;flex:1;}
+.atk-card.sel .atk-text{color:var(--accent);}
+.atk-idx{font-family:var(--mono);font-size:9px;color:var(--text3);flex-shrink:0;margin-top:2px;}
+
+/* eval section */
+.eval-block{background:var(--bg1);border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.eval-row{border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:flex-start;gap:9px;}
+.eval-row:last-child{border-bottom:none;}
+.ev-badge{font-family:var(--mono);font-size:9px;font-weight:700;border-radius:3px;padding:2px 6px;flex-shrink:0;margin-top:1px;border:1px solid;}
+.eb-g{border-color:var(--accent);color:var(--accent);background:rgba(0,229,160,.1);}
+.eb-p{border-color:var(--blue);color:var(--blue);background:rgba(91,156,246,.1);}
+.eb-gs{border-color:var(--amber);color:var(--amber);background:rgba(245,166,35,.1);}
+.ev-content{flex:1;min-width:0;}
+.ev-method{font-family:var(--mono);font-size:10px;color:var(--text2);margin-bottom:3px;}
+.ev-desc{font-size:10px;color:var(--text3);line-height:1.5;}
+.ev-kws{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;}
+.kw{font-family:var(--mono);font-size:9px;background:var(--bg3);border:1px solid var(--border2);border-radius:2px;padding:1px 5px;color:var(--text2);}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--bg1);border-top:1px solid var(--border);
+  padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.sel-count{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.sel-count b{color:var(--accent);font-size:13px;}
+.sel-count span{font-size:10px;}
+
+/* ── MODALS ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg1);border:1px solid var(--border2);border-radius:10px;display:flex;flex-direction:column;max-height:85vh;}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-title{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);}
+.modal-close{cursor:pointer;background:none;border:none;color:var(--text3);font-size:18px;line-height:1;transition:color .1s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{flex:1;overflow-y:auto;padding:16px 18px;}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;}
+
+/* CSV preview */
+#modal-csv .modal{width:800px;max-width:95vw;}
+.csv-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:5px;}
+.csv-table{border-collapse:collapse;font-family:var(--mono);font-size:10px;min-width:100%;white-space:nowrap;}
+.csv-table th{background:var(--bg3);color:var(--text2);font-weight:700;padding:5px 10px;border-bottom:1px solid var(--border);text-align:left;position:sticky;top:0;}
+.csv-table td{color:var(--text3);padding:4px 10px;border-bottom:1px solid var(--border);max-width:220px;overflow:hidden;text-overflow:ellipsis;}
+.csv-table tr:last-child td{border-bottom:none;}
+.csv-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.csv-info{font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:10px;}
+.csv-info b{color:var(--text2);}
+
+/* Random modal */
+#modal-rand .modal{width:380px;}
+.rand-body{display:flex;flex-direction:column;gap:14px;}
+.rand-row{display:flex;align-items:center;gap:10px;}
+.rand-label{font-family:var(--mono);font-size:11px;color:var(--text2);flex-shrink:0;}
+.rand-input{background:var(--bg2);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:13px;padding:5px 10px;outline:none;width:80px;text-align:center;}
+.rand-input:focus{border-color:var(--accent);}
+.rand-scope{display:flex;gap:6px;}
+.scope-btn{font-family:var(--mono);font-size:10px;cursor:pointer;border-radius:4px;padding:4px 10px;border:1px solid var(--border);background:none;color:var(--text3);transition:all .12s;}
+.scope-btn.on{border-color:var(--accent);color:var(--accent);background:var(--adim);}
+.rand-info{font-family:var(--mono);font-size:10px;color:var(--text3);}
+.rand-info b{color:var(--text2);}
+
+/* Category modal */
+#modal-cat .modal{width:520px;}
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.cat-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 10px;}
+.cat-name{font-family:var(--mono);font-size:10px;color:var(--text2);}
+.cat-count{font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:6px;}
+.cat-btns{display:flex;gap:4px;}
+
+/* Toast */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--accent);color:#000;font-family:var(--mono);font-size:11px;font-weight:700;padding:7px 16px;border-radius:6px;opacity:0;transition:all .2s;pointer-events:none;z-index:300;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- ══ LOAD SCREEN ══ -->
+<div id="load-screen">
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" accept=".json">
+    <span class="drop-icon">📂</span>
+    <div class="drop-title">JSONファイルをドロップ または クリックして選択</div>
+    <div class="drop-sub">attack-probes-*.json</div>
+    <div class="drop-fname" id="drop-fname"></div>
+  </div>
+  <div class="load-error" id="load-error"></div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <header>
+    <div class="logo">
+      <div class="logo-hex">⚔</div>
+      <div class="logo-text">ATTACK PROBE CSV GEN</div>
+    </div>
+    <div class="hd-sep"></div>
+    <div class="hd-meta">ver <span id="hd-ver">—</span></div>
+    <div class="hd-chips" id="hd-chips"></div>
+    <button class="reload-btn" onclick="resetApp()">↩ 再読込</button>
+  </header>
+
+  <div class="toolbar">
+    <div class="sb">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="tb-search" type="text" placeholder="プローブ検索...">
+    </div>
+    <select class="sel" id="tb-cat"><option value="">カテゴリ (全)</option></select>
+    <select class="sel" id="tb-sev">
+      <option value="">深刻度 (全)</option>
+      <option value="critical">● Critical</option>
+      <option value="high">● High</option>
+      <option value="medium">● Medium</option>
+      <option value="low">● Low</option>
+    </select>
+    <div class="tb-sep"></div>
+    <button class="btn btn-ghost" onclick="selectSeverity(['critical','high'])" title="Critical/High の攻撃を全選択">⚡ C/H 全選択</button>
+    <button class="btn btn-ghost" onclick="openCatModal()">🗂 カテゴリ選択</button>
+    <button class="btn btn-ghost" onclick="openRandModal()">🎲 ランダム N件</button>
+    <button class="btn btn-red" onclick="clearAll()">✕ 全解除</button>
+    <div class="tb-sep"></div>
+    <div class="conv-row">
+      <span>変換:</span>
+      <select class="conv-sel" id="tb-conv">
+        <option value="">なし</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- LEFT -->
+    <div class="panel-left">
+      <div class="pl-head">
+        <div class="pl-title">PROBE LIST (<span id="pl-count">0</span>)</div>
+      </div>
+      <div class="probe-list" id="probe-list"></div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel-right" id="panel-right">
+      <div class="pr-empty" id="pr-empty">
+        <span class="icon">🎯</span>
+        <span class="msg">← プローブを選択して攻撃プロンプトを確認</span>
+      </div>
+      <div id="pr-detail" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="det-head">
+          <div class="det-name" id="det-name"></div>
+          <div class="det-tags" id="det-tags"></div>
+          <div class="det-desc" id="det-desc"></div>
+        </div>
+        <div class="det-body" id="det-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="sel-count">選択中: <b id="ft-count">0</b> <span>件の攻撃プロンプト</span></div>
+    <span style="font-family:var(--mono);font-size:10px;color:var(--text3)" id="ft-probes"></span>
+    <button class="btn btn-outline" style="margin-left:auto" id="btn-preview" onclick="openCsvPreview()" disabled>👁 CSVプレビュー</button>
+    <button class="btn btn-accent" id="btn-dl" onclick="downloadCsv()" disabled>⬇ CSV ダウンロード</button>
+  </footer>
+</div>
+
+<!-- ══ MODAL: CSV PREVIEW ══ -->
+<div class="modal-bg" id="modal-csv">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📋 CSVプレビュー</div>
+      <button class="modal-close" onclick="closeModal('modal-csv')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="csv-info" id="csv-info"></div>
+      <div class="csv-table-wrap"><table class="csv-table" id="csv-table"></table></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-csv')">閉じる</button>
+      <button class="btn btn-accent" onclick="downloadCsv();closeModal('modal-csv')">⬇ ダウンロード</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: RANDOM SAMPLING ══ -->
+<div class="modal-bg" id="modal-rand">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🎲 ランダムサンプリング</div>
+      <button class="modal-close" onclick="closeModal('modal-rand')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="rand-body">
+        <div class="rand-row">
+          <span class="rand-label">件数:</span>
+          <input class="rand-input" id="rand-n" type="number" value="20" min="1" max="9999">
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3)">件をランダム選択</span>
+        </div>
+        <div class="rand-row">
+          <span class="rand-label">対象:</span>
+          <div class="rand-scope">
+            <button class="scope-btn on" id="scope-all" onclick="setScope('all')">全プローブ</button>
+            <button class="scope-btn" id="scope-filt" onclick="setScope('filtered')">フィルタ中のみ</button>
+          </div>
+        </div>
+        <div class="rand-info" id="rand-info"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rand')">キャンセル</button>
+      <button class="btn btn-accent" onclick="applyRandom()">🎲 実行</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: CATEGORY SELECT ══ -->
+<div class="modal-bg" id="modal-cat">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🗂 カテゴリ単位で選択・解除</div>
+      <button class="modal-close" onclick="closeModal('modal-cat')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cat')">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ STATE ══
+let DATA = null;
+let selectedItems = new Map(); // probeKey -> Set<attackIdx>
+let activeKey = null;
+let randScope = 'all';
+
+// CSV COLUMNS definition
+const CSV_COLS = [
+  'row_id','probe_id','probe_name','category','severity','owasp','mitre','source',
+  'attack_text','attack_text_en',
+  'converter','attack_text_converted',
+  'garak_detector','garak_method','garak_keywords',
+  'pyrit_scorer','pyrit_judge_question',
+  'giskard_detector','giskard_method',
+  'pass_expected_output','fail_expected_output',
+  'judge_system_prompt'
+];
+
+// ══ FILE LOAD ══
+const dz = document.getElementById('drop-zone');
+const fi = document.getElementById('file-input');
+
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) loadFile(f);
+});
+fi.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+function loadFile(file) {
+  const err = document.getElementById('load-error');
+  err.style.display = 'none';
+  document.getElementById('drop-fname').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const d = JSON.parse(ev.target.result);
+      if (!d.probes || !d.converters) throw new Error('probes / converters キーが見つかりません');
+      DATA = d;
+      initApp();
+    } catch(e) {
+      err.textContent = 'JSONパースエラー: ' + e.message;
+      err.style.display = 'block';
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function resetApp() {
+  DATA = null; selectedItems = new Map(); activeKey = null;
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('load-screen').style.display = 'flex';
+  fi.value = '';
+  document.getElementById('drop-fname').textContent = '';
+}
+
+// ══ INIT ══
+function initApp() {
+  document.getElementById('load-screen').style.display = 'none';
+  document.getElementById('app').classList.add('on');
+
+  const meta = DATA.meta || {};
+  document.getElementById('hd-ver').textContent = meta.version || '—';
+
+  // Coverage chips
+  const cov = meta.coverage || {};
+  const chips = document.getElementById('hd-chips');
+  chips.innerHTML = '';
+  const pairs = [
+    ['Probes', cov.total_probes],
+    ['Attacks', cov.total_attacks],
+    ['ATLAS', cov.atlas_techniques_covered],
+    ['Garak', cov.garak_modules],
+    ['Giskard', cov.giskard_detectors],
+    ['NIST', cov.nist_ai_100_2_categories],
+  ];
+  pairs.forEach(([k,v]) => {
+    if (!v) return;
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.title = k;
+    c.textContent = k + ': ' + v;
+    if (k === 'ATLAS') c.classList.add('chip-atlas');
+    else if (k === 'NIST') c.classList.add('chip-nist');
+    else c.classList.add('chip-v');
+    chips.appendChild(c);
+  });
+
+  // Fill category filter
+  const cats = [...new Set(Object.values(DATA.probes).map(p => p.category).filter(Boolean))].sort();
+  const catSel = document.getElementById('tb-cat');
+  catSel.innerHTML = '<option value="">カテゴリ (全)</option>';
+  cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catSel.appendChild(o); });
+
+  // Fill converter selector
+  const convSel = document.getElementById('tb-conv');
+  convSel.innerHTML = '<option value="">なし</option>';
+  Object.entries(DATA.converters).forEach(([k, v]) => {
+    const o = document.createElement('option'); o.value = k;
+    o.textContent = v.name + (v.source ? ' (' + v.source + ')' : '');
+    convSel.appendChild(o);
+  });
+  convSel.addEventListener('change', () => { renderDetail(); });
+
+  // Event listeners
+  document.getElementById('tb-search').addEventListener('input', renderList);
+  document.getElementById('tb-cat').addEventListener('change', renderList);
+  document.getElementById('tb-sev').addEventListener('change', renderList);
+
+  renderList();
+  updateFooter();
+}
+
+// ══ PROBE LIST ══
+function getFiltered() {
+  const q = document.getElementById('tb-search').value.toLowerCase();
+  const cat = document.getElementById('tb-cat').value;
+  const sev = document.getElementById('tb-sev').value;
+  return Object.entries(DATA.probes).filter(([k, p]) => {
+    if (cat && p.category !== cat) return false;
+    if (sev && p.severity_base !== sev) return false;
+    if (q && !p.name.toLowerCase().includes(q) && !k.toLowerCase().includes(q) && !(p.description||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function renderList() {
+  const list = document.getElementById('probe-list');
+  const items = getFiltered();
+  document.getElementById('pl-count').textContent = items.length;
+  if (!items.length) { list.innerHTML = '<div class="list-empty">一致なし</div>'; return; }
+
+  list.innerHTML = items.map(([k, p]) => {
+    const sev = p.severity_base || 'low';
+    const cnt = (p.attacks||[]).length;
+    const selSet = selectedItems.get(k);
+    const selCnt = selSet ? selSet.size : 0;
+    const chkCls = selCnt === cnt && cnt > 0 ? 'checked' : selCnt > 0 ? 'partial' : '';
+    return `<div class="probe-item s-${sev} ${k === activeKey ? 'active' : ''}" onclick="selectProbe(event,'${k}')">
+      <div class="p-chk ${chkCls}" onclick="event.stopPropagation();toggleProbeAll('${k}')"></div>
+      <div class="sev-dot"></div>
+      <div class="probe-info">
+        <div class="probe-name">${esc(p.name)}</div>
+        <div class="probe-sub">${p.category||''}</div>
+      </div>
+      <div class="p-badge">${selCnt}/${cnt}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleProbeAll(key) {
+  const p = DATA.probes[key];
+  const cnt = (p.attacks||[]).length;
+  const cur = selectedItems.get(key);
+  if (cur && cur.size === cnt) {
+    selectedItems.delete(key);
+  } else {
+    selectedItems.set(key, new Set([...Array(cnt).keys()]));
+  }
+  renderList();
+  if (key === activeKey) renderDetail();
+  updateFooter();
+}
+
+function selectProbe(e, key) {
+  // clicking probe-item body (not checkbox) => open detail
+  activeKey = key;
+  renderList();
+  renderDetail();
+}
+
+// ══ PROBE DETAIL ══
+function renderDetail() {
+  const p = DATA.probes[activeKey];
+  if (!p) {
+    document.getElementById('pr-empty').style.display = 'flex';
+    document.getElementById('pr-detail').style.display = 'none';
+    return;
+  }
+  document.getElementById('pr-empty').style.display = 'none';
+  const det = document.getElementById('pr-detail');
+  det.style.display = 'flex';
+
+  document.getElementById('det-name').textContent = p.name;
+  document.getElementById('det-desc').textContent = p.description || '';
+
+  const sev = p.severity_base || 'low';
+  const sevCls = {critical:'sc',high:'sh',medium:'sm',low:'sl'}[sev]||'sl';
+  const tags = [];
+  if (p.severity_base) tags.push(`<span class="tag tag-${sevCls}">${p.severity_base.toUpperCase()}</span>`);
+  if (p.category)      tags.push(`<span class="tag tag-cat">${p.category}</span>`);
+  if (p.owasp)         tags.push(`<span class="tag tag-owasp">${p.owasp}</span>`);
+  if (p.mitre)         tags.push(`<span class="tag tag-mitre">${p.mitre}</span>`);
+  if (p.source)        tags.push(`<span class="tag tag-src">${esc(p.source)}</span>`);
+  document.getElementById('det-tags').innerHTML = tags.join('');
+
+  const body = document.getElementById('det-body');
+  const attacks = p.attacks || [];
+  const selSet = selectedItems.get(activeKey) || new Set();
+  const convKey = document.getElementById('tb-conv').value;
+
+  // Attacks section
+  let html = `<div>
+    <div class="sec-hd">
+      <div class="sec-lbl">攻撃プロンプト (${attacks.length}件)</div>
+      <div style="display:flex;gap:5px;">
+        <button class="btn-xs bx-ghost" onclick="toggleDetailAll(true)">全選択</button>
+        <button class="btn-xs bx-ghost" onclick="toggleDetailAll(false)">全解除</button>
+      </div>
+    </div>
+    <div class="attack-grid">`;
+
+  attacks.forEach((atk, i) => {
+    const isSel = selSet.has(i);
+    const converted = convKey ? applyConverter(atk, convKey) : null;
+    html += `<div class="atk-card ${isSel?'sel':''}" onclick="toggleAttack(${i})">
+      <div class="a-chk"><span class="a-chk-mark">✓</span></div>
+      <div style="flex:1;min-width:0;">
+        <div class="atk-text">${esc(atk)}</div>
+        ${converted && converted !== atk ? `<div style="font-family:var(--mono);font-size:9.5px;color:var(--amber);margin-top:4px;word-break:break-all;">↳ ${esc(converted)}</div>` : ''}
+      </div>
+      <div class="atk-idx">#${i+1}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  // Evaluation section
+  const ev = p.evaluation || {};
+  html += `<div><div class="sec-hd"><div class="sec-lbl">評価方法</div></div><div class="eval-block">`;
+  if (ev.garak) {
+    const g = ev.garak;
+    const kws = (g.keywords||[]).map(k => `<span class="kw">${esc(k)}</span>`).join('');
+    html += `<div class="eval-row">
+      <div class="ev-badge eb-g">Garak</div>
+      <div class="ev-content">
+        <div class="ev-method">${esc(g.primary_detector||'')} &nbsp;·&nbsp; ${esc(g.method||'')}</div>
+        <div class="ev-desc">${esc(g.description||'')}</div>
+        ${kws ? `<div class="ev-kws">${kws}</div>` : ''}
+      </div>
+    </div>`;
+  }
+  if (ev.pyrit) {
+    const py = ev.pyrit;
+    const q = py.config?.true_false_question || '';
+    html += `<div class="eval-row">
+      <div class="ev-badge eb-p">PyRIT</div>
+      <div class="ev-content">
+        <div class="ev-method">${esc(py.scorer_type||'')} &nbsp;·&nbsp; ${esc(py.question_path||'')}</div>
+        <div class="ev-desc">${esc(py.description||'')}</div>
+        ${q ? `<div class="ev-kws"><span class="kw" style="max-width:100%;white-space:normal;">${esc(q)}</span></div>` : ''}
+      </div>
+    </div>`;
+  }
+  if (ev.giskard) {
+    const gs = ev.giskard;
+    html += `<div class="eval-row">
+      <div class="ev-badge eb-gs">Giskard</div>
+      <div class="ev-content">
+        <div class="ev-method">${esc(gs.detector_class||'')} &nbsp;·&nbsp; ${esc(gs.method||'')}</div>
+        <div class="ev-desc">${esc(gs.description||'')}</div>
+      </div>
+    </div>`;
+  }
+  html += '</div></div>';
+
+  // Examples
+  const ex = p.examples || {};
+  if (ex.pass || ex.fail) {
+    html += `<div><div class="sec-hd"><div class="sec-lbl">PASS / FAIL 模範例</div></div>`;
+    if (ex.pass?.output) html += `<div style="background:var(--bg1);border:1px solid rgba(0,229,160,.3);border-radius:5px;padding:8px 10px;margin-bottom:6px;"><div style="font-family:var(--mono);font-size:9px;color:var(--accent);margin-bottom:4px;">✓ PASS 期待応答</div><div style="font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.5;word-break:break-all;">${esc(ex.pass.output)}</div></div>`;
+    if (ex.fail?.output) html += `<div style="background:var(--bg1);border:1px solid rgba(255,77,106,.3);border-radius:5px;padding:8px 10px;"><div style="font-family:var(--mono);font-size:9px;color:var(--red);margin-bottom:4px;">✕ FAIL 応答例</div><div style="font-family:var(--mono);font-size:10px;color:var(--text2);line-height:1.5;word-break:break-all;">${esc(ex.fail.output)}</div></div>`;
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+function toggleAttack(idx) {
+  if (!selectedItems.has(activeKey)) selectedItems.set(activeKey, new Set());
+  const s = selectedItems.get(activeKey);
+  if (s.has(idx)) s.delete(idx); else s.add(idx);
+  if (s.size === 0) selectedItems.delete(activeKey);
+  renderList();
+  renderDetail();
+  updateFooter();
+}
+
+function toggleDetailAll(on) {
+  const p = DATA.probes[activeKey];
+  if (!p) return;
+  if (on) {
+    selectedItems.set(activeKey, new Set([...Array((p.attacks||[]).length).keys()]));
+  } else {
+    selectedItems.delete(activeKey);
+  }
+  renderList();
+  renderDetail();
+  updateFooter();
+}
+
+// ══ BULK ACTIONS ══
+function selectSeverity(sevs) {
+  Object.entries(DATA.probes).forEach(([k, p]) => {
+    if (sevs.includes(p.severity_base)) {
+      selectedItems.set(k, new Set([...Array((p.attacks||[]).length).keys()]));
+    }
+  });
+  renderList();
+  if (activeKey) renderDetail();
+  updateFooter();
+  toast(`Critical/High: ${countSelected()} 件を選択しました`);
+}
+
+function clearAll() {
+  selectedItems.clear();
+  renderList();
+  if (activeKey) renderDetail();
+  updateFooter();
+}
+
+// ══ FOOTER ══
+function countSelected() {
+  let n = 0;
+  for (const s of selectedItems.values()) n += s.size;
+  return n;
+}
+
+function updateFooter() {
+  const n = countSelected();
+  const probes = [...selectedItems.entries()].filter(([,s]) => s.size > 0).length;
+  document.getElementById('ft-count').textContent = n;
+  document.getElementById('ft-probes').textContent = probes ? `(${probes} プローブ)` : '';
+  const dis = n === 0;
+  document.getElementById('btn-preview').disabled = dis;
+  document.getElementById('btn-dl').disabled = dis;
+}
+
+// ══ CONVERTER ══
+function applyConverter(text, convKey) {
+  if (!convKey || !DATA.converters[convKey]) return text;
+  const conv = DATA.converters[convKey];
+
+  if (convKey === 'base64') {
+    try { const enc = btoa(unescape(encodeURIComponent(text))); return (conv.template||'{{BASE64}}').replace('{{BASE64}}', enc); } catch { return text; }
+  }
+  if (convKey === 'rot13') {
+    const r = text.replace(/[a-zA-Z]/g, c => { const b = c <= 'Z' ? 65 : 97; return String.fromCharCode((c.charCodeAt(0)-b+13)%26+b); });
+    return (conv.template||'{{ROT13}}').replace('{{ROT13}}', r);
+  }
+  if (convKey === 'leetspeak' && conv.replacements) {
+    let r = text;
+    for (const [f, t] of Object.entries(conv.replacements)) r = r.split(f).join(t);
+    return r;
+  }
+  if (convKey === 'morse') {
+    const m = {a:'.-',b:'-...',c:'-.-.',d:'-..',e:'.',f:'..-.',g:'--.',h:'....',i:'..',j:'.---',k:'-.-',l:'.-..',m:'--',n:'-.',o:'---',p:'.--.',q:'--.-',r:'.-.',s:'...',t:'-',u:'..-',v:'...-',w:'.--',x:'-..-',y:'-.--',z:'--..',' ':'/'};
+    const enc = text.toLowerCase().split('').map(c => m[c]||c).join(' ');
+    return (conv.template||'{{MORSE}}').replace('{{MORSE}}', enc);
+  }
+  if (convKey === 'char_space') return text.split('').join(' ');
+  if (conv.template) {
+    return conv.template.replace(/\{\{PROMPT\}\}/g, text).replace(/\{\{INPUT\}\}/g, text);
+  }
+  return text;
+}
+
+// ══ CSV BUILD ══
+function buildRows() {
+  const convKey = document.getElementById('tb-conv').value;
+  const rows = [];
+  let rowId = 1;
+  const judgePrompt = DATA.judge_system_prompt || '';
+
+  for (const [probeKey, selSet] of selectedItems.entries()) {
+    if (!selSet.size) continue;
+    const p = DATA.probes[probeKey];
+    if (!p) continue;
+    const ev = p.evaluation || {};
+    const ex = p.examples || {};
+    const attacks = p.attacks || [];
+    const attacksEn = p.template_eng || [];
+
+    const garakKw = (ev.garak?.keywords || []).join(';');
+    const pyritQ  = ev.pyrit?.config?.true_false_question || '';
+
+    for (const idx of [...selSet].sort((a,b) => a-b)) {
+      const atk = attacks[idx] || '';
+      const atkEn = attacksEn[idx] || '';
+      const converted = convKey ? applyConverter(atk, convKey) : atk;
+
+      rows.push({
+        row_id: rowId++,
+        probe_id: probeKey,
+        probe_name: p.name || '',
+        category: p.category || '',
+        severity: p.severity_base || '',
+        owasp: p.owasp || '',
+        mitre: p.mitre || '',
+        source: p.source || '',
+        attack_text: atk,
+        attack_text_en: atkEn,
+        converter: convKey ? (DATA.converters[convKey]?.name || convKey) : '',
+        attack_text_converted: converted,
+        garak_detector: ev.garak?.primary_detector || '',
+        garak_method: ev.garak?.method || '',
+        garak_keywords: garakKw,
+        pyrit_scorer: ev.pyrit?.scorer_type || '',
+        pyrit_judge_question: pyritQ,
+        giskard_detector: ev.giskard?.detector_class || '',
+        giskard_method: ev.giskard?.method || '',
+        pass_expected_output: ex.pass?.output || '',
+        fail_expected_output: ex.fail?.output || '',
+        judge_system_prompt: judgePrompt,
+      });
+    }
+  }
+  return rows;
+}
+
+function rowsToCsv(rows) {
+  const escape = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const header = CSV_COLS.map(escape).join(',');
+  const body = rows.map(r => CSV_COLS.map(c => escape(r[c])).join(',')).join('\n');
+  return '\uFEFF' + header + '\n' + body; // BOM for Excel
+}
+
+function downloadCsv() {
+  const rows = buildRows();
+  if (!rows.length) { toast('選択なし'); return; }
+  const csv = rowsToCsv(rows);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `attack-probes-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast(`${rows.length} 件をCSVでダウンロードしました`);
+}
+
+// ══ CSV PREVIEW MODAL ══
+function openCsvPreview() {
+  const rows = buildRows();
+  if (!rows.length) { toast('選択なし'); return; }
+
+  document.getElementById('csv-info').innerHTML =
+    `合計 <b>${rows.length}</b> 行 × <b>${CSV_COLS.length}</b> 列　(先頭 10 行を表示)`;
+
+  const preview = rows.slice(0, 10);
+  const tbl = document.getElementById('csv-table');
+  const thead = '<thead><tr>' + CSV_COLS.map(c => `<th>${c}</th>`).join('') + '</tr></thead>';
+  const tbody = '<tbody>' + preview.map(r =>
+    '<tr>' + CSV_COLS.map(c => {
+      const v = String(r[c] == null ? '' : r[c]);
+      const short = v.length > 40 ? v.slice(0,40) + '…' : v;
+      return `<td title="${esc(v)}">${esc(short)}</td>`;
+    }).join('') + '</tr>'
+  ).join('') + '</tbody>';
+  tbl.innerHTML = thead + tbody;
+
+  document.getElementById('modal-csv').classList.add('open');
+}
+
+// ══ RANDOM MODAL ══
+function openRandModal() {
+  updateRandInfo();
+  document.getElementById('modal-rand').classList.add('open');
+}
+
+function setScope(s) {
+  randScope = s;
+  document.getElementById('scope-all').classList.toggle('on', s === 'all');
+  document.getElementById('scope-filt').classList.toggle('on', s === 'filtered');
+  updateRandInfo();
+}
+
+function updateRandInfo() {
+  const pool = getRandPool();
+  document.getElementById('rand-info').innerHTML = `対象: <b>${pool.length}</b> 件の攻撃プロンプト`;
+}
+
+function getRandPool() {
+  const source = randScope === 'filtered' ? getFiltered() : Object.entries(DATA.probes);
+  const pool = [];
+  source.forEach(([k, p]) => {
+    (p.attacks || []).forEach((_, i) => pool.push({ key: k, idx: i }));
+  });
+  return pool;
+}
+
+function applyRandom() {
+  const n = parseInt(document.getElementById('rand-n').value) || 20;
+  const pool = getRandPool();
+  if (!pool.length) { toast('対象なし'); return; }
+
+  // Fisher-Yates shuffle, take n
+  const arr = [...pool];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const picked = arr.slice(0, Math.min(n, arr.length));
+
+  selectedItems.clear();
+  picked.forEach(({ key, idx }) => {
+    if (!selectedItems.has(key)) selectedItems.set(key, new Set());
+    selectedItems.get(key).add(idx);
+  });
+
+  renderList();
+  if (activeKey) renderDetail();
+  updateFooter();
+  closeModal('modal-rand');
+  toast(`${picked.length} 件をランダム選択しました`);
+}
+
+// ══ CATEGORY MODAL ══
+function openCatModal() {
+  const grid = document.getElementById('cat-grid');
+  const cats = [...new Set(Object.values(DATA.probes).map(p => p.category).filter(Boolean))].sort();
+  grid.innerHTML = cats.map(cat => {
+    const probesInCat = Object.entries(DATA.probes).filter(([,p]) => p.category === cat);
+    const total = probesInCat.reduce((s,[,p]) => s + (p.attacks||[]).length, 0);
+    return `<div class="cat-row">
+      <span><span class="cat-name">${cat}</span><span class="cat-count">(${probesInCat.length}P / ${total}A)</span></span>
+      <div class="cat-btns">
+        <button class="btn-xs bx-ghost" onclick="selectCat('${cat}',true)">全選択</button>
+        <button class="btn-xs bx-ghost" onclick="selectCat('${cat}',false)">解除</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('modal-cat').classList.add('open');
+}
+
+function selectCat(cat, on) {
+  Object.entries(DATA.probes).forEach(([k, p]) => {
+    if (p.category !== cat) return;
+    if (on) selectedItems.set(k, new Set([...Array((p.attacks||[]).length).keys()]));
+    else selectedItems.delete(k);
+  });
+  renderList();
+  if (activeKey) renderDetail();
+  updateFooter();
+  toast(cat + ': ' + (on ? '全選択' : '全解除') + 'しました');
+}
+
+// ══ UTILS ══
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Close modals on bg click
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+
+// rand-n input updates info
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('rand-n').addEventListener('input', updateRandInfo);
+});
+</script>
+</body>
+</html>
